@@ -40,7 +40,9 @@ Brazo robótico de escritorio **4-DOF + pinza paralela de 2 dedos** con estétic
 
 ---
 
-## Cinemática Peter Corke y Gemelo Digital
+## Cinemática Peter Corke y Gemelo Digital 3D Real
+
+![Gemelo Digital 3D Real B2 Stealth](docs/renders/gemelo_digital_b2_stealth.png)
 
 | Modelo 3D Nativo (`roboticstoolbox-python`) | Espacio de Trabajo y Proyecciones XY / XZ / YZ |
 | :---: | :---: |
