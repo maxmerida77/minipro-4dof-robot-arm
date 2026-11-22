@@ -33,6 +33,7 @@ cad/render_vtk.py
 cad/render_iter2_vtk.py
 cad/exports/mini_pro_b2_v0.step
 cad/exports/mini_pro_b2_stealth_v1.step
+cad/exports/mini_pro_b2_stealth_v2.step
 docs/BOM_ALIEXPRESS.md
 docs/graficas_cinematica/
 docs/renders/renders_mini_pro_b2_v0.png

@@ -131,10 +131,13 @@ P4_HERO = (
     0.0,
     P3_HERO[2] + A3_MM * math.sin(math.radians(HERO_Q2 + HERO_Q3)),
 )
-GEAR_LOCAL_X = 31.5
-GEAR_LOCAL_Y = 7.1
+GEAR_LOCAL_X = 30.0
+GEAR_LOCAL_Y = 7.12
+IDLER_LOCAL_X = 21.0
+GRIP_LINK_L = 16.0
+HERO_GRIP_TH_DEG = math.degrees(math.asin(min(0.95, (HERO_GRIP / 2.0) / GRIP_LINK_L)))  # 30.0° exactos
 
-# Mapeo de cada STL a su grupo cinemático rígido
+# Mapeo de cada STL a su grupo cinemático rígido (CAD v3 DFM — 35 STLs + 19 hardware)
 GROUP_MAP = {
     # Base fija (Mundo)
     "01_base_fija_hueca.stl": "base",
@@ -154,40 +157,45 @@ GROUP_MAP = {
     "hw_capacitor_1000uf.stl": "base",
     # Piñón motriz J1 (gira -q1 en X=+22)
     "02_pinon_base_22t.stl": "pinion_j1",
-    # Eslabón 1: Torreta J1 + Tambor Hombro J2 (gira q1 en Z)
+    # Eslabón 1: Torreta J1 + Tambor Hombro J2 + Buje 608ZZ J2 (gira q1 en Z)
     "04_torreta_j1_hombro.stl": "j1",
     "04b_engrane_torreta_22t.stl": "j1",
+    "11_buje_608zz_j2.stl": "j1",
     "tapa_j2_izq.stl": "j1",
     "tapa_j2_der.stl": "j1",
     "w_aro_j2_izq.stl": "j1",
     "w_aro_j2_der.stl": "j1",
     "hw_mg90s_j2_hombro.stl": "j1",
     "hw_rodamiento_608zz_j2.stl": "j1",
-    # Eslabón 2: Brazo L2 + Tambor Codo J3 (q1, q2)
+    # Eslabón 2: Brazo L2 + Tambor Codo J3 + Buje 608ZZ J3 (q1, q2)
     "05_eslabon_l2_codo.stl": "j2",
+    "11_buje_608zz_j3.stl": "j2",
     "tapa_j3_izq.stl": "j2",
     "tapa_j3_der.stl": "j2",
     "w_aro_j3_izq.stl": "j2",
     "w_aro_j3_der.stl": "j2",
     "hw_mg90s_j3_codo.stl": "j2",
     "hw_rodamiento_608zz_j3.stl": "j2",
-    # Eslabón 3: Antebrazo L3 + Tambor Muñeca J4 (q1, q2, q3)
+    # Eslabón 3: Antebrazo L3 + Tambor Muñeca J4 + Buje 608ZZ J4 (q1, q2, q3)
     "06_antebrazo_l3_muneca.stl": "j3",
+    "11_buje_608zz_j4.stl": "j3",
     "tapa_j4_izq.stl": "j3",
     "tapa_j4_der.stl": "j3",
     "w_aro_j4_izq.stl": "j3",
     "w_aro_j4_der.stl": "j3",
     "hw_mg90s_j4_muneca.stl": "j3",
     "hw_rodamiento_608zz_j4.stl": "j3",
-    # Eslabón 4: Palma de pinza + SG90 (q1, q2, q3, q4)
+    # Eslabón 4: Palma de pinza + SG90 coaxial + aros puente (q1, q2, q3, q4)
     "07_palma_pinza_sg90.stl": "j4",
     "w02_collar_muneca_blanco.stl": "j4",
+    "w03_aro_engrane_0.stl": "j4",
+    "w03_aro_engrane_1.stl": "j4",
     "hw_sg90_pinza.stl": "j4",
-    # Efector final — Pinza paralela (engranes + dedos móviles)
-    "08_engrane_pinza_izq.stl": "gear_l",
-    "w03_aro_engrane_1.stl": "gear_l",
-    "09_engrane_pinza_der.stl": "gear_r",
-    "w03_aro_engrane_0.stl": "gear_r",
+    # Efector final — Paralelogramo de 4 barras real (engranes-brazo + bielas + dedos)
+    "08_engrane_brazo_izq.stl": "gear_l",
+    "09_engrane_brazo_der.stl": "gear_r",
+    "12_biela_pinza_izq.stl": "link_l",
+    "12_biela_pinza_der.stl": "link_r",
     "10_dedo_pinza_izq.stl": "finger_l",
     "w04_almohadilla_izq.stl": "finger_l",
     "10_dedo_pinza_der.stl": "finger_r",
@@ -231,6 +239,12 @@ def _bake_transform_for_group(group: str) -> vtk.vtkTransform:
         return tf
     if group == "gear_r":
         tf.Translate(-P4_HERO[0] - GEAR_LOCAL_X, +GEAR_LOCAL_Y, -P4_HERO[2])
+        return tf
+    if group == "link_l":
+        tf.Translate(-P4_HERO[0] - IDLER_LOCAL_X, -GEAR_LOCAL_Y, -P4_HERO[2])
+        return tf
+    if group == "link_r":
+        tf.Translate(-P4_HERO[0] - IDLER_LOCAL_X, +GEAR_LOCAL_Y, -P4_HERO[2])
         return tf
     return tf
 
@@ -381,10 +395,10 @@ class DigitalTwinApp:
         # Evitar que VTK cierre con 'e'/'q' o active wireframe con 'w'
         self.iren.RemoveObservers("CharEvent")
 
-        # Transformaciones dinámicas compartidas por grupo cinemático
+        # Transformaciones dinámicas compartidas por grupo cinemático (incluye paralelogramo 4 barras!)
         self.tfs = {
             k: vtk.vtkTransform()
-            for k in ("base", "pinion_j1", "j1", "j2", "j3", "j4", "gear_l", "gear_r", "finger_l", "finger_r")
+            for k in ("base", "pinion_j1", "j1", "j2", "j3", "j4", "gear_l", "gear_r", "link_l", "link_r", "finger_l", "finger_r")
         }
         self.plastic_actors = []
         self.hw_actors = []
@@ -681,7 +695,7 @@ class DigitalTwinApp:
         # Pie informativo sutil en la esquina inferior izquierda de la escena 3D
         _add_2d_text(
             self.ren3d,
-            "Modelo 3D CAD real (30 STLs + 19 componentes internos) · Sincronizado al milímetro con Peter Corke (d1=82, a2=82, a3=70, a4=53 mm)",
+            "Modelo 3D CAD v3 DFM real (35 STLs + 19 internos · pinza 4 barras) · Sincronizado con Peter Corke (d1=82, a2=82, a3=70, a4=53 mm)",
             0.02, 0.022, 12, (0.28, 0.28, 0.32),
         )
 
@@ -839,28 +853,39 @@ class DigitalTwinApp:
         self.tfs["j4"].Translate(A3_MM, 0.0, 0.0)
         self.tfs["j4"].RotateY(-q4)
 
-        # 2. Efector final: Engranes 14T contra-rotando + Dedos paralelos abriendo/cerrando
-        dg = g - HERO_GRIP
-        dy = dg / 2.0
-        gear_ang = dg * 3.0  # 30 mm -> 90° de giro
+        # 2. Efector final: Cinemática exacta del paralelogramo de 4 barras (engranes-brazo + bielas + dedos paralelos)
+        th_deg = math.degrees(math.asin(min(0.95, (g / 2.0) / GRIP_LINK_L)))
+        dth = th_deg - HERO_GRIP_TH_DEG
+        dx = GRIP_LINK_L * (math.cos(math.radians(th_deg)) - math.cos(math.radians(HERO_GRIP_TH_DEG)))
+        dy = GRIP_LINK_L * (math.sin(math.radians(th_deg)) - math.sin(math.radians(HERO_GRIP_TH_DEG)))
 
         self.tfs["gear_l"].Identity()
         self.tfs["gear_l"].Concatenate(self.tfs["j4"])
         self.tfs["gear_l"].Translate(GEAR_LOCAL_X, +GEAR_LOCAL_Y, 0.0)
-        self.tfs["gear_l"].RotateZ(+gear_ang)
+        self.tfs["gear_l"].RotateZ(+dth)
 
         self.tfs["gear_r"].Identity()
         self.tfs["gear_r"].Concatenate(self.tfs["j4"])
         self.tfs["gear_r"].Translate(GEAR_LOCAL_X, -GEAR_LOCAL_Y, 0.0)
-        self.tfs["gear_r"].RotateZ(-gear_ang)
+        self.tfs["gear_r"].RotateZ(-dth)
+
+        self.tfs["link_l"].Identity()
+        self.tfs["link_l"].Concatenate(self.tfs["j4"])
+        self.tfs["link_l"].Translate(IDLER_LOCAL_X, +GEAR_LOCAL_Y, 0.0)
+        self.tfs["link_l"].RotateZ(+dth)
+
+        self.tfs["link_r"].Identity()
+        self.tfs["link_r"].Concatenate(self.tfs["j4"])
+        self.tfs["link_r"].Translate(IDLER_LOCAL_X, -GEAR_LOCAL_Y, 0.0)
+        self.tfs["link_r"].RotateZ(-dth)
 
         self.tfs["finger_l"].Identity()
         self.tfs["finger_l"].Concatenate(self.tfs["j4"])
-        self.tfs["finger_l"].Translate(0.0, +dy, 0.0)
+        self.tfs["finger_l"].Translate(dx, +dy, 0.0)
 
         self.tfs["finger_r"].Identity()
         self.tfs["finger_r"].Concatenate(self.tfs["j4"])
-        self.tfs["finger_r"].Translate(0.0, -dy, 0.0)
+        self.tfs["finger_r"].Translate(dx, -dy, 0.0)
 
         # 3. Cinemática oficial Peter Corke (`fkine_all` + `jacob0` manipulabilidad)
         q_rad = np.deg2rad(self.q_deg)

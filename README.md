@@ -2,23 +2,26 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
 [![DOF](https://img.shields.io/badge/Kinematics-4--DOF%20%2B%20Gripper-18181B.svg)](#cinemática-peter-corke-y-gemelo-digital)
-[![CAD](https://img.shields.io/badge/CAD-CadQuery%20STEP%20%2B%2030%20STLs-2563EB.svg)](#cad-paramétrico-y-catálogo-de-piezas)
+[![CAD](https://img.shields.io/badge/CAD-CadQuery%20v3%20DFM%20%2B%2035%20STLs-2563EB.svg)](#cad-paramétrico-y-catálogo-de-piezas)
 [![MCU](https://img.shields.io/badge/Firmware-XIAO%20ESP32--S3%20%2B%20PCA9685-D45218.svg)](#electrónica-y-firmware-xiao-esp32-s3)
 
 Brazo robótico de escritorio **4-DOF + pinza paralela de 2 dedos** con estética minimalista monocromática **`B2 Stealth`**, diseñado desde cero mediante **CAD paramétrico por código (`CadQuery`)**, modelado cinemático exacto con la **Robotics Toolbox de Peter Corke (`roboticstoolbox-python`)**, **gemelo digital en tiempo real por Wi-Fi UDP / USB Serial** y alimentación limpia con **un único cable USB-C PD** (5V / 3A).
 
 > **Single Source of Truth:** Un solo archivo ([`cad/params.py`](cad/params.py)) controla al milímetro las dimensiones Denavit-Hartenberg, el ensamblaje 3D en SolidWorks/STEP, los 30 STLs imprimibles, la simulación de Peter Corke y los límites articulares del firmware.
 
-![Renders CAD v2 Ensamble, Corte Interno y Vista Explosionada](docs/renders/renders_iter2b_cad_v2.png)
+![Renders CAD v3 DFM — Revisiones A, B y C](docs/renders/renders_iter3_dfm_v3.png)
 
 ---
 
 ## Características Principales
 
-* **4 Grados de Libertad + Pinza Paralela:** Base Yaw (`J1`), Hombro Pitch (`J2`), Codo Pitch (`J3`), Muñeca Pitch (`J4`, permite mantener la orientación $\varphi$ de la pinza constante durante *pick-and-place*) y pinza paralela de 2 dedos (`0–30 mm`).
-* **100% Cables y Servos Ocultos:** Los `4× MG90S` metálicos (compatibles en huella con `MG92B`), el `SG90` de la pinza, `4×` rodamientos `608ZZ`, el driver `PCA9685` y la `XIAO ESP32-S3` van encapsulados dentro de los tambores, vigas huecas octagonales y la base Ø 94 mm.
+* **4 Grados de Libertad + Pinza Paralela Real de 4 Barras:** Base Yaw (`J1`), Hombro Pitch (`J2`), Codo Pitch (`J3`), Muñeca Pitch (`J4`, mantiene constante la orientación $\varphi$ durante *pick-and-place*) y pinza paralelogramo real de 4 barras (`0–30 mm`) con `SG90` coaxial bajo el engrane-brazo `14T` izquierdo y `2×` bielas traseras de paralelismo.
+* **Diseño DFM / Ensamble Real (`CAD v3`):**
+  * **Ejes metálicos en `608ZZ`:** bujes centradores (`11_buje_608zz_*`) + tornillos `M3×10` hacia insertos de latón `AR2811` (sin ejes impresos frágiles).
+  * **Montaje real de los `4× MG90S`:** acceso trasero `+Y` con escalón de orejas + pilotos `M2`, bolsillos empotrados de *horn* en cada eslabón y canales de cables continuos (`10 × 8 mm`) para conectores Dupont 3-pin.
+  * **Transmisión `22T:22T` antideslizamiento en J1:** corte en D en el eje de la torreta + barreno en D en `04b_engrane_torreta_22t`.
 * **Alimentación con 1 Solo Cable USB-C:** Cargador USB-C PD estándar (ej. UGREEN 50W) → módulo PD Trigger `AR5515` fijado en **5V** → botón físico trasero `KCD11-2P` → filtro `1000 µF` + diodo Schottky antirretorno `1N5819` para la `XIAO ESP32-S3`.
-* **Diseño Bicolor sin Desperdicio (0% Purga AMS):** 30 piezas `.STL` auditadas **30/30 estancas (*watertight*)** separadas por filamento (**18 Negro Mate ≈ 220 g** + **12 Blanco Mate ≈ 4 g**, total **~224 g de PLA**).
+* **Diseño Bicolor sin Desperdicio (0% Purga AMS):** 35 piezas `.STL` auditadas **35/35 estancas (*watertight*)** separadas por filamento (**23 Negro Mate ≈ 215 g** + **12 Blanco Mate ≈ 4 g**, total **~219 g de PLA**).
 * **Control Triple Simultáneo:**
   1. **Peter Corke Python por Wi-Fi UDP (puerto `4210`)** — gemelo digital en vivo manteniendo 1 solo cable de corriente en el escritorio.
   2. **USB Serial (`115200 baud`)** — compatible con Python y scripts de respaldo en MATLAB.
@@ -65,12 +68,12 @@ python python/gemelo_digital_esp32.py --port COM5         # Vivo por USB Serial
 
 ---
 
-## CAD Paramétrico y Catálogo de Piezas
+## CAD Paramétrico y Catálogo de Piezas (`v3 DFM`)
 
-![Catálogo Visual de las 30 Piezas CAD](docs/renders/catalogo_piezas_b2_stealth.png)
+![Catálogo Visual de las 35 Piezas CAD](docs/renders/catalogo_piezas_b2_stealth.png)
 
-* **Ensamble CAD Editable (SolidWorks / Fusion 360 / FreeCAD / Bambu Studio):** [`cad/exports/mini_pro_b2_stealth_v2.step`](cad/exports/mini_pro_b2_stealth_v2.step) (con las 30 piezas y todos los componentes internos nombrados en el árbol).
-* **Piezas `.STL` separadas por color:** [`cad/exports/stl_negro_mate/`](cad/exports/stl_negro_mate/) (18 pzas) y [`cad/exports/stl_blanco_mate/`](cad/exports/stl_blanco_mate/) (12 pzas).
+* **Ensamble CAD Editable (SolidWorks / Fusion 360 / FreeCAD / Bambu Studio):** [`cad/exports/mini_pro_b2_stealth_v3.step`](cad/exports/mini_pro_b2_stealth_v3.step) (con las 35 piezas y todos los componentes internos nombrados en el árbol).
+* **Piezas `.STL` separadas por color:** [`cad/exports/stl_negro_mate/`](cad/exports/stl_negro_mate/) (23 pzas) y [`cad/exports/stl_blanco_mate/`](cad/exports/stl_blanco_mate/) (12 pzas).
 * **Kit de Calibración de Tolerancias (20 min / ~14 g):** [`cad/exports/tolerance_test_kit_bambu_a1.stl`](cad/exports/tolerance_test_kit_bambu_a1.stl) para validar ajustes de `608ZZ`, `MG90S`, `SG90`, insertos `M3` y botón `KCD11-2P` antes de imprimir el brazo completo.
 * **Visor 3D Interactivo incluido:**
   ```powershell
@@ -101,16 +104,16 @@ python python/gemelo_digital_esp32.py --port COM5         # Vivo por USB Serial
 minipro-4dof-robot-arm/
 ├── cad/
 │   ├── params.py                          # Single Source of Truth (DH + hardware + holguras)
-│   ├── mini_pro_b2_stealth_v2.py          # Generador CAD paramétrico CadQuery (STEP + 30 STLs)
+│   ├── mini_pro_b2_stealth_v3.py          # Generador CAD v3 DFM (STEP + 35 STLs + 4 barras)
 │   ├── tolerance_test_kit.py              # Kit de prueba de tolerancias (20 min)
 │   ├── visor_cad_interactivo.py           # Visor 3D interactivo VTK (explode, X-Ray, picking)
-│   ├── render_iter2b_vtk.py               # Generador de tablero 4 vistas VTK
-│   ├── generar_catalogo_piezas.py         # Generador del catálogo visual de 30 STLs
+│   ├── render_iter3_dfm_v3.py             # Generador de tablero 4 vistas DFM v3
+│   ├── generar_catalogo_piezas.py         # Generador del catálogo visual de 35 STLs
 │   └── exports/
-│       ├── mini_pro_b2_stealth_v2.step    # Ensamble completo para SolidWorks / Fusion / Bambu Studio
+│       ├── mini_pro_b2_stealth_v3.step    # Ensamble completo v3 para SolidWorks / Fusion / Bambu Studio
 │       ├── tolerance_test_kit_bambu_a1.stl
-│       ├── stl_negro_mate/                # 18 piezas PLA Negro Mate (watertight)
-│       ├── stl_blanco_mate/               # 12 piezas PLA Blanco Mate (watertight)
+│       ├── stl_negro_mate/                # 23 piezas PLA Negro Mate (35/35 watertight)
+│       ├── stl_blanco_mate/               # 12 piezas PLA Blanco Mate (35/35 watertight)
 │       └── hardware_ref/                  # 19 mallas de referencia (servos, PCBs, 608ZZ)
 ├── python/
 │   ├── robot_minipro_rtb.py               # Modelo oficial Peter Corke DHRobot + IK analítica 4R

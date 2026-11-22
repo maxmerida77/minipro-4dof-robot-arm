@@ -270,20 +270,22 @@ def main():
             (0.945, 0.945, 0.935),
         ),
         (
-            "08–09 · Engranes 14T de Pinza",
-            "08_engrane_pinza_izq + 09_der · 2× Negro",
-            "Par sincronizado 14T (módulo 1.0) accionado por el SG90",
+            "08–09 + 12 · Paralelogramo Pinza 4 Barras",
+            "08/09_engrane_brazo + 12_biela · 4× Negro",
+            "Engranes-brazo 14T (horn SG90) + 2 bielas paralelas L=16 mm",
             [
-                (os.path.join(BLK_DIR, "08_engrane_pinza_izq.stl"), blk, (0, 0, 0)),
-                (os.path.join(BLK_DIR, "09_engrane_pinza_der.stl"), blk, (0, 0, 0)),
+                (os.path.join(BLK_DIR, "08_engrane_brazo_izq.stl"), blk, (0, 0, 0)),
+                (os.path.join(BLK_DIR, "09_engrane_brazo_der.stl"), blk, (0, 0, 0)),
+                (os.path.join(BLK_DIR, "12_biela_pinza_izq.stl"), blk, (0, 0, 0)),
+                (os.path.join(BLK_DIR, "12_biela_pinza_der.stl"), blk, (0, 0, 0)),
             ],
-            (0.8, -0.9, 1.35),
+            (0.65, -0.95, 1.45),
             (0.945, 0.945, 0.935),
         ),
         (
-            "10 · Dedos Paralelos de Pinza",
+            "10 · Dedos Paralelos Doble Pivote M3",
             "10_dedo_pinza_izq + der · 2× Negro",
-            "Mordazas biseladas paralelas (apertura 0–30 mm, TCP a 53 mm)",
+            "Mordazas paralelas 4 barras (apertura 0–30 mm, TCP a 53 mm)",
             [
                 (os.path.join(BLK_DIR, "10_dedo_pinza_izq.stl"), blk, (0, 0, 0)),
                 (os.path.join(BLK_DIR, "10_dedo_pinza_der.stl"), blk, (0, 0, 0)),
@@ -292,15 +294,18 @@ def main():
             (0.945, 0.945, 0.935),
         ),
         (
-            "11 · Tapas Laterales J2 / J3 / J4",
-            "tapa_j2/j3/j4_(izq/der) · 6× Negro",
-            "Tapas cosméticas Stealth que sellan servos y rodamientos",
+            "11 · Tapas Stealth + Bujes 608ZZ M3",
+            "tapa_j2..j4 (6×) + 11_buje_608zz (3×)",
+            "Tapas con ceja/M3 + 3 bujes centradores metálicos M3 en 608ZZ",
             [
-                (os.path.join(BLK_DIR, "tapa_j2_izq.stl"), blk, (-32, 0, 0)),
-                (os.path.join(BLK_DIR, "tapa_j3_izq.stl"), blk, (2, 0, 0)),
-                (os.path.join(BLK_DIR, "tapa_j4_izq.stl"), blk, (31, 0, 0)),
+                (os.path.join(BLK_DIR, "tapa_j2_izq.stl"), blk, (-34, 0, 4)),
+                (os.path.join(BLK_DIR, "tapa_j3_izq.stl"), blk, (-2, 0, 4)),
+                (os.path.join(BLK_DIR, "tapa_j4_izq.stl"), blk, (26, 0, 4)),
+                (os.path.join(BLK_DIR, "11_buje_608zz_j2.stl"), blk, (-18, 0, -24)),
+                (os.path.join(BLK_DIR, "11_buje_608zz_j3.stl"), blk, (4, 0, -24)),
+                (os.path.join(BLK_DIR, "11_buje_608zz_j4.stl"), blk, (26, 0, -24)),
             ],
-            (0.25, -1.6, 0.45),
+            (0.35, -1.55, 0.50),
             (0.945, 0.945, 0.935),
             True,
         ),
@@ -350,10 +355,10 @@ def main():
     total_blk_g = sum(r["est_mass_g"] for r in metrics if r["color"] == "Negro Mate")
     total_wht_g = sum(r["est_mass_g"] for r in metrics if r["color"] == "Blanco Mate")
 
-    draw.text((pad, 22), "CATÁLOGO VISUAL DE PIEZAS CAD — MINI-PRO 4-DOF (B2 STEALTH v2)", fill=(24, 24, 27), font=f_title)
+    draw.text((pad, 22), "CATÁLOGO VISUAL DE PIEZAS CAD — MINI-PRO 4-DOF (B2 STEALTH v3 DFM)", fill=(24, 24, 27), font=f_title)
     draw.text(
         (pad, 66),
-        f"30 piezas STL estancas (0% purga AMS) · Estimado PLA: ~{total_blk_g:.0f} g Negro Mate (18 pzas) + ~{total_wht_g:.0f} g Blanco Mate (12 pzas)",
+        f"{len(metrics)} piezas STL 100% estancas (0% purga AMS) · Estimado PLA: ~{total_blk_g:.0f} g Negro Mate (23 pzas) + ~{total_wht_g:.0f} g Blanco Mate (12 pzas)",
         fill=(92, 92, 98),
         font=f_sub,
     )

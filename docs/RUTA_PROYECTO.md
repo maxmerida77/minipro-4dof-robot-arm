@@ -21,9 +21,12 @@
 * `python/robot_minipro_rtb.py`, `python/demo_peter_corke.py`, gráficas en `docs/graficas_peter_corke/` (`error FK-IK = 1.27e-14°`, `error Z ctraj = 6.39e-14 mm`).
 * Carrito 100% verificado en vivo en **UNIT Electronics México**: `docs/BOM_UNIT_ELECTRONICS.md` (`\$566 MXN` subtotal).
 
-### Iteración 2B — Ingeniería Mecánica Interna y CAD Imprimible `v2` *(COMPLETADA)*
-* `cad/mini_pro_b2_stealth_v2.py` → `.STEP` ensamblado + **17 STLs Negro Mate** + **12 STLs Blanco Mate** + **Kit de Tolerancias de 20 min** (`cad/exports/tolerance_test_kit_bambu_a1.stl`).
-* Tablero de validación 3D sin colisiones (`docs/renders/renders_iter2b_cad_v2.png`).
+### Iteración 2C — Refinamiento Mecánico DFM `CAD v3` (Revisiones A + B + C) *(COMPLETADA)*
+* `cad/mini_pro_b2_stealth_v3.py` → `mini_pro_b2_stealth_v3.step` + **35/35 STLs estancos** (`23` Negro Mate + `12` Blanco Mate):
+  * **Revisión A:** acceso trasero `+Y` para `MG90S` con escalón de orejas + pilotos M2, bujes centradores `11_buje_608zz_*` + tornillo M3×10 hacia insertos `AR2811`, bolsillos empotrados de *horn*, ductos continuos de cables `10 × 8 mm` y tapas Stealth con ceja centradora + 2 barrenos M3.
+  * **Revisión B:** pinza paralela real de 4 barras (`SG90` coaxial bajo engrane-brazo `14T` izq, `2×` bielas traseras `12_biela_pinza_*`, pila Z libre de colisiones y dedos con doble pivote M3).
+  * **Revisión C:** corte plano en D en `04_torreta` + `04b_engrane_torreta_22t` (cero patinaje en J1), bolsillo *horn* en `02_pinon_base_22t`, 4 postes barrenados para `PCA9685`, retenedores `XIAO`/`AR5515` y huecos de gomitas antideslizantes.
+* Tablero DFM (`docs/renders/renders_iter3_dfm_v3.png`), catálogo de 35 piezas (`docs/renders/catalogo_piezas_b2_stealth.png`), Visor 3D y Gemelo Digital 3D (con paralelogramo 4 barras animado) 100% sincronizados.
 
 ### Iteración 4 — Circuito Eléctrico 1-Cable + Firmware `XIAO ESP32-S3` + Puente Wi-Fi *(COMPLETADA)*
 * Esquema eléctrico de potencia y lógica: `electronics/esquema_cableado_b2_stealth.png` + `electronics/DIAGRAMA_CABLEADO.md`.

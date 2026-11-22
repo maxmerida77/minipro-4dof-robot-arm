@@ -35,36 +35,41 @@ HW_DIR  = os.path.join(EXP, "hardware_ref")
 
 # Metadatos por pieza imprimible: (subensamble 1..5, descripción de ensamble, vector de explosión [dx, dy, dz] mm)
 PART_META = {
-    "01_base_fija_hueca.stl": (1, "Base fija Ø94 mm: aloja rodamiento 608ZZ arriba, MG90S J1 interno y 3 puertos traseros (XIAO, AR5515, KCD11).", (0, 0, 0)),
-    "02_pinon_base_22t.stl": (1, "Piñón motriz 22T: entra al eje del MG90S J1 y engrana 1:1 con 04b_engrane_torreta_22t.", (26, 0, -10)),
-    "03_tapa_inferior_electronica.stl": (1, "Tapa inferior: sujeta PCA9685 en 4 postes y XIAO ESP32-S3 en su cuna; se cierra con 4× M3 en insertos AR2811.", (0, 0, -52)),
+    "01_base_fija_hueca.stl": (1, "Base fija Ø94 mm (v3): 608ZZ con hombro, orejas MG90S J1, clips AR5515, botón KCD11 y ventana XIAO.", (0, 0, 0)),
+    "02_pinon_base_22t.stl": (1, "Piñón motriz 22T (v3): bolsillo empotrado de horn MG90S abajo; engrana 1:1 con 04b_engrane_torreta_22t.", (26, 0, -10)),
+    "03_tapa_inferior_electronica.stl": (1, "Tapa inferior (v3): 4 postes barrenados PCA9685, cuna XIAO con tope, avellanados M3 y 4 huecos gomitas.", (0, 0, -52)),
     "w01_aro_base_blanco.stl": (1, "Aro estético blanco base: separa visualmente la base fija de la torreta giratoria.", (0, 0, 26)),
-    "04_torreta_j1_hombro.stl": (2, "Torreta giratoria J1 + tambor Hombro J2: su eje entra al 608ZZ central y arriba aloja MG90S J2 + 608ZZ.", (0, 0, 50)),
-    "04b_engrane_torreta_22t.stl": (2, "Engrane conducido 22T (separado): entra por debajo del 608ZZ al eje de la torreta y se fija con tornillo M3×8.", (0, 0, -18)),
-    "tapa_j2_izq.stl": (2, "Tapa lateral izquierda J2 (lado rodamiento 608ZZ).", (0, -30, 50)),
-    "tapa_j2_der.stl": (2, "Tapa lateral derecha J2 (cubre cola del MG90S J2).", (0, 30, 50)),
-    "w_aro_j2_izq.stl": (2, "Aro blanco incrustado B2 Stealth — J2 izquierda.", (0, -38, 50)),
-    "w_aro_j2_der.stl": (2, "Aro blanco incrustado B2 Stealth — J2 derecha.", (0, 38, 50)),
-    "05_eslabon_l2_codo.stl": (3, "Eslabón inferior L2 (a2=82 mm): viga octagonal hueca pasa-cables + tambor Codo J3 (MG90S J3 + 608ZZ).", (16, 0, 76)),
-    "tapa_j3_izq.stl": (3, "Tapa lateral izquierda J3 (lado rodamiento 608ZZ).", (16, -30, 76)),
-    "tapa_j3_der.stl": (3, "Tapa lateral derecha J3 (cubre MG90S J3).", (16, 30, 76)),
-    "w_aro_j3_izq.stl": (3, "Aro blanco incrustado B2 Stealth — J3 izquierda.", (16, -38, 76)),
-    "w_aro_j3_der.stl": (3, "Aro blanco incrustado B2 Stealth — J3 derecha.", (16, 38, 76)),
-    "06_antebrazo_l3_muneca.stl": (4, "Antebrazo L3 (a3=70 mm): viga hueca pasa-cables + tambor Muñeca J4 (MG90S J4 + 608ZZ).", (52, 0, 62)),
-    "tapa_j4_izq.stl": (4, "Tapa lateral izquierda J4 (lado rodamiento 608ZZ).", (52, -28, 62)),
-    "tapa_j4_der.stl": (4, "Tapa lateral derecha J4 (cubre MG90S J4).", (52, 28, 62)),
-    "w_aro_j4_izq.stl": (4, "Aro blanco incrustado B2 Stealth — J4 izquierda.", (52, -36, 62)),
-    "w_aro_j4_der.stl": (4, "Aro blanco incrustado B2 Stealth — J4 derecha.", (52, 36, 62)),
-    "07_palma_pinza_sg90.stl": (5, "Palma de pinza con carenado inferior biselado: oculta 100% tu SG90 y sostiene los 2 engranes 14T.", (88, 0, 62)),
+    "04_torreta_j1_hombro.stl": (2, "Torreta J1 + Hombro J2 (v3): eje con corte en D, acceso +Y para MG90S J2 con orejas, hombro 608ZZ y rebajes tapas.", (0, 0, 50)),
+    "04b_engrane_torreta_22t.stl": (2, "Engrane 22T conducido (v3): barreno en D antideslizamiento; entra bajo el 608ZZ con tornillo M3×8.", (0, 0, -18)),
+    "11_buje_608zz_j2.stl": (2, "Buje centrador 608ZZ J2 (v3): entra por -Y con tornillo M3×10 al inserto AR2811 en L2 (eje metálico real).", (0, -24, 50)),
+    "tapa_j2_izq.stl": (2, "Tapa Stealth J2 izquierda (v3): ceja centradora + 2 barrenos avellanados M3.", (0, -34, 50)),
+    "tapa_j2_der.stl": (2, "Tapa Stealth J2 derecha (v3): sella el acceso trasero del MG90S J2 con 2 tornillos M3.", (0, 34, 50)),
+    "w_aro_j2_izq.stl": (2, "Aro blanco incrustado B2 Stealth — J2 izquierda.", (0, -40, 50)),
+    "w_aro_j2_der.stl": (2, "Aro blanco incrustado B2 Stealth — J2 derecha.", (0, 40, 50)),
+    "05_eslabon_l2_codo.stl": (3, "Eslabón L2 (v3): bolsillo horn J2, inserto AR2811, ducto cables continuo 10×8 mm + acceso +Y MG90S J3.", (16, 0, 76)),
+    "11_buje_608zz_j3.stl": (3, "Buje centrador 608ZZ J3 (v3): acopla L3 con tornillo M3×10 al inserto AR2811.", (16, -24, 76)),
+    "tapa_j3_izq.stl": (3, "Tapa Stealth J3 izquierda (v3): ceja centradora + 2 barrenos M3.", (16, -34, 76)),
+    "tapa_j3_der.stl": (3, "Tapa Stealth J3 derecha (v3): sella el acceso trasero del MG90S J3.", (16, 34, 76)),
+    "w_aro_j3_izq.stl": (3, "Aro blanco incrustado B2 Stealth — J3 izquierda.", (16, -40, 76)),
+    "w_aro_j3_der.stl": (3, "Aro blanco incrustado B2 Stealth — J3 derecha.", (16, 40, 76)),
+    "06_antebrazo_l3_muneca.stl": (4, "Antebrazo L3 (v3): bolsillo horn J3, inserto AR2811, ducto cables continuo + acceso +Y MG90S J4.", (52, 0, 62)),
+    "11_buje_608zz_j4.stl": (4, "Buje centrador 608ZZ J4 (v3): acopla la Palma con tornillo M3×10 al inserto AR2811.", (52, -24, 62)),
+    "tapa_j4_izq.stl": (4, "Tapa Stealth J4 izquierda (v3): ceja centradora + 2 barrenos M3.", (52, -32, 62)),
+    "tapa_j4_der.stl": (4, "Tapa Stealth J4 derecha (v3): sella el acceso trasero del MG90S J4.", (52, 32, 62)),
+    "w_aro_j4_izq.stl": (4, "Aro blanco incrustado B2 Stealth — J4 izquierda.", (52, -38, 62)),
+    "w_aro_j4_der.stl": (4, "Aro blanco incrustado B2 Stealth — J4 derecha.", (52, 38, 62)),
+    "07_palma_pinza_sg90.stl": (5, "Palma 4 barras (v3): bolsillo horn J4, SG90 coaxial bajo engrane izq, acceso inferior y 4 pivotes M3.", (88, 0, 62)),
     "w02_collar_muneca_blanco.stl": (5, "Collar blanco de muñeca: acento minimalista en la entrada de la pinza.", (78, 0, 62)),
-    "08_engrane_pinza_izq.stl": (5, "Engrane 14T izquierdo de pinza (se acopla directo al eje/horn del SG90).", (96, 10, 76)),
-    "09_engrane_pinza_der.stl": (5, "Engrane 14T derecho de pinza (engranado 1:1 en espejo con el izquierdo).", (96, -10, 76)),
-    "w03_aro_engrane_0.stl": (5, "Aro blanco central de engrane derecho.", (96, -10, 84)),
-    "w03_aro_engrane_1.stl": (5, "Aro blanco central de engrane izquierdo.", (96, 10, 84)),
-    "10_dedo_pinza_izq.stl": (5, "Dedo paralelo izquierdo biselado (TCP a a4 = 53 mm desde J4).", (116, 16, 62)),
-    "10_dedo_pinza_der.stl": (5, "Dedo paralelo derecho biselado (apertura total 0–30 mm).", (116, -16, 62)),
-    "w04_almohadilla_izq.stl": (5, "Almohadilla blanca interior dedo izquierdo.", (120, 8, 62)),
-    "w04_almohadilla_der.stl": (5, "Almohadilla blanca interior dedo derecho.", (120, -8, 62)),
+    "08_engrane_brazo_izq.stl": (5, "Engrane-Brazo 14T izq (v3): 1 sola pieza con bolsillo horn SG90 abajo (L=16 mm).", (96, 12, 76)),
+    "09_engrane_brazo_der.stl": (5, "Engrane-Brazo 14T der (v3): espejo 1:1 del motriz (L=16 mm).", (96, -12, 76)),
+    "12_biela_pinza_izq.stl": (5, "Biela paralela trasera izquierda (v3): cierra el paralelogramo de 4 barras (L=16 mm).", (92, 12, 46)),
+    "12_biela_pinza_der.stl": (5, "Biela paralela trasera derecha (v3): garantiza mordazas 100% paralelas (L=16 mm).", (92, -12, 46)),
+    "w03_aro_engrane_0.stl": (5, "Aro blanco central de engrane derecho.", (96, -12, 84)),
+    "w03_aro_engrane_1.stl": (5, "Aro blanco central de engrane izquierdo.", (96, 12, 84)),
+    "10_dedo_pinza_izq.stl": (5, "Dedo paralelo izq (v3): mordaza biselada con puente trasero de doble pivote M3 (9 mm).", (118, 18, 62)),
+    "10_dedo_pinza_der.stl": (5, "Dedo paralelo der (v3): apertura paralela real 0–30 mm, TCP a 53 mm.", (118, -18, 62)),
+    "w04_almohadilla_izq.stl": (5, "Almohadilla blanca interior dedo izquierdo.", (122, 10, 62)),
+    "w04_almohadilla_der.stl": (5, "Almohadilla blanca interior dedo derecho.", (122, -10, 62)),
 }
 
 # Metadatos para hardware interno (servos, PCBs, rodamientos): (subensamble, rgb, descripción, explosión)
@@ -92,10 +97,10 @@ HW_META = {
 
 SUBASSY_NAMES = {
     1: "1 · Base Fija + Electrónica (4 pzas + PCBs/MG90S J1)",
-    2: "2 · Torreta J1 + Engrane 22T + Hombro J2 (6 pzas)",
-    3: "3 · Eslabón L2 + Codo J3 (5 pzas)",
-    4: "4 · Antebrazo L3 + Muñeca J4 (5 pzas)",
-    5: "5 · Pinza Paralela SG90 (10 pzas)",
+    2: "2 · Torreta J1 + 22T en D + Hombro J2 + Buje M3 (7 pzas)",
+    3: "3 · Eslabón L2 + Codo J3 + Buje M3 (6 pzas)",
+    4: "4 · Antebrazo L3 + Muñeca J4 + Buje M3 (6 pzas)",
+    5: "5 · Pinza Paralela 4 Barras SG90 Coaxial (12 pzas)",
 }
 
 
@@ -260,7 +265,7 @@ class CadViewerApp:
             self.win.SetOffScreenRendering(1)
         self.win.AddRenderer(self.ren)
         self.win.SetSize(1280, 760)
-        self.win.SetWindowName("Visor CAD 3D Interactivo — Mini-Pro 4-DOF B2 Stealth (30 Piezas + Electrónica)")
+        self.win.SetWindowName("Visor CAD 3D Interactivo — Mini-Pro 4-DOF B2 Stealth v3 DFM (35 Piezas + Electrónica)")
         self.win.SetMultiSamples(4)
 
         self.iren = vtk.vtkRenderWindowInteractor()
