@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+
+# PlatformIO / Arduino build artifacts
+.pio/
+.vscode/
+*.bin
+*.elf
+
+# SolidWorks / CAD temporary & local binary files
+~$*.SLD*
+~$*.sld*
+*.SLDASM
+*.SLDPRT
+*.SLDDRW
+*.bak
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Legacy iteration drafts (kept locally, excluded from clean v2 release)
+CONTEXTO_PROYECTO.md
+cad/mini_pro_b2_v0.py
+cad/mini_pro_b2_stealth_v1.py
+cad/render_vtk.py
+cad/render_iter2_vtk.py
+cad/exports/mini_pro_b2_v0.step
+cad/exports/mini_pro_b2_stealth_v1.step
+docs/BOM_ALIEXPRESS.md
+docs/graficas_cinematica/
+docs/renders/renders_mini_pro_b2_v0.png
+docs/renders/renders_iter2_cad_interno.png
+docs/renders/v0_*.png
+python/cinematica_minipro_4dof.py
