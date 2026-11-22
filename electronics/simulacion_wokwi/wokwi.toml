@@ -1,0 +1,8 @@
+[wokwi]
+version = 1
+firmware = '../../firmware/.pio/build/xiao_esp32s3/firmware.bin'
+elf = '../../firmware/.pio/build/xiao_esp32s3/firmware.elf'
+
+[[chip]]
+name = 'pca9685'
+binary = 'pca9685.chip.wasm'

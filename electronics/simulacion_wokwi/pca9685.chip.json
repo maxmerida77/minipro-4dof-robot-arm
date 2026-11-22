@@ -1,0 +1,18 @@
+{
+  "name": "PCA9685 (0x40)",
+  "author": "Mini-Pro 4-DOF B2 Stealth",
+  "pins": [
+    "VCC",
+    "GND",
+    "SCL",
+    "SDA",
+    "OE",
+    "",
+    "CH0",
+    "CH1",
+    "CH2",
+    "CH3",
+    "CH4",
+    ""
+  ]
+}

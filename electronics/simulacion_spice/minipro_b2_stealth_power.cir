@@ -1,0 +1,41 @@
+* ============================================================================
+* Mini-Pro 4-DOF (B2 Stealth) — Netlist SPICE de Etapa de Potencia y Protección
+* ============================================================================
+* Compatible con ngspice (integrado en KiCad 9.0) y LTspice.
+* Modela fielmente el circuito real verificado en `minipro_b2_stealth.kicad_sch`:
+*   Cargador UGREEN 50W (USB-C PD 5V) -> AR5515 (5V) -> KCD11-2P ->
+*     -> Bus +5V_SERVO + Capacitor 1000uF 16V (AR1127) -> PCA9685 V+ (4xMG90S+SG90)
+*     -> Diodo Schottky 1N5819 (AR0195) -> XIAO ESP32-S3 5V_IN (Wi-Fi activo 220mA)
+* ============================================================================
+
+* --- 1. Alimentación USB-C PD (UGREEN 50W + cable + MOSFET del AR5515) ---
+V_PD       n_pd_int   0        DC 5.05
+R_PD_CABLE n_pd_int   n_pd_l   0.22
+L_PD_CABLE n_pd_l     n_5v_raw 1.5u
+
+* --- 2. Interruptor Trasero KCD11-2P ON/OFF (AR0243) ---
+R_KCD11    n_5v_raw   n_5v_srv 0.04
+
+* --- 3. Capacitor Electrolítico 1000uF 16V (AR1127) directo en bornera PCA9685 ---
+R_C1_ESR   n_5v_srv   n_c1_int 0.08
+C1_BULK    n_c1_int   0        1000u IC=5.0
+
+* --- 4. Carga Dinámica de los 5 Servos (4x MG90S + 1x SG90) ---
+* Perfil de corriente real:
+*   0..10ms  : Reposo (0.15 A)
+*  10..26ms  : Pico de arranque simultáneo 4x MG90S (2.20 A)
+*  26..52ms  : Movimiento suave quíntico 100 Hz (0.85 A)
+*  52..68ms  : Pico combinado hombro J2 + agarre pinza SG90 (2.60 A)
+*  68..90ms  : Retorno a reposo (0.20 A)
+I_SERVOS   n_5v_srv   0        PWL(0 0.15 9.8m 0.15 10.5m 2.20 24m 2.20 26m 0.85 51.8m 0.85 52.5m 2.60 66m 2.60 68m 0.20 90m 0.20)
+
+* --- 5. Diodo Schottky Antirretorno 1N5819 (AR0195) hacia XIAO ESP32-S3 5V_IN ---
+D1_1N5819  n_5v_srv   n_5v_xiao D1N5819
+.model D1N5819 D(IS=2.6e-5 N=1.08 RS=0.055 BV=40 IBV=1m CJO=110p VJ=0.35 M=0.38)
+
+* --- 6. Carga XIAO ESP32-S3 (Wi-Fi UDP + Web UI activos: ~220 mA + cap 22uF onboard) ---
+C_XIAO_IN  n_5v_xiao  0        22u IC=4.65
+I_XIAO     n_5v_xiao  0        DC 0.22
+
+.tran 50u 90m UIC
+.end

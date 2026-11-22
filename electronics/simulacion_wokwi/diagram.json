@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "author": "Mini-Pro 4-DOF B2 Stealth",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-s3-devkitc-1",
+      "id": "esp",
+      "top": 48,
+      "left": -240,
+      "attrs": {}
+    },
+    {
+      "type": "chip-pca9685",
+      "id": "pca9685",
+      "top": 86,
+      "left": 20,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "j1_base",
+      "top": -110,
+      "left": 290,
+      "attrs": { "horn": "single" }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "j2_hombro",
+      "top": 10,
+      "left": 290,
+      "attrs": { "horn": "single" }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "j3_codo",
+      "top": 130,
+      "left": 290,
+      "attrs": { "horn": "single" }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "j4_muneca",
+      "top": 250,
+      "left": 290,
+      "attrs": { "horn": "single" }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "pinza_sg90",
+      "top": 370,
+      "left": 290,
+      "attrs": { "horn": "double" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+
+    [ "esp:3V3.1", "pca9685:VCC", "orange", [ "h28", "v-10" ] ],
+    [ "esp:GND.1", "pca9685:GND", "black",  [ "h24", "v18" ] ],
+    [ "esp:5",     "pca9685:SDA", "blue",   [ "h34", "v-12" ] ],
+    [ "esp:6",     "pca9685:SCL", "purple", [ "h44", "v-24" ] ],
+
+    [ "pca9685:CH0", "j1_base:PWM",    "orange", [ "h42", "v-160" ] ],
+    [ "pca9685:CH1", "j2_hombro:PWM",  "orange", [ "h54", "v-50" ] ],
+    [ "pca9685:CH2", "j3_codo:PWM",    "orange", [ "h66", "v55" ] ],
+    [ "pca9685:CH3", "j4_muneca:PWM",  "orange", [ "h54", "v160" ] ],
+    [ "pca9685:CH4", "pinza_sg90:PWM", "orange", [ "h42", "v265" ] ],
+
+    [ "esp:5V",    "j1_base:V+",    "red",   [ "h18", "v-160", "h480" ] ],
+    [ "esp:5V",    "j2_hombro:V+",  "red",   [ "h18", "v-160", "h480", "v120" ] ],
+    [ "esp:5V",    "j3_codo:V+",    "red",   [ "h18", "v-160", "h480", "v240" ] ],
+    [ "esp:5V",    "j4_muneca:V+",  "red",   [ "h18", "v-160", "h480", "v360" ] ],
+    [ "esp:5V",    "pinza_sg90:V+", "red",   [ "h18", "v-160", "h480", "v480" ] ],
+
+    [ "esp:GND.2", "j1_base:GND",    "black", [ "h12", "v270", "h460", "v-520" ] ],
+    [ "esp:GND.2", "j2_hombro:GND",  "black", [ "h12", "v270", "h460", "v-400" ] ],
+    [ "esp:GND.2", "j3_codo:GND",    "black", [ "h12", "v270", "h460", "v-280" ] ],
+    [ "esp:GND.2", "j4_muneca:GND",  "black", [ "h12", "v270", "h460", "v-160" ] ],
+    [ "esp:GND.2", "pinza_sg90:GND", "black", [ "h12", "v270", "h460", "v-40" ] ]
+  ],
+  "dependencies": {}
+}
