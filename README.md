@@ -75,6 +75,7 @@ python python/gemelo_digital_esp32.py --port COM5         # Vivo por USB Serial
 
 * **Ensamble CAD Editable (SolidWorks / Fusion 360 / FreeCAD / Bambu Studio):** [`cad/exports/mini_pro_b2_stealth_v3.step`](cad/exports/mini_pro_b2_stealth_v3.step) (con las 35 piezas y todos los componentes internos nombrados en el árbol).
 * **Piezas `.STL` separadas por color:** [`cad/exports/stl_negro_mate/`](cad/exports/stl_negro_mate/) (23 pzas) y [`cad/exports/stl_blanco_mate/`](cad/exports/stl_blanco_mate/) (12 pzas).
+* **Placas de Impresión Listas para Bambu Lab A1 Combo (`256 × 256 mm`, `Z = 0`, 0% Purga AMS):** [`cad/exports/placas_bambu_a1/`](cad/exports/placas_bambu_a1/) + guía completa de laminado en [`docs/GUIA_IMPRESION_BAMBU_A1.md`](docs/GUIA_IMPRESION_BAMBU_A1.md) *(30/35 piezas sin soportes: Placa 1A Estructura `0.20 mm` · Placa 1B Precisión `0.12 mm` · Placa 2 Blanco Mate `0.16 mm`)*.
 * **Kit de Calibración de Tolerancias (20 min / ~14 g):** [`cad/exports/tolerance_test_kit_bambu_a1.stl`](cad/exports/tolerance_test_kit_bambu_a1.stl) para validar ajustes de `608ZZ`, `MG90S`, `SG90`, insertos `M3` y botón `KCD11-2P` antes de imprimir el brazo completo.
 * **Visor 3D Interactivo incluido:**
   ```powershell
@@ -109,6 +110,7 @@ minipro-4dof-robot-arm/
 │   ├── params.py                          # Single Source of Truth (DH + hardware + holguras)
 │   ├── mini_pro_b2_stealth_v3.py          # Generador CAD v3.1 DFM (STEP + 35 STLs + 4 barras)
 │   ├── auditoria_ensamble_v3.py           # Auditoría matemática B-Rep 3D (0.00 mm³ en 49 sólidos)
+│   ├── generar_placas_bambu_a1.py         # Generador de 3 placas planas Z=0 (.3mf/.stl) para Bambu A1
 │   ├── tolerance_test_kit.py              # Kit de prueba de tolerancias (20 min)
 │   ├── visor_cad_interactivo.py           # Visor 3D interactivo VTK (explode, X-Ray, picking)
 │   ├── render_iter3_dfm_v3.py             # Generador de tablero 4 vistas DFM v3.1
@@ -116,6 +118,7 @@ minipro-4dof-robot-arm/
 │   └── exports/
 │       ├── mini_pro_b2_stealth_v3.step    # Ensamble completo v3.1 para SolidWorks / Fusion / Bambu Studio
 │       ├── tolerance_test_kit_bambu_a1.stl
+│       ├── placas_bambu_a1/               # 3 placas .3mf/.stl listas para Bambu Studio + 35 STLs Z=0
 │       ├── stl_negro_mate/                # 23 piezas PLA Negro Mate (35/35 watertight)
 │       ├── stl_blanco_mate/               # 12 piezas PLA Blanco Mate (35/35 watertight)
 │       └── hardware_ref/                  # 19 mallas de referencia (servos, PCBs, 608ZZ)
@@ -143,6 +146,7 @@ minipro-4dof-robot-arm/
 │   ├── esquema_cableado_b2_stealth.png
 │   └── generar_esquema.py
 ├── docs/
+│   ├── GUIA_IMPRESION_BAMBU_A1.md         # Perfiles de laminado, soportes y protocolo de insertos M3
 │   ├── BOM_UNIT_ELECTRONICS.md            # Carrito verificado en México con SKUs y precios
 │   ├── RUTA_PROYECTO.md                   # Mapa de iteraciones y estado actual
 │   ├── graficas_peter_corke/              # Figuras de validación cinemática

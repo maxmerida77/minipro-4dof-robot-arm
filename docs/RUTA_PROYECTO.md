@@ -35,9 +35,14 @@
   * Control triple simultáneo: **USB Serial (`115200`)**, **Wi-Fi UDP (`4210`)** para Peter Corke con 1 solo cable, y **Web UI `B2 Stealth`** integrada en la XIAO.
 * Gemelo digital actualizado (`python/gemelo_digital_esp32.py`) con `--wifi <IP>`, `--port COMx` y `DRY_RUN`.
 
-### Iteración 3 — DFM, Platos de Impresión Bambu Lab A1 Combo y Prueba de Tolerancias *(POSPUESTA PARA CUANDO LLEGUEN FILAMENTO / PIEZAS)*
-* Acomodar automáticamente las 29 piezas planas sobre `Z = 0` en 2 platos `256 × 256 mm` (Negro Mate y Blanco Mate) con orientación óptima de capas y cero/mínimos soportes.
-* Imprimir el **Kit de Tolerancias de 20 min**, ajustar `CLEARANCE_FIT` si hace falta e imprimir el juego definitivo.
+### Iteración 3 — DFM, 3 Placas Planas Z=0 para Bambu Lab A1 Combo y Prueba de Tolerancias *(COMPLETADA)*
+* Auditoría matemática B-Rep 3D (`cad/auditoria_ensamble_v3.py`): **`0.00 mm³` colisiones** en los 49 sólidos (pose héroe + pinza cerrada `2 mm` + pinza abierta `28 mm`).
+* Generador automático de placas (`cad/generar_placas_bambu_a1.py`) → 3 archivos `.3mf` multi-objeto + respaldos `.stl` + 35 STLs individuales orientados en `Z = 0.000 mm` en `cad/exports/placas_bambu_a1/`:
+  * `placa_1a_negro_estructura_020mm.3mf` (`6` pzas, `~222 g`, capa `0.20 mm`, Soporte Árbol solo cama en `5/6`).
+  * `placa_1b_negro_precision_012mm.3mf` (`17` pzas, `~15.2 g`, capa `0.12 mm`, **`0 / 17` soportes**).
+  * `placa_2_blanco_mate_016mm.3mf` (`12` pzas, `~5.5 g`, capa `0.16 mm`, **`0 / 12` soportes, 0% purga AMS**).
+* Guía de laminado Bambu Studio y protocolo de insertos térmicos: `docs/GUIA_IMPRESION_BAMBU_A1.md` + tablero `docs/renders/placas_impresion_bambu_a1.png`.
+* Proyecto eléctrico nativo KiCad 9.0 (`electronics/kicad/`, `0 Errores ERC`) + Diagrama pictórico estilo Fritzing 4K (`electronics/diagrama_fritzing_b2_stealth.png`).
 
 ### Iteración 5 — Pruebas en Banco, Ensamble Físico y Entrega Escolar *(FINAL)*
 * Verificación `5.0 V` del `AR5515` con multímetro, centrado `CENTER` (`1500 µs`) de los `4× MG90S` antes de atornillar los *horns*, ensamble mecánico completo y ajuste fino de `offset_deg` en `config.h`.
