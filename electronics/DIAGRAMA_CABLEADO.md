@@ -1,5 +1,10 @@
 # Guía de Cableado Eléctrico — Mini-Pro 4-DOF (`B2 Stealth`)
 
+## Diagrama Pictórico de Conexiones (Estilo Fritzing)
+* **PNG 4K (listo para imprimir o ver en pantalla):** [`diagrama_fritzing_b2_stealth.png`](diagrama_fritzing_b2_stealth.png) · **SVG vectorial (zoom infinito):** [`diagrama_fritzing_b2_stealth.svg`](diagrama_fritzing_b2_stealth.svg)
+
+![Diagrama Pictórico Estilo Fritzing](diagrama_fritzing_b2_stealth.png)
+
 ## Proyecto Nativo KiCad 9.0 (Verificado: `0 Errores, 0 Avisos` en ERC)
 El proyecto eléctrico editable y portátil está en [`kicad/`](kicad/):
 * **Proyecto KiCad 9:** [`kicad/minipro_b2_stealth.kicad_pro`](kicad/minipro_b2_stealth.kicad_pro)

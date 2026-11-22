@@ -86,8 +86,9 @@ python python/gemelo_digital_esp32.py --port COM5         # Vivo por USB Serial
 
 ## Electrónica y Firmware `XIAO ESP32-S3`
 
-![Esquema Eléctrico B2 Stealth](electronics/esquema_cableado_b2_stealth.png)
+![Diagrama Pictórico Estilo Fritzing — Mini-Pro 4-DOF B2 Stealth](electronics/diagrama_fritzing_b2_stealth.png)
 
+* **Diagrama pictórico estilo Fritzing (4K + SVG vectorial):** [`electronics/diagrama_fritzing_b2_stealth.png`](electronics/diagrama_fritzing_b2_stealth.png) · [`diagrama_fritzing_b2_stealth.svg`](electronics/diagrama_fritzing_b2_stealth.svg)
 * **Proyecto Nativo KiCad 9.0 (`0 Errores, 0 Avisos` en ERC):** [`electronics/kicad/minipro_b2_stealth.kicad_pro`](electronics/kicad/minipro_b2_stealth.kicad_pro) · Esquemático editable [`minipro_b2_stealth.kicad_sch`](electronics/kicad/minipro_b2_stealth.kicad_sch) · Plano técnico PDF [`minipro_b2_stealth_sch.pdf`](electronics/kicad/minipro_b2_stealth_sch.pdf) · SVG [`minipro_b2_stealth.svg`](electronics/kicad/svg/minipro_b2_stealth.svg).
 * **Guía pin-a-pin y protocolo de encendido seguro:** [`electronics/DIAGRAMA_CABLEADO.md`](electronics/DIAGRAMA_CABLEADO.md)
 * **Lista de materiales (BOM verificada en México):** [`docs/BOM_UNIT_ELECTRONICS.md`](docs/BOM_UNIT_ELECTRONICS.md) *(presupuesto total estimado con filamento: ~1,155 – 1,355 MXN)*.
@@ -127,6 +128,9 @@ minipro-4dof-robot-arm/
 │   ├── platformio.ini
 │   └── README_FIRMWARE.md
 ├── electronics/
+│   ├── diagrama_fritzing_b2_stealth.png   # Diagrama pictórico 4K estilo Fritzing (componentes reales)
+│   ├── diagrama_fritzing_b2_stealth.svg   # Vector SVG editable (zoom infinito)
+│   ├── generar_diagrama_fritzing.py
 │   ├── kicad/                             # Proyecto nativo KiCad 9.0 (0 Errores ERC + PDF/SVG)
 │   │   ├── minipro_b2_stealth.kicad_pro
 │   │   ├── minipro_b2_stealth.kicad_sch

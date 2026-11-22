@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1180" width="1800" height="1180">
+
+<defs>
+  <filter id="shadow" x="-10%" y="-10%" width="124%" height="128%">
+    <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.16"/>
+  </filter>
+  <filter id="shadowSm" x="-8%" y="-8%" width="118%" height="120%">
+    <feDropShadow dx="0" dy="2.5" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.12"/>
+  </filter>
+  <pattern id="dotGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+    <circle cx="2" cy="2" r="1.15" fill="#CBD5E1" opacity="0.55"/>
+  </pattern>
+  <linearGradient id="ugreenBody" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#475569"/>
+    <stop offset="50%" stop-color="#334155"/>
+    <stop offset="100%" stop-color="#1E293B"/>
+  </linearGradient>
+  <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#F1F5F9"/>
+    <stop offset="48%" stop-color="#CBD5E1"/>
+    <stop offset="100%" stop-color="#94A3B8"/>
+  </linearGradient>
+  <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#FDE68A"/>
+    <stop offset="55%" stop-color="#F59E0B"/>
+    <stop offset="100%" stop-color="#B45309"/>
+  </linearGradient>
+  <linearGradient id="goldPad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#FEF08A"/>
+    <stop offset="50%" stop-color="#F59E0B"/>
+    <stop offset="100%" stop-color="#B45309"/>
+  </linearGradient>
+  <linearGradient id="pcbPurple" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#4338CA"/>
+    <stop offset="100%" stop-color="#312E81"/>
+  </linearGradient>
+  <linearGradient id="pcbBlack" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#27272A"/>
+    <stop offset="100%" stop-color="#09090B"/>
+  </linearGradient>
+  <linearGradient id="pcbBlue" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#1D4ED8"/>
+    <stop offset="55%" stop-color="#1E40AF"/>
+    <stop offset="100%" stop-color="#172554"/>
+  </linearGradient>
+  <linearGradient id="switchRocker" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#3F3F46"/>
+    <stop offset="55%" stop-color="#27272A"/>
+    <stop offset="100%" stop-color="#18181B"/>
+  </linearGradient>
+  <linearGradient id="diodeBody" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#3F3F46"/>
+    <stop offset="45%" stop-color="#18181B"/>
+    <stop offset="100%" stop-color="#09090B"/>
+  </linearGradient>
+  <linearGradient id="silverBand" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#FFFFFF"/>
+    <stop offset="50%" stop-color="#CBD5E1"/>
+    <stop offset="100%" stop-color="#94A3B8"/>
+  </linearGradient>
+  <linearGradient id="capBody" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#1E293B"/>
+    <stop offset="40%" stop-color="#0F172A"/>
+    <stop offset="100%" stop-color="#1E3A8A"/>
+  </linearGradient>
+  <linearGradient id="mg90Blue" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#3B82F6"/>
+    <stop offset="55%" stop-color="#2563EB"/>
+    <stop offset="100%" stop-color="#1D4ED8"/>
+  </linearGradient>
+  <linearGradient id="sg90Blue" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#38BDF8"/>
+    <stop offset="55%" stop-color="#0284C7"/>
+    <stop offset="100%" stop-color="#0369A1"/>
+  </linearGradient>
+</defs>
+<rect width="1800" height="1180" fill="#F8FAFC"/>
+<rect width="1800" height="1180" fill="url(#dotGrid)"/>
+<rect x="0" y="0" width="1800" height="80" fill="#0F172A"/>
+<text x="34.0" y="36.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="21.5" font-weight="800" fill="#F8FAFC" text-anchor="start" >MINI-PRO 4-DOF (B2 STEALTH) — DIAGRAMA PICTÓRICO DE CONEXIONES (ESTILO FRITZING)</text>
+<text x="34.0" y="60.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13.5" font-weight="500" fill="#94A3B8" text-anchor="start" >Alimentación con 1 solo cable USB-C (5V / 3A) · XIAO ESP32-S3 (I2C 3.3V) ↔ PCA9685 (0x40) → 4× MG90S + 1× SG90</text>
+<rect x="1556.3" y="26.0" width="191.4" height="28.0" rx="14.0" fill="#16A34A"/><text x="1652.0" y="44.1" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" >VERIFICADO KiCad 9 · 0 ERC</text>
+<rect x="24" y="96" width="1752" height="206" rx="14" fill="#FEF2F2" opacity="0.65" stroke="#FECACA" stroke-width="1.6"/>
+<text x="42.0" y="119.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="11.5" font-weight="800" fill="#991B1B" text-anchor="start" >1 · ETAPA DE POTENCIA — 1 SOLO CABLE USB-C PD (5V / 3A) + FILTRO DE PICOS</text>
+<rect x="24" y="314" width="1752" height="344" rx="14" fill="#EFF6FF" opacity="0.65" stroke="#BFDBFE" stroke-width="1.6"/>
+<text x="42.0" y="337.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="11.5" font-weight="800" fill="#1E40AF" text-anchor="start" >2 · CONTROL I2C SEGURO (3.3V) Y DRIVER PWM 16 CANALES (PCA9685 · 0x40)</text>
+<rect x="24" y="672" width="1752" height="298" rx="14" fill="#F8FAFC" opacity="0.65" stroke="#CBD5E1" stroke-width="1.6"/>
+<text x="42.0" y="695.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="11.5" font-weight="800" fill="#334155" text-anchor="start" >3 · ACTUADORES DEL BRAZO (4× MG90S ENGRANE METÁLICO + 1× SG90 PINZA PARALELA)</text>
+<g id="ugreen-50w" filter="url(#shadow)">
+<rect x="42" y="172" width="24" height="10" rx="2" fill="url(#metal)" stroke="#64748B" stroke-width="1"/>
+<rect x="42" y="202" width="24" height="10" rx="2" fill="url(#metal)" stroke="#64748B" stroke-width="1"/>
+<rect x="64" y="146" width="128" height="92" rx="14" fill="url(#ugreenBody)" stroke="#1E293B" stroke-width="2"/>
+<rect x="172" y="150" width="18" height="84" rx="6" fill="#0F172A"/>
+<rect x="177" y="170" width="11" height="22" rx="5" fill="#1E293B" stroke="#94A3B8" stroke-width="1.4"/>
+<rect x="181" y="175" width="3" height="12" rx="1" fill="#F59E0B"/>
+<rect x="177" y="200" width="11" height="20" rx="5" fill="#1E293B" stroke="#64748B" stroke-width="1.2"/>
+<text x="118.0" y="186.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="17" font-weight="800" fill="#E2E8F0" text-anchor="middle" >UGREEN</text>
+<text x="118.0" y="204.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="11" font-weight="600" fill="#94A3B8" text-anchor="middle" >50W USB-C PD</text>
+<text x="118.0" y="220.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#38BDF8" text-anchor="middle" >Salida 5V / 3A</text>
+<rect x="190" y="172" width="24" height="18" rx="4" fill="#1E293B" stroke="#475569" stroke-width="1.3"/>
+<rect x="214" y="176" width="12" height="10" rx="2" fill="#334155"/>
+</g>
+<text x="128.0" y="259.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="800" fill="#0F172A" text-anchor="middle" >Cargador UGREEN 50W</text>
+<text x="128.0" y="275.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="11" font-weight="600" fill="#64748B" text-anchor="middle" >(Ya disponible · 1 solo cable)</text>
+<g id="ar5515" filter="url(#shadow)">
+<rect x="348" y="140" width="160" height="102" rx="7" fill="url(#pcbPurple)" stroke="#312E81" stroke-width="2"/>
+<circle cx="358" cy="150" r="4.2" fill="#E2E8F0" stroke="#F59E0B" stroke-width="1.6"/>
+<circle cx="358" cy="232" r="4.2" fill="#E2E8F0" stroke="#F59E0B" stroke-width="1.6"/>
+<circle cx="498" cy="150" r="4.2" fill="#E2E8F0" stroke="#F59E0B" stroke-width="1.6"/>
+<circle cx="498" cy="232" r="4.2" fill="#E2E8F0" stroke="#F59E0B" stroke-width="1.6"/>
+<rect x="334" y="168" width="34" height="46" rx="5" fill="url(#metal)" stroke="#475569" stroke-width="1.5"/>
+<rect x="322" y="178" width="14" height="26" rx="3" fill="#1E293B" stroke="#475569" stroke-width="1.2"/>
+<text x="351.0" y="195.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="800" fill="#334155" text-anchor="middle" transform="rotate(-90 351 191)">USB-C</text>
+<rect x="384" y="160" width="54" height="44" rx="4" fill="#DC2626" stroke="#7F1D1D" stroke-width="1.5"/>
+<text x="411.0" y="156.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10" font-weight="800" fill="#FEF08A" text-anchor="middle" >DIP = 5V</text>
+<rect x="391" y="168" width="10" height="24" rx="2" fill="#7F1D1D"/>
+<rect x="392.2" y="170" width="7.6" height="9" rx="1.5" fill="#F8FAFC"/>
+<text x="396.0" y="201.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#FECACA" text-anchor="middle" >1</text>
+<rect x="406" y="168" width="10" height="24" rx="2" fill="#7F1D1D"/>
+<rect x="407.2" y="182" width="7.6" height="9" rx="1.5" fill="#F8FAFC"/>
+<text x="411.0" y="201.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#FECACA" text-anchor="middle" >2</text>
+<rect x="421" y="168" width="10" height="24" rx="2" fill="#7F1D1D"/>
+<rect x="422.2" y="182" width="7.6" height="9" rx="1.5" fill="#F8FAFC"/>
+<text x="426.0" y="201.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#FECACA" text-anchor="middle" >3</text>
+<circle cx="392" cy="222" r="3.8" fill="#22C55E" stroke="#14532D" stroke-width="1"/>
+<text x="400.0" y="225.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10" font-weight="800" fill="#E0E7FF" text-anchor="start" >AR5515 PD</text>
+<rect x="466" y="156" width="40" height="70" rx="4" fill="#0284C7" stroke="#075985" stroke-width="1.5"/>
+<circle cx="486" cy="176" r="10.5" fill="url(#metal)" stroke="#334155" stroke-width="1.2"/>
+<line x1="479" y1="171" x2="493" y2="181" stroke="#475569" stroke-width="2"/>
+<text x="460.0" y="180.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="900" fill="#FCA5A5" text-anchor="end" >+</text>
+<circle cx="486" cy="206" r="10.5" fill="url(#metal)" stroke="#334155" stroke-width="1.2"/>
+<line x1="479" y1="201" x2="493" y2="211" stroke="#475569" stroke-width="2"/>
+<text x="460.0" y="210.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="900" fill="#CBD5E1" text-anchor="end" >−</text>
+</g>
+<text x="428.0" y="261.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="800" fill="#0F172A" text-anchor="middle" >Módulo USB-C PD AR5515</text>
+<rect x="345.1" y="270.0" width="165.9" height="20.0" rx="10.0" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.3"/><text x="428.0" y="283.7" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.2" font-weight="700" fill="#92400E" text-anchor="middle" >1) DIP en 5V · MEDIR 5.0V</text>
+<g id="kcd11-switch" filter="url(#shadow)">
+<rect x="648" y="154" width="84" height="70" rx="7" fill="#18181B" stroke="#09090B" stroke-width="2"/>
+<rect x="657" y="163" width="66" height="52" rx="4" fill="url(#switchRocker)" stroke="#3F3F46" stroke-width="1.2"/>
+<line x1="672" y1="180" x2="672" y2="198" stroke="#F8FAFC" stroke-width="2.6" stroke-linecap="round"/>
+<circle cx="708" cy="189" r="7.5" fill="none" stroke="#A1A1AA" stroke-width="2.4"/>
+<rect x="636" y="182" width="13" height="14" rx="2" fill="url(#brass)" stroke="#92400E" stroke-width="1"/>
+<rect x="731" y="182" width="13" height="14" rx="2" fill="url(#brass)" stroke="#92400E" stroke-width="1"/>
+<text x="660.0" y="147.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10" font-weight="700" fill="#64748B" text-anchor="middle" >IN (1)</text>
+<text x="720.0" y="147.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10" font-weight="700" fill="#64748B" text-anchor="middle" >OUT (2)</text>
+</g>
+<text x="690.0" y="244.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="12.5" font-weight="800" fill="#0F172A" text-anchor="middle" >Botón KCD11-2P</text>
+<text x="690.0" y="259.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#64748B" text-anchor="middle" >ON/OFF Trasero (AR0243)</text>
+<g id="cap-1000uf" filter="url(#shadow)">
+<line x1="1427" y1="228" x2="1427" y2="252" stroke="#94A3B8" stroke-width="3.8" stroke-linecap="round"/>
+<line x1="1451" y1="228" x2="1451" y2="252" stroke="#94A3B8" stroke-width="3.8" stroke-linecap="round"/>
+<rect x="1412" y="152" width="54" height="78" rx="7" fill="url(#capBody)" stroke="#0F172A" stroke-width="1.6"/>
+<ellipse cx="1439.0" cy="158" rx="26.0" ry="6" fill="url(#metal)" stroke="#64748B" stroke-width="1"/>
+<rect x="1451" y="160" width="12" height="68" rx="2" fill="#E2E8F0"/>
+<text x="1457.0" y="177.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="900" fill="#1E293B" text-anchor="middle" >−</text>
+<text x="1457.0" y="196.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="900" fill="#1E293B" text-anchor="middle" >−</text>
+<text x="1457.0" y="215.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="900" fill="#1E293B" text-anchor="middle" >−</text>
+<text x="1430.0" y="187.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#F8FAFC" text-anchor="middle" >1000</text>
+<text x="1430.0" y="201.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#38BDF8" text-anchor="middle" >µF</text>
+<text x="1430.0" y="216.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#CBD5E1" text-anchor="middle" >16V</text>
+<text x="1417.0" y="248.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="900" fill="#DC2626" text-anchor="middle" >+</text>
+<text x="1461.0" y="248.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="900" fill="#0F172A" text-anchor="middle" >−</text>
+</g>
+<text x="1480.0" y="178.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="12.5" font-weight="800" fill="#0F172A" text-anchor="start" >Capacitor 1000 µF 16V</text>
+<text x="1480.0" y="195.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#64748B" text-anchor="start" >(AR1127 · Directo en bornera)</text>
+<rect x="1480.0" y="206.5" width="148.7" height="19.0" rx="9.5" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.3"/><text x="1554.4" y="219.5" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.8" font-weight="700" fill="#0F172A" text-anchor="middle" >Franja blanca (−) → GND</text>
+<g id="xiao-esp32s3" filter="url(#shadow)">
+<rect x="254" y="360" width="172" height="214" rx="10" fill="url(#pcbBlack)" stroke="#3F3F46" stroke-width="2"/>
+<rect x="314.0" y="348" width="52" height="32" rx="5" fill="url(#metal)" stroke="#475569" stroke-width="1.5"/>
+<text x="340.0" y="368.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.5" font-weight="800" fill="#334155" text-anchor="middle" >USB-C</text>
+<rect x="310" y="387" width="11" height="9" rx="2" fill="#E2E8F0" stroke="#64748B" stroke-width="1"/>
+<text x="315.5" y="406.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="7.8" font-weight="700" fill="#A1A1AA" text-anchor="middle" >B</text>
+<rect x="359" y="387" width="11" height="9" rx="2" fill="#E2E8F0" stroke="#64748B" stroke-width="1"/>
+<text x="364.5" y="406.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="7.8" font-weight="700" fill="#A1A1AA" text-anchor="middle" >R</text>
+<rect x="310" y="418" width="60" height="82" rx="5" fill="url(#metal)" stroke="#64748B" stroke-width="1.3"/>
+<text x="340.0" y="452.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.2" font-weight="800" fill="#1E293B" text-anchor="middle" >ESP32-S3</text>
+<text x="340.0" y="467.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#475569" text-anchor="middle" >Wi-Fi / BLE</text>
+<text x="340.0" y="482.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.2" font-weight="700" fill="#0284C7" text-anchor="middle" >3.3V Logic</text>
+<circle cx="340.0" cy="528" r="7.5" fill="#F59E0B" stroke="#78350F" stroke-width="1.4"/>
+<circle cx="340.0" cy="528" r="2.8" fill="#18181B"/>
+<text x="340.0" y="556.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.8" font-weight="800" fill="#E4E4E7" text-anchor="middle" >SEEED XIAO</text>
+<rect x="251" y="389.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="257.5" cy="394.0" r="2.4" fill="#18181B" stroke="#FEF3C7" stroke-width="1"/>
+<text x="268.0" y="397.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.0" font-weight="600" fill="#94A3B8" text-anchor="start" >D0</text>
+<rect x="251" y="414.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="257.5" cy="419.0" r="2.4" fill="#18181B" stroke="#FEF3C7" stroke-width="1"/>
+<text x="268.0" y="422.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.0" font-weight="600" fill="#94A3B8" text-anchor="start" >D1</text>
+<rect x="251" y="439.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="257.5" cy="444.0" r="2.4" fill="#18181B" stroke="#FEF3C7" stroke-width="1"/>
+<text x="268.0" y="447.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.0" font-weight="600" fill="#94A3B8" text-anchor="start" >D2</text>
+<rect x="251" y="464.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="257.5" cy="469.0" r="2.4" fill="#18181B" stroke="#FEF3C7" stroke-width="1"/>
+<text x="268.0" y="472.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.0" font-weight="600" fill="#94A3B8" text-anchor="start" >D3</text>
+<rect x="251" y="489.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="257.5" cy="494.0" r="3.4" fill="#2563EB" stroke="#FEF3C7" stroke-width="1"/>
+<text x="268.0" y="497.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.8" font-weight="800" fill="#FEF08A" text-anchor="start" >D4·SDA</text>
+<rect x="251" y="514.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="257.5" cy="519.0" r="3.4" fill="#9333EA" stroke="#FEF3C7" stroke-width="1"/>
+<text x="268.0" y="522.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.8" font-weight="800" fill="#FEF08A" text-anchor="start" >D5·SCL</text>
+<rect x="251" y="539.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="257.5" cy="544.0" r="2.4" fill="#18181B" stroke="#FEF3C7" stroke-width="1"/>
+<text x="268.0" y="547.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.0" font-weight="600" fill="#94A3B8" text-anchor="start" >D6</text>
+<rect x="416" y="389.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="422.5" cy="394.0" r="3.4" fill="#DC2626" stroke="#FEF3C7" stroke-width="1"/>
+<text x="412.0" y="397.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.2" font-weight="800" fill="#FEF08A" text-anchor="end" >5V</text>
+<rect x="416" y="414.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="422.5" cy="419.0" r="3.4" fill="#475569" stroke="#FEF3C7" stroke-width="1"/>
+<text x="412.0" y="422.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.2" font-weight="800" fill="#FEF08A" text-anchor="end" >GND</text>
+<rect x="416" y="439.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="422.5" cy="444.0" r="3.4" fill="#EA580C" stroke="#FEF3C7" stroke-width="1"/>
+<text x="412.0" y="447.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.2" font-weight="800" fill="#FEF08A" text-anchor="end" >3V3</text>
+<rect x="416" y="464.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="422.5" cy="469.0" r="2.4" fill="#18181B" stroke="#FEF3C7" stroke-width="1"/>
+<text x="412.0" y="472.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.0" font-weight="600" fill="#94A3B8" text-anchor="end" >D10</text>
+<rect x="416" y="489.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="422.5" cy="494.0" r="2.4" fill="#18181B" stroke="#FEF3C7" stroke-width="1"/>
+<text x="412.0" y="497.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.0" font-weight="600" fill="#94A3B8" text-anchor="end" >D9</text>
+<rect x="416" y="514.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="422.5" cy="519.0" r="2.4" fill="#18181B" stroke="#FEF3C7" stroke-width="1"/>
+<text x="412.0" y="522.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.0" font-weight="600" fill="#94A3B8" text-anchor="end" >D8</text>
+<rect x="416" y="539.0" width="13" height="10" rx="2.5" fill="url(#goldPad)" stroke="#92400E" stroke-width="1"/>
+<circle cx="422.5" cy="544.0" r="2.4" fill="#18181B" stroke="#FEF3C7" stroke-width="1"/>
+<text x="412.0" y="547.2" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.0" font-weight="600" fill="#94A3B8" text-anchor="end" >D7</text>
+</g>
+<text x="340.0" y="592.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="800" fill="#0F172A" text-anchor="middle" >Seeed Studio XIAO ESP32-S3</text>
+<text x="340.0" y="607.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#64748B" text-anchor="middle" >(Cerebro · Wi-Fi UDP + Web UI)</text>
+<g id="diode-1n5819" filter="url(#shadowSm)">
+<line x1="586" y1="394" x2="700" y2="394" stroke="#94A3B8" stroke-width="4.4" stroke-linecap="round"/>
+<line x1="586" y1="393" x2="700" y2="393" stroke="#F8FAFC" stroke-width="1.2" opacity="0.65"/>
+<rect x="612" y="381.0" width="62" height="26" rx="5" fill="url(#diodeBody)" stroke="#09090B" stroke-width="1.5"/>
+<rect x="617" y="382.0" width="9" height="24" fill="url(#silverBand)"/>
+<text x="650.0" y="397.5" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.0" font-weight="800" fill="#E2E8F0" text-anchor="middle" >1N5819</text>
+<text x="602.0" y="378.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10" font-weight="800" fill="#0F172A" text-anchor="middle" >← K (Banda)</text>
+<text x="686.0" y="378.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10" font-weight="800" fill="#DC2626" text-anchor="middle" >A (+)</text>
+</g>
+<text x="643.0" y="360.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="11.5" font-weight="800" fill="#0F172A" text-anchor="middle" >Diodo Schottky 1N5819 (AR0195)</text>
+<rect x="533.8" y="413.5" width="218.4" height="19.0" rx="9.5" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.3"/><text x="643.0" y="426.5" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.6" font-weight="700" fill="#92400E" text-anchor="middle" >Banda ← hacia XIAO 5V (antirretorno)</text>
+<g id="pca9685" filter="url(#shadow)">
+<rect x="1092" y="386" width="656" height="214" rx="10" fill="url(#pcbBlue)" stroke="#1E3A8A" stroke-width="2.2"/>
+<circle cx="1106" cy="400" r="5.5" fill="#F8FAFC" stroke="#F59E0B" stroke-width="2"/>
+<circle cx="1734" cy="400" r="5.5" fill="#F8FAFC" stroke="#F59E0B" stroke-width="2"/>
+<circle cx="1106" cy="586" r="5.5" fill="#F8FAFC" stroke="#F59E0B" stroke-width="2"/>
+<circle cx="1734" cy="586" r="5.5" fill="#F8FAFC" stroke="#F59E0B" stroke-width="2"/>
+<rect x="1244" y="378" width="88" height="44" rx="4" fill="#15803D" stroke="#14532D" stroke-width="1.8"/>
+<circle cx="1266" cy="398" r="11" fill="url(#metal)" stroke="#14532D" stroke-width="1.3"/>
+<line x1="1259" y1="394" x2="1273" y2="402" stroke="#334155" stroke-width="2.2"/>
+<text x="1266.0" y="436.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#FCA5A5" text-anchor="middle" >V+ (5V)</text>
+<circle cx="1310" cy="398" r="11" fill="url(#metal)" stroke="#14532D" stroke-width="1.3"/>
+<line x1="1303" y1="394" x2="1317" y2="402" stroke="#334155" stroke-width="2.2"/>
+<text x="1310.0" y="436.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#E2E8F0" text-anchor="middle" >GND</text>
+<circle cx="1394" cy="408" r="4.5" fill="#EF4444" stroke="#7F1D1D" stroke-width="1.2"/>
+<text x="1394.0" y="424.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#BFDBFE" text-anchor="middle" >PWR</text>
+<rect x="1457" y="402" width="10" height="7" rx="1" fill="url(#goldPad)"/>
+<rect x="1469" y="402" width="10" height="7" rx="1" fill="url(#goldPad)"/>
+<text x="1468.0" y="422.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#BFDBFE" text-anchor="middle" >A0</text>
+<rect x="1493" y="402" width="10" height="7" rx="1" fill="url(#goldPad)"/>
+<rect x="1505" y="402" width="10" height="7" rx="1" fill="url(#goldPad)"/>
+<text x="1504.0" y="422.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#BFDBFE" text-anchor="middle" >A1</text>
+<rect x="1529" y="402" width="10" height="7" rx="1" fill="url(#goldPad)"/>
+<rect x="1541" y="402" width="10" height="7" rx="1" fill="url(#goldPad)"/>
+<text x="1540.0" y="422.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#BFDBFE" text-anchor="middle" >A2</text>
+<rect x="1565" y="402" width="10" height="7" rx="1" fill="url(#goldPad)"/>
+<rect x="1577" y="402" width="10" height="7" rx="1" fill="url(#goldPad)"/>
+<text x="1576.0" y="422.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#BFDBFE" text-anchor="middle" >A3</text>
+<rect x="1601" y="402" width="10" height="7" rx="1" fill="url(#goldPad)"/>
+<rect x="1613" y="402" width="10" height="7" rx="1" fill="url(#goldPad)"/>
+<text x="1612.0" y="422.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#BFDBFE" text-anchor="middle" >A4</text>
+<rect x="1637" y="402" width="10" height="7" rx="1" fill="url(#goldPad)"/>
+<rect x="1649" y="402" width="10" height="7" rx="1" fill="url(#goldPad)"/>
+<text x="1648.0" y="422.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="700" fill="#BFDBFE" text-anchor="middle" >A5</text>
+<text x="1568.0" y="438.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#93C5FD" text-anchor="middle" >Dirección I2C = 0x40 (todos abiertos)</text>
+<rect x="1358" y="444" width="76" height="54" rx="4" fill="#18181B" stroke="#475569" stroke-width="1.4"/>
+<circle cx="1368" cy="454" r="3" fill="#94A3B8"/>
+<text x="1396.0" y="470.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="11" font-weight="800" fill="#F8FAFC" text-anchor="middle" >PCA9685</text>
+<text x="1396.0" y="485.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="600" fill="#94A3B8" text-anchor="middle" >16-CH 12-bit</text>
+<text x="1584.0" y="472.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="800" fill="#FFFFFF" text-anchor="middle" >Módulo PWM PCA9685 (AR0389)</text>
+<text x="1584.0" y="490.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10" font-weight="700" fill="#BAE6FD" text-anchor="middle" >Bus Lógico 3.3V · Potencia Servos 5V</text>
+<rect x="1086" y="416" width="16" height="147.5" rx="3" fill="#0F172A" stroke="#334155" stroke-width="1.2"/>
+<rect x="1078" y="423.8" width="16" height="4.4" rx="1" fill="url(#goldPad)"/>
+<circle cx="1110" cy="426.0" r="4.2" fill="#1E293B" stroke="#F59E0B" stroke-width="1.3"/>
+<text x="1120.0" y="430.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.2" font-weight="800" fill="#FFFFFF" text-anchor="start" >GND</text>
+<rect x="1078" y="449.3" width="16" height="4.4" rx="1" fill="url(#goldPad)"/>
+<circle cx="1110" cy="451.5" r="4.2" fill="#1E3A8A" stroke="#F59E0B" stroke-width="1.3"/>
+<text x="1120.0" y="455.5" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.8" font-weight="600" fill="#93C5FD" text-anchor="start" >OE</text>
+<rect x="1078" y="474.8" width="16" height="4.4" rx="1" fill="url(#goldPad)"/>
+<circle cx="1110" cy="477.0" r="4.2" fill="#9333EA" stroke="#F59E0B" stroke-width="1.3"/>
+<text x="1120.0" y="481.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.2" font-weight="800" fill="#FFFFFF" text-anchor="start" >SCL</text>
+<rect x="1078" y="500.3" width="16" height="4.4" rx="1" fill="url(#goldPad)"/>
+<circle cx="1110" cy="502.5" r="4.2" fill="#2563EB" stroke="#F59E0B" stroke-width="1.3"/>
+<text x="1120.0" y="506.5" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.2" font-weight="800" fill="#FFFFFF" text-anchor="start" >SDA</text>
+<rect x="1078" y="525.8" width="16" height="4.4" rx="1" fill="url(#goldPad)"/>
+<circle cx="1110" cy="528.0" r="4.2" fill="#EA580C" stroke="#F59E0B" stroke-width="1.3"/>
+<text x="1120.0" y="532.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.2" font-weight="800" fill="#FEF08A" text-anchor="start" >VCC</text>
+<text x="1148.0" y="532.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.0" font-weight="800" fill="#FDBA74" text-anchor="start" >(3.3V)</text>
+<rect x="1078" y="551.3" width="16" height="4.4" rx="1" fill="url(#goldPad)"/>
+<circle cx="1110" cy="553.5" r="4.2" fill="#1E3A8A" stroke="#F59E0B" stroke-width="1.3"/>
+<text x="1120.0" y="557.5" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.8" font-weight="600" fill="#93C5FD" text-anchor="start" >V+</text>
+<text x="1224.0" y="534.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="800" fill="#FDE047" text-anchor="end" >PWM</text>
+<text x="1224.0" y="552.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="800" fill="#FCA5A5" text-anchor="end" >V+</text>
+<text x="1224.0" y="570.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="800" fill="#CBD5E1" text-anchor="end" >GND</text>
+<rect x="1234" y="510" width="44" height="76" rx="5" fill="#0F172A" opacity="0.45" stroke="#38BDF8" stroke-width="1.3"/>
+<text x="1256.0" y="522.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10" font-weight="800" fill="#FEF08A" text-anchor="middle" >CH0</text>
+<rect x="1246" y="526" width="20" height="12" rx="2" fill="#EAB308" stroke="#0F172A" stroke-width="1"/>
+<rect x="1253.6" y="529.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1246" y="544" width="20" height="12" rx="2" fill="#DC2626" stroke="#0F172A" stroke-width="1"/>
+<rect x="1253.6" y="547.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1246" y="562" width="20" height="12" rx="2" fill="#18181B" stroke="#0F172A" stroke-width="1"/>
+<rect x="1253.6" y="565.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1298" y="510" width="44" height="76" rx="5" fill="#0F172A" opacity="0.45" stroke="#38BDF8" stroke-width="1.3"/>
+<text x="1320.0" y="522.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10" font-weight="800" fill="#FEF08A" text-anchor="middle" >CH1</text>
+<rect x="1310" y="526" width="20" height="12" rx="2" fill="#EAB308" stroke="#0F172A" stroke-width="1"/>
+<rect x="1317.6" y="529.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1310" y="544" width="20" height="12" rx="2" fill="#DC2626" stroke="#0F172A" stroke-width="1"/>
+<rect x="1317.6" y="547.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1310" y="562" width="20" height="12" rx="2" fill="#18181B" stroke="#0F172A" stroke-width="1"/>
+<rect x="1317.6" y="565.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1362" y="510" width="44" height="76" rx="5" fill="#0F172A" opacity="0.45" stroke="#38BDF8" stroke-width="1.3"/>
+<text x="1384.0" y="522.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10" font-weight="800" fill="#FEF08A" text-anchor="middle" >CH2</text>
+<rect x="1374" y="526" width="20" height="12" rx="2" fill="#EAB308" stroke="#0F172A" stroke-width="1"/>
+<rect x="1381.6" y="529.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1374" y="544" width="20" height="12" rx="2" fill="#DC2626" stroke="#0F172A" stroke-width="1"/>
+<rect x="1381.6" y="547.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1374" y="562" width="20" height="12" rx="2" fill="#18181B" stroke="#0F172A" stroke-width="1"/>
+<rect x="1381.6" y="565.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1426" y="510" width="44" height="76" rx="5" fill="#0F172A" opacity="0.45" stroke="#38BDF8" stroke-width="1.3"/>
+<text x="1448.0" y="522.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10" font-weight="800" fill="#FEF08A" text-anchor="middle" >CH3</text>
+<rect x="1438" y="526" width="20" height="12" rx="2" fill="#EAB308" stroke="#0F172A" stroke-width="1"/>
+<rect x="1445.6" y="529.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1438" y="544" width="20" height="12" rx="2" fill="#DC2626" stroke="#0F172A" stroke-width="1"/>
+<rect x="1445.6" y="547.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1438" y="562" width="20" height="12" rx="2" fill="#18181B" stroke="#0F172A" stroke-width="1"/>
+<rect x="1445.6" y="565.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1490" y="510" width="44" height="76" rx="5" fill="#0F172A" opacity="0.45" stroke="#38BDF8" stroke-width="1.3"/>
+<text x="1512.0" y="522.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10" font-weight="800" fill="#FEF08A" text-anchor="middle" >CH4</text>
+<rect x="1502" y="526" width="20" height="12" rx="2" fill="#EAB308" stroke="#0F172A" stroke-width="1"/>
+<rect x="1509.6" y="529.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1502" y="544" width="20" height="12" rx="2" fill="#DC2626" stroke="#0F172A" stroke-width="1"/>
+<rect x="1509.6" y="547.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1502" y="562" width="20" height="12" rx="2" fill="#18181B" stroke="#0F172A" stroke-width="1"/>
+<rect x="1509.6" y="565.6" width="4.8" height="4.8" rx="0.8" fill="url(#goldPad)"/>
+<rect x="1556" y="514" width="170" height="68" rx="5" fill="#172554" opacity="0.65" stroke="#3B82F6" stroke-width="1" stroke-dasharray="4 3"/>
+<text x="1641.0" y="529.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#93C5FD" text-anchor="middle" >CH5 – CH15 (Libres / Reserva)</text>
+<rect x="1569" y="538" width="9" height="8" rx="1.2" fill="#CA8A04" opacity="0.72"/>
+<rect x="1569" y="550" width="9" height="8" rx="1.2" fill="#B91C1C" opacity="0.72"/>
+<rect x="1569" y="562" width="9" height="8" rx="1.2" fill="#334155" opacity="0.72"/>
+<rect x="1583" y="538" width="9" height="8" rx="1.2" fill="#CA8A04" opacity="0.72"/>
+<rect x="1583" y="550" width="9" height="8" rx="1.2" fill="#B91C1C" opacity="0.72"/>
+<rect x="1583" y="562" width="9" height="8" rx="1.2" fill="#334155" opacity="0.72"/>
+<rect x="1597" y="538" width="9" height="8" rx="1.2" fill="#CA8A04" opacity="0.72"/>
+<rect x="1597" y="550" width="9" height="8" rx="1.2" fill="#B91C1C" opacity="0.72"/>
+<rect x="1597" y="562" width="9" height="8" rx="1.2" fill="#334155" opacity="0.72"/>
+<rect x="1611" y="538" width="9" height="8" rx="1.2" fill="#CA8A04" opacity="0.72"/>
+<rect x="1611" y="550" width="9" height="8" rx="1.2" fill="#B91C1C" opacity="0.72"/>
+<rect x="1611" y="562" width="9" height="8" rx="1.2" fill="#334155" opacity="0.72"/>
+<rect x="1625" y="538" width="9" height="8" rx="1.2" fill="#CA8A04" opacity="0.72"/>
+<rect x="1625" y="550" width="9" height="8" rx="1.2" fill="#B91C1C" opacity="0.72"/>
+<rect x="1625" y="562" width="9" height="8" rx="1.2" fill="#334155" opacity="0.72"/>
+<rect x="1639" y="538" width="9" height="8" rx="1.2" fill="#CA8A04" opacity="0.72"/>
+<rect x="1639" y="550" width="9" height="8" rx="1.2" fill="#B91C1C" opacity="0.72"/>
+<rect x="1639" y="562" width="9" height="8" rx="1.2" fill="#334155" opacity="0.72"/>
+<rect x="1653" y="538" width="9" height="8" rx="1.2" fill="#CA8A04" opacity="0.72"/>
+<rect x="1653" y="550" width="9" height="8" rx="1.2" fill="#B91C1C" opacity="0.72"/>
+<rect x="1653" y="562" width="9" height="8" rx="1.2" fill="#334155" opacity="0.72"/>
+<rect x="1667" y="538" width="9" height="8" rx="1.2" fill="#CA8A04" opacity="0.72"/>
+<rect x="1667" y="550" width="9" height="8" rx="1.2" fill="#B91C1C" opacity="0.72"/>
+<rect x="1667" y="562" width="9" height="8" rx="1.2" fill="#334155" opacity="0.72"/>
+<rect x="1681" y="538" width="9" height="8" rx="1.2" fill="#CA8A04" opacity="0.72"/>
+<rect x="1681" y="550" width="9" height="8" rx="1.2" fill="#B91C1C" opacity="0.72"/>
+<rect x="1681" y="562" width="9" height="8" rx="1.2" fill="#334155" opacity="0.72"/>
+<rect x="1695" y="538" width="9" height="8" rx="1.2" fill="#CA8A04" opacity="0.72"/>
+<rect x="1695" y="550" width="9" height="8" rx="1.2" fill="#B91C1C" opacity="0.72"/>
+<rect x="1695" y="562" width="9" height="8" rx="1.2" fill="#334155" opacity="0.72"/>
+<rect x="1709" y="538" width="9" height="8" rx="1.2" fill="#CA8A04" opacity="0.72"/>
+<rect x="1709" y="550" width="9" height="8" rx="1.2" fill="#B91C1C" opacity="0.72"/>
+<rect x="1709" y="562" width="9" height="8" rx="1.2" fill="#334155" opacity="0.72"/>
+</g>
+<g id="servo-CH0" filter="url(#shadow)">
+<rect x="226" y="770" width="32" height="16" rx="2.5" fill="#18181B" stroke="#475569" stroke-width="1"/>
+<rect x="230" y="773" width="6" height="10" rx="1" fill="#F97316"/>
+<rect x="239" y="773" width="6" height="10" rx="1" fill="#DC2626"/>
+<rect x="248" y="773" width="6" height="10" rx="1" fill="#78350F"/>
+<rect x="152.0" y="796" width="116" height="102" rx="8" fill="url(#mg90Blue)" stroke="#1E3A8A" stroke-width="2"/>
+<rect x="138.0" y="818" width="144" height="14" rx="3" fill="url(#mg90Blue)" stroke="#1E3A8A" stroke-width="1.6"/>
+<circle cx="145.0" cy="825" r="3.2" fill="#F8FAFC" stroke="#1E3A8A" stroke-width="1"/>
+<circle cx="275.0" cy="825" r="3.2" fill="#F8FAFC" stroke="#1E3A8A" stroke-width="1"/>
+<rect x="158.0" y="786" width="50" height="16" rx="5" fill="url(#mg90Blue)" stroke="#1E3A8A" stroke-width="1.5"/>
+<rect x="172.0" y="776" width="22" height="11" rx="2" fill="url(#brass)" stroke="#92400E" stroke-width="1.3"/>
+<circle cx="183.0" cy="808" r="9" fill="#CBD5E1" opacity="0.45"/>
+<circle cx="203.0" cy="810" r="7" fill="#CBD5E1" opacity="0.38"/>
+<rect x="160.0" y="838" width="100" height="48" rx="4" fill="#0F172A" opacity="0.84"/>
+<text x="210.0" y="856.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="12" font-weight="800" fill="#F8FAFC" text-anchor="middle" >MG90S · CH0</text>
+<text x="210.0" y="871.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.2" font-weight="700" fill="#FBBF24" text-anchor="middle" >Engrane Metal</text>
+<text x="210.0" y="883.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="600" fill="#94A3B8" text-anchor="middle" >180° · 5V PWM</text>
+</g>
+<text x="210.0" y="922.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="800" fill="#0F172A" text-anchor="middle" >M1 · J1 Base Yaw</text>
+<text x="210.0" y="938.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.8" font-weight="600" fill="#475569" text-anchor="middle" >MG90S 180° · 22T:22T</text>
+<rect x="126.6" y="947.5" width="166.8" height="19.0" rx="9.5" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.3"/><text x="210.0" y="960.4" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#475569" text-anchor="middle" >Conexión directa al PCA9685</text>
+<g id="servo-CH1" filter="url(#shadow)">
+<rect x="571" y="770" width="32" height="16" rx="2.5" fill="#18181B" stroke="#475569" stroke-width="1"/>
+<rect x="575" y="773" width="6" height="10" rx="1" fill="#F97316"/>
+<rect x="584" y="773" width="6" height="10" rx="1" fill="#DC2626"/>
+<rect x="593" y="773" width="6" height="10" rx="1" fill="#78350F"/>
+<rect x="497.0" y="796" width="116" height="102" rx="8" fill="url(#mg90Blue)" stroke="#1E3A8A" stroke-width="2"/>
+<rect x="483.0" y="818" width="144" height="14" rx="3" fill="url(#mg90Blue)" stroke="#1E3A8A" stroke-width="1.6"/>
+<circle cx="490.0" cy="825" r="3.2" fill="#F8FAFC" stroke="#1E3A8A" stroke-width="1"/>
+<circle cx="620.0" cy="825" r="3.2" fill="#F8FAFC" stroke="#1E3A8A" stroke-width="1"/>
+<rect x="503.0" y="786" width="50" height="16" rx="5" fill="url(#mg90Blue)" stroke="#1E3A8A" stroke-width="1.5"/>
+<rect x="517.0" y="776" width="22" height="11" rx="2" fill="url(#brass)" stroke="#92400E" stroke-width="1.3"/>
+<circle cx="528.0" cy="808" r="9" fill="#CBD5E1" opacity="0.45"/>
+<circle cx="548.0" cy="810" r="7" fill="#CBD5E1" opacity="0.38"/>
+<rect x="505.0" y="838" width="100" height="48" rx="4" fill="#0F172A" opacity="0.84"/>
+<text x="555.0" y="856.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="12" font-weight="800" fill="#F8FAFC" text-anchor="middle" >MG90S · CH1</text>
+<text x="555.0" y="871.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.2" font-weight="700" fill="#FBBF24" text-anchor="middle" >Engrane Metal</text>
+<text x="555.0" y="883.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="600" fill="#94A3B8" text-anchor="middle" >180° · 5V PWM</text>
+</g>
+<text x="555.0" y="922.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="800" fill="#0F172A" text-anchor="middle" >M2 · J2 Hombro</text>
+<text x="555.0" y="938.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.8" font-weight="600" fill="#475569" text-anchor="middle" >MG90S 180° · 608ZZ</text>
+<rect x="471.6" y="947.5" width="166.8" height="19.0" rx="9.5" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.3"/><text x="555.0" y="960.4" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#475569" text-anchor="middle" >Conexión directa al PCA9685</text>
+<g id="servo-CH2" filter="url(#shadow)">
+<rect x="916" y="770" width="32" height="16" rx="2.5" fill="#18181B" stroke="#475569" stroke-width="1"/>
+<rect x="920" y="773" width="6" height="10" rx="1" fill="#F97316"/>
+<rect x="929" y="773" width="6" height="10" rx="1" fill="#DC2626"/>
+<rect x="938" y="773" width="6" height="10" rx="1" fill="#78350F"/>
+<rect x="842.0" y="796" width="116" height="102" rx="8" fill="url(#mg90Blue)" stroke="#1E3A8A" stroke-width="2"/>
+<rect x="828.0" y="818" width="144" height="14" rx="3" fill="url(#mg90Blue)" stroke="#1E3A8A" stroke-width="1.6"/>
+<circle cx="835.0" cy="825" r="3.2" fill="#F8FAFC" stroke="#1E3A8A" stroke-width="1"/>
+<circle cx="965.0" cy="825" r="3.2" fill="#F8FAFC" stroke="#1E3A8A" stroke-width="1"/>
+<rect x="848.0" y="786" width="50" height="16" rx="5" fill="url(#mg90Blue)" stroke="#1E3A8A" stroke-width="1.5"/>
+<rect x="862.0" y="776" width="22" height="11" rx="2" fill="url(#brass)" stroke="#92400E" stroke-width="1.3"/>
+<circle cx="873.0" cy="808" r="9" fill="#CBD5E1" opacity="0.45"/>
+<circle cx="893.0" cy="810" r="7" fill="#CBD5E1" opacity="0.38"/>
+<rect x="850.0" y="838" width="100" height="48" rx="4" fill="#0F172A" opacity="0.84"/>
+<text x="900.0" y="856.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="12" font-weight="800" fill="#F8FAFC" text-anchor="middle" >MG90S · CH2</text>
+<text x="900.0" y="871.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.2" font-weight="700" fill="#FBBF24" text-anchor="middle" >Engrane Metal</text>
+<text x="900.0" y="883.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="600" fill="#94A3B8" text-anchor="middle" >180° · 5V PWM</text>
+</g>
+<text x="900.0" y="922.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="800" fill="#0F172A" text-anchor="middle" >M3 · J3 Codo</text>
+<text x="900.0" y="938.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.8" font-weight="600" fill="#475569" text-anchor="middle" >MG90S 180° · 608ZZ</text>
+<rect x="816.6" y="947.5" width="166.8" height="19.0" rx="9.5" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.3"/><text x="900.0" y="960.4" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#475569" text-anchor="middle" >Conexión directa al PCA9685</text>
+<g id="servo-CH3" filter="url(#shadow)">
+<rect x="1261" y="770" width="32" height="16" rx="2.5" fill="#18181B" stroke="#475569" stroke-width="1"/>
+<rect x="1265" y="773" width="6" height="10" rx="1" fill="#F97316"/>
+<rect x="1274" y="773" width="6" height="10" rx="1" fill="#DC2626"/>
+<rect x="1283" y="773" width="6" height="10" rx="1" fill="#78350F"/>
+<rect x="1187.0" y="796" width="116" height="102" rx="8" fill="url(#mg90Blue)" stroke="#1E3A8A" stroke-width="2"/>
+<rect x="1173.0" y="818" width="144" height="14" rx="3" fill="url(#mg90Blue)" stroke="#1E3A8A" stroke-width="1.6"/>
+<circle cx="1180.0" cy="825" r="3.2" fill="#F8FAFC" stroke="#1E3A8A" stroke-width="1"/>
+<circle cx="1310.0" cy="825" r="3.2" fill="#F8FAFC" stroke="#1E3A8A" stroke-width="1"/>
+<rect x="1193.0" y="786" width="50" height="16" rx="5" fill="url(#mg90Blue)" stroke="#1E3A8A" stroke-width="1.5"/>
+<rect x="1207.0" y="776" width="22" height="11" rx="2" fill="url(#brass)" stroke="#92400E" stroke-width="1.3"/>
+<circle cx="1218.0" cy="808" r="9" fill="#CBD5E1" opacity="0.45"/>
+<circle cx="1238.0" cy="810" r="7" fill="#CBD5E1" opacity="0.38"/>
+<rect x="1195.0" y="838" width="100" height="48" rx="4" fill="#0F172A" opacity="0.84"/>
+<text x="1245.0" y="856.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="12" font-weight="800" fill="#F8FAFC" text-anchor="middle" >MG90S · CH3</text>
+<text x="1245.0" y="871.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.2" font-weight="700" fill="#FBBF24" text-anchor="middle" >Engrane Metal</text>
+<text x="1245.0" y="883.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="600" fill="#94A3B8" text-anchor="middle" >180° · 5V PWM</text>
+</g>
+<text x="1245.0" y="922.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="800" fill="#0F172A" text-anchor="middle" >M4 · J4 Muñeca</text>
+<text x="1245.0" y="938.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.8" font-weight="600" fill="#475569" text-anchor="middle" >MG90S 180° · 608ZZ</text>
+<rect x="1147.8" y="947.5" width="194.3" height="19.0" rx="9.5" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1.3"/><text x="1245.0" y="960.4" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#1D4ED8" text-anchor="middle" >+ Ext. Dupont M-H 20 cm (AR0003)</text>
+<g id="servo-CH4" filter="url(#shadow)">
+<rect x="1606" y="770" width="32" height="16" rx="2.5" fill="#18181B" stroke="#475569" stroke-width="1"/>
+<rect x="1610" y="773" width="6" height="10" rx="1" fill="#F97316"/>
+<rect x="1619" y="773" width="6" height="10" rx="1" fill="#DC2626"/>
+<rect x="1628" y="773" width="6" height="10" rx="1" fill="#78350F"/>
+<rect x="1532.0" y="796" width="116" height="102" rx="8" fill="url(#sg90Blue)" stroke="#1E3A8A" stroke-width="2"/>
+<rect x="1518.0" y="818" width="144" height="14" rx="3" fill="url(#sg90Blue)" stroke="#1E3A8A" stroke-width="1.6"/>
+<circle cx="1525.0" cy="825" r="3.2" fill="#F8FAFC" stroke="#1E3A8A" stroke-width="1"/>
+<circle cx="1655.0" cy="825" r="3.2" fill="#F8FAFC" stroke="#1E3A8A" stroke-width="1"/>
+<rect x="1538.0" y="786" width="50" height="16" rx="5" fill="url(#sg90Blue)" stroke="#1E3A8A" stroke-width="1.5"/>
+<rect x="1552.0" y="776" width="22" height="11" rx="2" fill="#F8FAFC" stroke="#94A3B8" stroke-width="1.3"/>
+<circle cx="1563.0" cy="808" r="9" fill="#E2E8F0" opacity="0.45"/>
+<circle cx="1583.0" cy="810" r="7" fill="#E2E8F0" opacity="0.38"/>
+<rect x="1540.0" y="838" width="100" height="48" rx="4" fill="#0F172A" opacity="0.84"/>
+<text x="1590.0" y="856.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="12" font-weight="800" fill="#F8FAFC" text-anchor="middle" >SG90 · CH4</text>
+<text x="1590.0" y="871.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.2" font-weight="700" fill="#38BDF8" text-anchor="middle" >Engrane Nylon</text>
+<text x="1590.0" y="883.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="8.5" font-weight="600" fill="#94A3B8" text-anchor="middle" >180° · 5V PWM</text>
+</g>
+<text x="1590.0" y="922.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="13" font-weight="800" fill="#0F172A" text-anchor="middle" >M5 · Pinza Paralela</text>
+<text x="1590.0" y="938.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.8" font-weight="600" fill="#475569" text-anchor="middle" >SG90 (disponible) · 14T</text>
+<rect x="1492.8" y="947.5" width="194.3" height="19.0" rx="9.5" fill="#EFF6FF" stroke="#93C5FD" stroke-width="1.3"/><text x="1590.0" y="960.4" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#1D4ED8" text-anchor="middle" >+ Ext. Dupont M-H 20 cm (AR0003)</text>
+<path d="M 226.0 181.0 C 274.0 181.0, 274.0 191.0, 322.0 191.0" fill="none" stroke="#FEF2F2" stroke-width="13.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 226.0 181.0 C 274.0 181.0, 274.0 191.0, 322.0 191.0" fill="none" stroke="#0F172A" stroke-width="10.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 226.0 181.0 C 274.0 181.0, 274.0 191.0, 322.0 191.0" fill="none" stroke="#18181B" stroke-width="9.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 226.0 181.0 C 274.0 181.0, 274.0 191.0, 322.0 191.0" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+<rect x="201.3" y="143.0" width="137.4" height="20.0" rx="10.0" fill="#18181B"/><text x="270.0" y="156.5" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.8" font-weight="700" fill="#F8FAFC" text-anchor="middle" >1 Cable USB-C (5V 3A)</text>
+<path d="M 506.0 176.0 C 551.0 176.0, 591.0 189.0, 636.0 189.0" fill="none" stroke="#F8FAFC" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 506.0 176.0 C 551.0 176.0, 591.0 189.0, 636.0 189.0" fill="none" stroke="#0F172A" stroke-width="8.0" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 506.0 176.0 C 551.0 176.0, 591.0 189.0, 636.0 189.0" fill="none" stroke="#DC2626" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 506.0 176.0 C 551.0 176.0, 591.0 189.0, 636.0 189.0" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+<rect x="542.1" y="148.5" width="57.8" height="19.0" rx="9.5" fill="#FEE2E2" stroke="#FCA5A5" stroke-width="1.3"/><text x="571.0" y="161.5" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.8" font-weight="700" fill="#991B1B" text-anchor="middle" >+5V_RAW</text>
+<path d="M 744.0 189.0 L 1244.0 189.0 Q 1266.0 189.0, 1266.0 211.0 L 1266.0 380.0" fill="none" stroke="#F8FAFC" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 744.0 189.0 L 1244.0 189.0 Q 1266.0 189.0, 1266.0 211.0 L 1266.0 380.0" fill="none" stroke="#0F172A" stroke-width="8.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 744.0 189.0 L 1244.0 189.0 Q 1266.0 189.0, 1266.0 211.0 L 1266.0 380.0" fill="none" stroke="#DC2626" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 744.0 189.0 L 1244.0 189.0 Q 1266.0 189.0, 1266.0 211.0 L 1266.0 380.0" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+<path d="M 1427.0 252.0 L 1427.0 272.0 Q 1427.0 286.0, 1413.0 286.0 L 1266.0 286.0" fill="none" stroke="#F8FAFC" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1427.0 252.0 L 1427.0 272.0 Q 1427.0 286.0, 1413.0 286.0 L 1266.0 286.0" fill="none" stroke="#0F172A" stroke-width="7.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1427.0 252.0 L 1427.0 272.0 Q 1427.0 286.0, 1413.0 286.0 L 1266.0 286.0" fill="none" stroke="#DC2626" stroke-width="5.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1427.0 252.0 L 1427.0 272.0 Q 1427.0 286.0, 1413.0 286.0 L 1266.0 286.0" fill="none" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+<rect x="929.4" y="162.5" width="231.2" height="21.0" rx="10.5" fill="#DC2626"/><text x="1045.0" y="176.8" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" >+5V_SERVO (Bus de Potencia 5V / 3A)</text>
+<path d="M 842.0 189.0 L 842.0 372.0 Q 842.0 394.0, 820.0 394.0 L 700.0 394.0" fill="none" stroke="#F8FAFC" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 842.0 189.0 L 842.0 372.0 Q 842.0 394.0, 820.0 394.0 L 700.0 394.0" fill="none" stroke="#0F172A" stroke-width="7.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 842.0 189.0 L 842.0 372.0 Q 842.0 394.0, 820.0 394.0 L 700.0 394.0" fill="none" stroke="#DC2626" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 842.0 189.0 L 842.0 372.0 Q 842.0 394.0, 820.0 394.0 L 700.0 394.0" fill="none" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+<path d="M 586.0 394.0 L 429.0 394.0" fill="none" stroke="#F8FAFC" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 586.0 394.0 L 429.0 394.0" fill="none" stroke="#0F172A" stroke-width="7.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 586.0 394.0 L 429.0 394.0" fill="none" stroke="#EF4444" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 586.0 394.0 L 429.0 394.0" fill="none" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+<rect x="476.2" y="368.5" width="62.5" height="19.0" rx="9.5" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1.3"/><text x="507.5" y="381.5" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.6" font-weight="700" fill="#B91C1C" text-anchor="middle" >+5V_XIAO</text>
+<path d="M 506.0 206.0 L 516.0 206.0 Q 534.0 206.0, 534.0 224.0 L 534.0 419.0 L 429.0 419.0" fill="none" stroke="#F8FAFC" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 506.0 206.0 L 516.0 206.0 Q 534.0 206.0, 534.0 224.0 L 534.0 419.0 L 429.0 419.0" fill="none" stroke="#0F172A" stroke-width="7.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 506.0 206.0 L 516.0 206.0 Q 534.0 206.0, 534.0 224.0 L 534.0 419.0 L 429.0 419.0" fill="none" stroke="#1E293B" stroke-width="6.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 506.0 206.0 L 516.0 206.0 Q 534.0 206.0, 534.0 224.0 L 534.0 419.0 L 429.0 419.0" fill="none" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+<path d="M 534.0 419.0 L 534.0 454.0 Q 534.0 468.0, 550.0 468.0 L 906.0 468.0 Q 922.0 468.0, 922.0 452.0 L 922.0 442.0 Q 922.0 426.0, 938.0 426.0 L 1078.0 426.0" fill="none" stroke="#F8FAFC" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 534.0 419.0 L 534.0 454.0 Q 534.0 468.0, 550.0 468.0 L 906.0 468.0 Q 922.0 468.0, 922.0 452.0 L 922.0 442.0 Q 922.0 426.0, 938.0 426.0 L 1078.0 426.0" fill="none" stroke="#0F172A" stroke-width="7.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 534.0 419.0 L 534.0 454.0 Q 534.0 468.0, 550.0 468.0 L 906.0 468.0 Q 922.0 468.0, 922.0 452.0 L 922.0 442.0 Q 922.0 426.0, 938.0 426.0 L 1078.0 426.0" fill="none" stroke="#1E293B" stroke-width="5.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 534.0 419.0 L 534.0 454.0 Q 534.0 468.0, 550.0 468.0 L 906.0 468.0 Q 922.0 468.0, 922.0 452.0 L 922.0 442.0 Q 922.0 426.0, 938.0 426.0 L 1078.0 426.0" fill="none" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+<path d="M 922.0 426.0 L 922.0 352.0 Q 922.0 336.0, 938.0 336.0 L 1294.0 336.0 Q 1310.0 336.0, 1310.0 352.0 L 1310.0 380.0" fill="none" stroke="#F8FAFC" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 922.0 426.0 L 922.0 352.0 Q 922.0 336.0, 938.0 336.0 L 1294.0 336.0 Q 1310.0 336.0, 1310.0 352.0 L 1310.0 380.0" fill="none" stroke="#0F172A" stroke-width="8.0" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 922.0 426.0 L 922.0 352.0 Q 922.0 336.0, 938.0 336.0 L 1294.0 336.0 Q 1310.0 336.0, 1310.0 352.0 L 1310.0 380.0" fill="none" stroke="#1E293B" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 922.0 426.0 L 922.0 352.0 Q 922.0 336.0, 938.0 336.0 L 1294.0 336.0 Q 1310.0 336.0, 1310.0 352.0 L 1310.0 380.0" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+<path d="M 1451.0 252.0 L 1451.0 322.0 Q 1451.0 336.0, 1437.0 336.0 L 1310.0 336.0" fill="none" stroke="#F8FAFC" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1451.0 252.0 L 1451.0 322.0 Q 1451.0 336.0, 1437.0 336.0 L 1310.0 336.0" fill="none" stroke="#0F172A" stroke-width="7.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1451.0 252.0 L 1451.0 322.0 Q 1451.0 336.0, 1437.0 336.0 L 1310.0 336.0" fill="none" stroke="#1E293B" stroke-width="5.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1451.0 252.0 L 1451.0 322.0 Q 1451.0 336.0, 1437.0 336.0 L 1310.0 336.0" fill="none" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+<rect x="677.3" y="473.5" width="129.4" height="19.0" rx="9.5" fill="#1E293B"/><text x="742.0" y="486.5" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.6" font-weight="700" fill="#F8FAFC" text-anchor="middle" >GND Común (Estrella)</text>
+<path d="M 429.0 444.0 L 496.0 444.0 Q 512.0 444.0, 512.0 460.0 L 512.0 512.0 Q 512.0 528.0, 528.0 528.0 L 1078.0 528.0" fill="none" stroke="#F8FAFC" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 429.0 444.0 L 496.0 444.0 Q 512.0 444.0, 512.0 460.0 L 512.0 512.0 Q 512.0 528.0, 528.0 528.0 L 1078.0 528.0" fill="none" stroke="#0F172A" stroke-width="7.0" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 429.0 444.0 L 496.0 444.0 Q 512.0 444.0, 512.0 460.0 L 512.0 512.0 Q 512.0 528.0, 528.0 528.0 L 1078.0 528.0" fill="none" stroke="#EA580C" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 429.0 444.0 L 496.0 444.0 Q 512.0 444.0, 512.0 460.0 L 512.0 512.0 Q 512.0 528.0, 528.0 528.0 L 1078.0 528.0" fill="none" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+<rect x="589.6" y="534.5" width="290.8" height="19.0" rx="9.5" fill="#FFF7ED" stroke="#FDBA74" stroke-width="1.3"/><text x="735.0" y="547.5" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.8" font-weight="700" fill="#C2410C" text-anchor="middle" >+3.3V Lógica (XIAO 3V3 → PCA9685 VCC · NUNCA 5V)</text>
+<path d="M 251.0 494.0 L 212.0 494.0 Q 196.0 494.0, 196.0 510.0 L 196.0 608.0 Q 196.0 624.0, 212.0 624.0 L 952.0 624.0 Q 968.0 624.0, 968.0 608.0 L 968.0 518.5 Q 968.0 502.5, 984.0 502.5 L 1078.0 502.5" fill="none" stroke="#F8FAFC" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 251.0 494.0 L 212.0 494.0 Q 196.0 494.0, 196.0 510.0 L 196.0 608.0 Q 196.0 624.0, 212.0 624.0 L 952.0 624.0 Q 968.0 624.0, 968.0 608.0 L 968.0 518.5 Q 968.0 502.5, 984.0 502.5 L 1078.0 502.5" fill="none" stroke="#0F172A" stroke-width="6.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 251.0 494.0 L 212.0 494.0 Q 196.0 494.0, 196.0 510.0 L 196.0 608.0 Q 196.0 624.0, 212.0 624.0 L 952.0 624.0 Q 968.0 624.0, 968.0 608.0 L 968.0 518.5 Q 968.0 502.5, 984.0 502.5 L 1078.0 502.5" fill="none" stroke="#2563EB" stroke-width="5.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 251.0 494.0 L 212.0 494.0 Q 196.0 494.0, 196.0 510.0 L 196.0 608.0 Q 196.0 624.0, 212.0 624.0 L 952.0 624.0 Q 968.0 624.0, 968.0 608.0 L 968.0 518.5 Q 968.0 502.5, 984.0 502.5 L 1078.0 502.5" fill="none" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+<path d="M 251.0 519.0 L 188.0 519.0 Q 172.0 519.0, 172.0 535.0 L 172.0 626.0 Q 172.0 642.0, 188.0 642.0 L 984.0 642.0 Q 1000.0 642.0, 1000.0 626.0 L 1000.0 493.0 Q 1000.0 477.0, 1016.0 477.0 L 1078.0 477.0" fill="none" stroke="#F8FAFC" stroke-width="9.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 251.0 519.0 L 188.0 519.0 Q 172.0 519.0, 172.0 535.0 L 172.0 626.0 Q 172.0 642.0, 188.0 642.0 L 984.0 642.0 Q 1000.0 642.0, 1000.0 626.0 L 1000.0 493.0 Q 1000.0 477.0, 1016.0 477.0 L 1078.0 477.0" fill="none" stroke="#0F172A" stroke-width="6.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 251.0 519.0 L 188.0 519.0 Q 172.0 519.0, 172.0 535.0 L 172.0 626.0 Q 172.0 642.0, 188.0 642.0 L 984.0 642.0 Q 1000.0 642.0, 1000.0 626.0 L 1000.0 493.0 Q 1000.0 477.0, 1016.0 477.0 L 1078.0 477.0" fill="none" stroke="#9333EA" stroke-width="5.0" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 251.0 519.0 L 188.0 519.0 Q 172.0 519.0, 172.0 535.0 L 172.0 626.0 Q 172.0 642.0, 188.0 642.0 L 984.0 642.0 Q 1000.0 642.0, 1000.0 626.0 L 1000.0 493.0 Q 1000.0 477.0, 1016.0 477.0 L 1078.0 477.0" fill="none" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+<rect x="541.4" y="601.0" width="157.2" height="18.0" rx="9.0" fill="#DBEAFE" stroke="#93C5FD" stroke-width="1.3"/><text x="620.0" y="613.5" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.6" font-weight="700" fill="#1D4ED8" text-anchor="middle" >I2C_SDA (D4 → SDA · 3.3V)</text>
+<rect x="726.4" y="633.0" width="157.2" height="18.0" rx="9.0" fill="#F3E8FF" stroke="#D8B4FE" stroke-width="1.3"/><text x="805.0" y="645.5" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.6" font-weight="700" fill="#7E22CE" text-anchor="middle" >I2C_SCL (D5 → SCL · 3.3V)</text>
+<circle cx="842.0" cy="189.0" r="6.2" fill="#0F172A" opacity="0.42"/><circle cx="842.0" cy="189.0" r="5.0" fill="#DC2626" stroke="#FFFFFF" stroke-width="1.4"/>
+<circle cx="1266.0" cy="286.0" r="6.2" fill="#0F172A" opacity="0.42"/><circle cx="1266.0" cy="286.0" r="5.0" fill="#DC2626" stroke="#FFFFFF" stroke-width="1.4"/>
+<circle cx="534.0" cy="419.0" r="6.2" fill="#0F172A" opacity="0.42"/><circle cx="534.0" cy="419.0" r="5.0" fill="#1E293B" stroke="#FFFFFF" stroke-width="1.4"/>
+<circle cx="922.0" cy="426.0" r="6.2" fill="#0F172A" opacity="0.42"/><circle cx="922.0" cy="426.0" r="5.0" fill="#1E293B" stroke="#FFFFFF" stroke-width="1.4"/>
+<circle cx="1310.0" cy="336.0" r="6.2" fill="#0F172A" opacity="0.42"/><circle cx="1310.0" cy="336.0" r="5.0" fill="#1E293B" stroke="#FFFFFF" stroke-width="1.4"/>
+<path d="M 1250.8 586.0 L 1250.8 738.8 Q 1250.8 749.8, 1239.8 749.8 L 247.8 749.8 Q 236.8 749.8, 236.8 760.8 L 236.8 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1250.8 586.0 L 1250.8 738.8 Q 1250.8 749.8, 1239.8 749.8 L 247.8 749.8 Q 236.8 749.8, 236.8 760.8 L 236.8 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1250.8 586.0 L 1250.8 738.8 Q 1250.8 749.8, 1239.8 749.8 L 247.8 749.8 Q 236.8 749.8, 236.8 760.8 L 236.8 770.0" fill="none" stroke="#F97316" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1256.0 586.0 L 1256.0 741.0 Q 1256.0 752.0, 1245.0 752.0 L 253.0 752.0 Q 242.0 752.0, 242.0 763.0 L 242.0 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1256.0 586.0 L 1256.0 741.0 Q 1256.0 752.0, 1245.0 752.0 L 253.0 752.0 Q 242.0 752.0, 242.0 763.0 L 242.0 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1256.0 586.0 L 1256.0 741.0 Q 1256.0 752.0, 1245.0 752.0 L 253.0 752.0 Q 242.0 752.0, 242.0 763.0 L 242.0 770.0" fill="none" stroke="#DC2626" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1261.2 586.0 L 1261.2 743.2 Q 1261.2 754.2, 1250.2 754.2 L 258.2 754.2 Q 247.2 754.2, 247.2 765.2 L 247.2 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1261.2 586.0 L 1261.2 743.2 Q 1261.2 754.2, 1250.2 754.2 L 258.2 754.2 Q 247.2 754.2, 247.2 765.2 L 247.2 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1261.2 586.0 L 1261.2 743.2 Q 1261.2 754.2, 1250.2 754.2 L 258.2 754.2 Q 247.2 754.2, 247.2 765.2 L 247.2 770.0" fill="none" stroke="#78350F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1314.8 586.0 L 1314.8 724.8 Q 1314.8 735.8, 1303.8 735.8 L 592.8 735.8 Q 581.8 735.8, 581.8 746.8 L 581.8 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1314.8 586.0 L 1314.8 724.8 Q 1314.8 735.8, 1303.8 735.8 L 592.8 735.8 Q 581.8 735.8, 581.8 746.8 L 581.8 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1314.8 586.0 L 1314.8 724.8 Q 1314.8 735.8, 1303.8 735.8 L 592.8 735.8 Q 581.8 735.8, 581.8 746.8 L 581.8 770.0" fill="none" stroke="#F97316" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1320.0 586.0 L 1320.0 727.0 Q 1320.0 738.0, 1309.0 738.0 L 598.0 738.0 Q 587.0 738.0, 587.0 749.0 L 587.0 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1320.0 586.0 L 1320.0 727.0 Q 1320.0 738.0, 1309.0 738.0 L 598.0 738.0 Q 587.0 738.0, 587.0 749.0 L 587.0 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1320.0 586.0 L 1320.0 727.0 Q 1320.0 738.0, 1309.0 738.0 L 598.0 738.0 Q 587.0 738.0, 587.0 749.0 L 587.0 770.0" fill="none" stroke="#DC2626" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1325.2 586.0 L 1325.2 729.2 Q 1325.2 740.2, 1314.2 740.2 L 603.2 740.2 Q 592.2 740.2, 592.2 751.2 L 592.2 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1325.2 586.0 L 1325.2 729.2 Q 1325.2 740.2, 1314.2 740.2 L 603.2 740.2 Q 592.2 740.2, 592.2 751.2 L 592.2 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1325.2 586.0 L 1325.2 729.2 Q 1325.2 740.2, 1314.2 740.2 L 603.2 740.2 Q 592.2 740.2, 592.2 751.2 L 592.2 770.0" fill="none" stroke="#78350F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1378.8 586.0 L 1378.8 710.8 Q 1378.8 721.8, 1367.8 721.8 L 937.8 721.8 Q 926.8 721.8, 926.8 732.8 L 926.8 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1378.8 586.0 L 1378.8 710.8 Q 1378.8 721.8, 1367.8 721.8 L 937.8 721.8 Q 926.8 721.8, 926.8 732.8 L 926.8 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1378.8 586.0 L 1378.8 710.8 Q 1378.8 721.8, 1367.8 721.8 L 937.8 721.8 Q 926.8 721.8, 926.8 732.8 L 926.8 770.0" fill="none" stroke="#F97316" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1384.0 586.0 L 1384.0 713.0 Q 1384.0 724.0, 1373.0 724.0 L 943.0 724.0 Q 932.0 724.0, 932.0 735.0 L 932.0 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1384.0 586.0 L 1384.0 713.0 Q 1384.0 724.0, 1373.0 724.0 L 943.0 724.0 Q 932.0 724.0, 932.0 735.0 L 932.0 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1384.0 586.0 L 1384.0 713.0 Q 1384.0 724.0, 1373.0 724.0 L 943.0 724.0 Q 932.0 724.0, 932.0 735.0 L 932.0 770.0" fill="none" stroke="#DC2626" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1389.2 586.0 L 1389.2 715.2 Q 1389.2 726.2, 1378.2 726.2 L 948.2 726.2 Q 937.2 726.2, 937.2 737.2 L 937.2 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1389.2 586.0 L 1389.2 715.2 Q 1389.2 726.2, 1378.2 726.2 L 948.2 726.2 Q 937.2 726.2, 937.2 737.2 L 937.2 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1389.2 586.0 L 1389.2 715.2 Q 1389.2 726.2, 1378.2 726.2 L 948.2 726.2 Q 937.2 726.2, 937.2 737.2 L 937.2 770.0" fill="none" stroke="#78350F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1442.8 586.0 L 1442.8 698.8 Q 1442.8 709.8, 1431.8 709.8 L 1282.8 709.8 Q 1271.8 709.8, 1271.8 720.8 L 1271.8 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1442.8 586.0 L 1442.8 698.8 Q 1442.8 709.8, 1431.8 709.8 L 1282.8 709.8 Q 1271.8 709.8, 1271.8 720.8 L 1271.8 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1442.8 586.0 L 1442.8 698.8 Q 1442.8 709.8, 1431.8 709.8 L 1282.8 709.8 Q 1271.8 709.8, 1271.8 720.8 L 1271.8 770.0" fill="none" stroke="#F97316" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1448.0 586.0 L 1448.0 701.0 Q 1448.0 712.0, 1437.0 712.0 L 1288.0 712.0 Q 1277.0 712.0, 1277.0 723.0 L 1277.0 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1448.0 586.0 L 1448.0 701.0 Q 1448.0 712.0, 1437.0 712.0 L 1288.0 712.0 Q 1277.0 712.0, 1277.0 723.0 L 1277.0 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1448.0 586.0 L 1448.0 701.0 Q 1448.0 712.0, 1437.0 712.0 L 1288.0 712.0 Q 1277.0 712.0, 1277.0 723.0 L 1277.0 770.0" fill="none" stroke="#DC2626" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1453.2 586.0 L 1453.2 703.2 Q 1453.2 714.2, 1442.2 714.2 L 1293.2 714.2 Q 1282.2 714.2, 1282.2 725.2 L 1282.2 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1453.2 586.0 L 1453.2 703.2 Q 1453.2 714.2, 1442.2 714.2 L 1293.2 714.2 Q 1282.2 714.2, 1282.2 725.2 L 1282.2 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1453.2 586.0 L 1453.2 703.2 Q 1453.2 714.2, 1442.2 714.2 L 1293.2 714.2 Q 1282.2 714.2, 1282.2 725.2 L 1282.2 770.0" fill="none" stroke="#78350F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1506.8 586.0 L 1506.8 691.2 Q 1506.8 702.2, 1517.8 702.2 L 1605.8 702.2 Q 1616.8 702.2, 1616.8 713.2 L 1616.8 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1506.8 586.0 L 1506.8 691.2 Q 1506.8 702.2, 1517.8 702.2 L 1605.8 702.2 Q 1616.8 702.2, 1616.8 713.2 L 1616.8 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1506.8 586.0 L 1506.8 691.2 Q 1506.8 702.2, 1517.8 702.2 L 1605.8 702.2 Q 1616.8 702.2, 1616.8 713.2 L 1616.8 770.0" fill="none" stroke="#F97316" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1512.0 586.0 L 1512.0 689.0 Q 1512.0 700.0, 1523.0 700.0 L 1611.0 700.0 Q 1622.0 700.0, 1622.0 711.0 L 1622.0 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1512.0 586.0 L 1512.0 689.0 Q 1512.0 700.0, 1523.0 700.0 L 1611.0 700.0 Q 1622.0 700.0, 1622.0 711.0 L 1622.0 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1512.0 586.0 L 1512.0 689.0 Q 1512.0 700.0, 1523.0 700.0 L 1611.0 700.0 Q 1622.0 700.0, 1622.0 711.0 L 1622.0 770.0" fill="none" stroke="#DC2626" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1517.2 586.0 L 1517.2 686.8 Q 1517.2 697.8, 1528.2 697.8 L 1616.2 697.8 Q 1627.2 697.8, 1627.2 708.8 L 1627.2 770.0" fill="none" stroke="#F8FAFC" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<path d="M 1517.2 586.0 L 1517.2 686.8 Q 1517.2 697.8, 1528.2 697.8 L 1616.2 697.8 Q 1627.2 697.8, 1627.2 708.8 L 1627.2 770.0" fill="none" stroke="#0F172A" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.44"/>
+<path d="M 1517.2 586.0 L 1517.2 686.8 Q 1517.2 697.8, 1528.2 697.8 L 1616.2 697.8 Q 1627.2 697.8, 1627.2 708.8 L 1627.2 770.0" fill="none" stroke="#78350F" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="legend-panel" filter="url(#shadowSm)">
+<rect x="24" y="984" width="1752" height="174" rx="12" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.6"/>
+<rect x="24" y="984" width="1752" height="34" rx="12" fill="#0F172A"/>
+<rect x="24" y="1004" width="1752" height="14" fill="#0F172A"/>
+<text x="40.0" y="1006.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="12" font-weight="800" fill="#F8FAFC" text-anchor="start" >CÓDIGO DE COLORES Y REGLAS CRÍTICAS DE BANCO</text>
+<text x="44.0" y="1038.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#334155" text-anchor="start" >CABLES DE POTENCIA Y BUS I2C (3.3V):</text>
+<line x1="44" y1="1056" x2="78" y2="1056" stroke="#DC2626" stroke-width="5.5" stroke-linecap="round"/>
+<text x="88.0" y="1060.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#0F172A" text-anchor="start" >Rojo (20 AWG)</text>
+<text x="209.0" y="1060.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.2" font-weight="500" fill="#475569" text-anchor="start" >+5V Potencia (AR5515 → KCD11 → PCA9685 V+ y 1N5819)</text>
+<line x1="44" y1="1080" x2="78" y2="1080" stroke="#1E293B" stroke-width="5.5" stroke-linecap="round"/>
+<text x="88.0" y="1084.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#0F172A" text-anchor="start" >Negro (20 AWG)</text>
+<text x="209.0" y="1084.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.2" font-weight="500" fill="#475569" text-anchor="start" >GND Tierra Común en estrella (AR5515 · PCA9685 · XIAO)</text>
+<line x1="44" y1="1104" x2="78" y2="1104" stroke="#EA580C" stroke-width="5.5" stroke-linecap="round"/>
+<text x="88.0" y="1108.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#0F172A" text-anchor="start" >Naranja (Dupont)</text>
+<text x="209.0" y="1108.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.2" font-weight="500" fill="#475569" text-anchor="start" >3.3V Lógica (XIAO 3V3 → PCA9685 VCC) — ¡NUNCA 5V!</text>
+<line x1="44" y1="1128" x2="78" y2="1128" stroke="#2563EB" stroke-width="5.5" stroke-linecap="round"/>
+<text x="88.0" y="1132.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#0F172A" text-anchor="start" >Azul (Dupont)</text>
+<text x="209.0" y="1132.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.2" font-weight="500" fill="#475569" text-anchor="start" >I2C SDA (XIAO D4 → PCA9685 SDA)</text>
+<line x1="44" y1="1152" x2="78" y2="1152" stroke="#9333EA" stroke-width="5.5" stroke-linecap="round"/>
+<text x="88.0" y="1156.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#0F172A" text-anchor="start" >Morado (Dupont)</text>
+<text x="209.0" y="1156.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.2" font-weight="500" fill="#475569" text-anchor="start" >I2C SCL (XIAO D5 → PCA9685 SCL)</text>
+<line x1="664" y1="1028" x2="664" y2="1144" stroke="#E2E8F0" stroke-width="1.5"/>
+<text x="686.0" y="1038.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#334155" text-anchor="start" >ORIENTACIÓN DEL CONECTOR DE SERVO EN PCA9685:</text>
+<rect x="700" y="1056" width="32" height="92" rx="4" fill="#18181B" stroke="#475569" stroke-width="1.4"/>
+<rect x="705" y="1063" width="22" height="18" rx="2.5" fill="#EAB308"/>
+<rect x="712" y="1069" width="8" height="6" rx="1" fill="url(#goldPad)"/>
+<line x1="732" y1="1072" x2="762" y2="1072" stroke="#F97316" stroke-width="5" stroke-linecap="round"/>
+<text x="772.0" y="1071.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#0F172A" text-anchor="start" >Arriba (Amarillo) → PWM</text>
+<text x="772.0" y="1084.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.8" font-weight="600" fill="#64748B" text-anchor="start" >Cable Naranja / Amarillo</text>
+<rect x="705" y="1093" width="22" height="18" rx="2.5" fill="#DC2626"/>
+<rect x="712" y="1099" width="8" height="6" rx="1" fill="url(#goldPad)"/>
+<line x1="732" y1="1102" x2="762" y2="1102" stroke="#EF4444" stroke-width="5" stroke-linecap="round"/>
+<text x="772.0" y="1101.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#0F172A" text-anchor="start" >Centro (Rojo) → V+ (5V)</text>
+<text x="772.0" y="1114.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.8" font-weight="600" fill="#64748B" text-anchor="start" >Cable Rojo</text>
+<rect x="705" y="1123" width="22" height="18" rx="2.5" fill="#334155"/>
+<rect x="712" y="1129" width="8" height="6" rx="1" fill="url(#goldPad)"/>
+<line x1="732" y1="1132" x2="762" y2="1132" stroke="#78350F" stroke-width="5" stroke-linecap="round"/>
+<text x="772.0" y="1131.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#0F172A" text-anchor="start" >Abajo (Negro) → GND</text>
+<text x="772.0" y="1144.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="9.8" font-weight="600" fill="#64748B" text-anchor="start" >Cable Café / Negro</text>
+<line x1="1064" y1="1028" x2="1064" y2="1144" stroke="#E2E8F0" stroke-width="1.5"/>
+<text x="1086.0" y="1038.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="800" fill="#B45309" text-anchor="start" >CHECKLIST OBLIGATORIO ANTES DE ENCENDER:</text>
+<text x="1086.0" y="1060.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#991B1B" text-anchor="start" >1. Fija el DIP del AR5515 en 5V y MIDE 4.95–5.15V con multímetro en vacío.</text>
+<text x="1086.0" y="1085.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#1E293B" text-anchor="start" >2. Verifica franja blanca (−) del 1000 µF en GND y banda del 1N5819 hacia XIAO.</text>
+<text x="1086.0" y="1110.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#1E293B" text-anchor="start" >3. Conecta PCA9685 VCC estrictamente a XIAO 3V3 (NUNCA a 5V).</text>
+<text x="1086.0" y="1135.0" font-family="'Segoe UI', Inter, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#1E293B" text-anchor="start" >4. Corre comando CENTER (1500 µs) en servos sueltos antes de atornillar horns.</text>
+</g>
+</svg>
