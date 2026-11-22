@@ -118,15 +118,15 @@ BASE_RING_H = 3.0
 BASE_CROWN_H = 14.0          # Z = 47..61 mm; horquilla sube al eje J2 en Z = 82 mm
 
 J2_DRUM_DIA = 42.0           # Aloja MG90S (22.8×12.2) + 608ZZ (Ø 22×7) 100% encapsulados
-J2_DRUM_W = 44.0
+J2_DRUM_W = 48.0             # Ancho DFM v3: deja holgura limpia tras MG90S (+Y) y buje 608ZZ (-Y) bajo tapas
 J2_CAP_DIA = 32.0
 
 J3_DRUM_DIA = 38.0
-J3_DRUM_W = 43.0
+J3_DRUM_W = 48.0
 J3_CAP_DIA = 29.0
 
 J4_DRUM_DIA = 32.0           # Aloja MG90S + 608ZZ (Ø 22×7) con pared de 5 mm
-J4_DRUM_W = 42.0
+J4_DRUM_W = 48.0
 J4_CAP_DIA = 24.0
 
 # --- Pose Héroe por Defecto (Pinza perfectamente horizontal φ = 0°) ---

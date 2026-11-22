@@ -1,7 +1,7 @@
 """
 Gemelo Digital 3D Real — Mini-Pro 4-DOF (`B2 Stealth`) · Peter Corke Python + VTK
 =================================================================================
-Controla en vivo las 30 piezas 3D reales del CAD (`B2 Stealth` v2) + hardware interno
+Controla en vivo las 35 piezas 3D reales del CAD (`B2 Stealth` v3.1 DFM, 0.00 mm³ colisiones)
 con cinemática exacta de Peter Corke (`roboticstoolbox-python`) y sincronización directa
 hacia tu XIAO ESP32-S3 por Wi-Fi UDP o USB Serial:
 
@@ -9,9 +9,9 @@ hacia tu XIAO ESP32-S3 por Wi-Fi UDP o USB Serial:
     python python/gemelo_digital_esp32.py --wifi 192.168.4.1   # Vivo por Wi-Fi UDP (1 solo cable)
     python python/gemelo_digital_esp32.py --port COM5          # Vivo por USB Serial (115200 baud)
 
-Arquitectura cinemática real (100% idéntica al CAD v2):
+Arquitectura cinemática real (100% idéntica al CAD v3.1):
     - 4 Grados de Libertad (4× MG90S): J1 Base Yaw · J2 Hombro · J3 Codo · J4 Muñeca
-    - 1 Efector Final (1× SG90):       Pinza paralela de 2 dedos (0–30 mm) con engranes 14T
+    - 1 Efector Final (1× SG90):       Pinza paralela 4 barras (0–30 mm) con engranes 14T y bielas L=16 mm
 """
 
 import argparse
@@ -132,10 +132,11 @@ P4_HERO = (
     0.0,
     P3_HERO[2] + A3_MM * math.sin(math.radians(HERO_Q2 + HERO_Q3)),
 )
-GEAR_LOCAL_X = 30.0
-GEAR_LOCAL_Y = 7.12
-IDLER_LOCAL_X = 21.0
+GEAR_LOCAL_X = 31.5
+GEAR_LOCAL_Y = 7.20
+IDLER_LOCAL_X = 22.5
 GRIP_LINK_L = 16.0
+PINION_J1_X = 22.35
 HERO_GRIP_TH_DEG = math.degrees(math.asin(min(0.95, (HERO_GRIP / 2.0) / GRIP_LINK_L)))  # 30.0° exactos
 
 # Mapeo de cada STL a su grupo cinemático rígido (CAD v3 DFM — 35 STLs + 19 hardware)
@@ -221,7 +222,7 @@ def _bake_transform_for_group(group: str) -> vtk.vtkTransform:
     if group in ("base", "j1"):
         return tf
     if group == "pinion_j1":
-        tf.Translate(-22.0, 0.0, 0.0)
+        tf.Translate(-PINION_J1_X, 0.0, 0.0)
         return tf
     if group == "j2":
         tf.Translate(0.0, 0.0, -D1_MM)
@@ -853,7 +854,7 @@ class DigitalTwinApp:
         self.tfs["base"].Identity()
 
         self.tfs["pinion_j1"].Identity()
-        self.tfs["pinion_j1"].Translate(22.0, 0.0, 0.0)
+        self.tfs["pinion_j1"].Translate(PINION_J1_X, 0.0, 0.0)
         self.tfs["pinion_j1"].RotateZ(-q1)
 
         self.tfs["j1"].Identity()

@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "MiniPro")(type "KiCad")(uri "${KIPRJMOD}/MiniPro.kicad_sym")(options "")(descr "Mini-Pro 4-DOF B2 Stealth Modules"))
+)

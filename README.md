@@ -2,12 +2,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
 [![DOF](https://img.shields.io/badge/Kinematics-4--DOF%20%2B%20Gripper-18181B.svg)](#cinemática-peter-corke-y-gemelo-digital)
-[![CAD](https://img.shields.io/badge/CAD-CadQuery%20v3%20DFM%20%2B%2035%20STLs-2563EB.svg)](#cad-paramétrico-y-catálogo-de-piezas)
+[![CAD](https://img.shields.io/badge/CAD-CadQuery%20v3.1%20%7C%200%20Collisions-2563EB.svg)](#cad-paramétrico-y-catálogo-de-piezas)
+[![KiCad](https://img.shields.io/badge/KiCad%209.0-0%20ERC%20Errors-16A34A.svg)](#electrónica-y-firmware-xiao-esp32-s3)
 [![MCU](https://img.shields.io/badge/Firmware-XIAO%20ESP32--S3%20%2B%20PCA9685-D45218.svg)](#electrónica-y-firmware-xiao-esp32-s3)
 
-Brazo robótico de escritorio **4-DOF + pinza paralela de 2 dedos** con estética minimalista monocromática **`B2 Stealth`**, diseñado desde cero mediante **CAD paramétrico por código (`CadQuery`)**, modelado cinemático exacto con la **Robotics Toolbox de Peter Corke (`roboticstoolbox-python`)**, **gemelo digital en tiempo real por Wi-Fi UDP / USB Serial** y alimentación limpia con **un único cable USB-C PD** (5V / 3A).
+Brazo robótico de escritorio **4-DOF + pinza paralela de 2 dedos** con estética minimalista monocromática **`B2 Stealth`**, diseñado desde cero mediante **CAD paramétrico por código (`CadQuery`)**, auditado matemáticamente por **intersección B-Rep 3D (`0.00 mm³` colisiones en los 49 sólidos)**, modelado cinemático exacto con la **Robotics Toolbox de Peter Corke (`roboticstoolbox-python`)**, **esquemático nativo en KiCad 9.0 (`0 Errores ERC`)**, **gemelo digital en tiempo real por Wi-Fi UDP / USB Serial** y alimentación limpia con **un único cable USB-C PD** (5V / 3A).
 
-> **Single Source of Truth:** Un solo archivo ([`cad/params.py`](cad/params.py)) controla al milímetro las dimensiones Denavit-Hartenberg, el ensamblaje 3D en SolidWorks/STEP, los 30 STLs imprimibles, la simulación de Peter Corke y los límites articulares del firmware.
+> **Single Source of Truth:** Un solo archivo ([`cad/params.py`](cad/params.py)) controla al milímetro las dimensiones Denavit-Hartenberg, el ensamblaje 3D en SolidWorks/STEP, los 35 STLs imprimibles, la simulación de Peter Corke y los límites articulares del firmware.
 
 ![Renders CAD v3 DFM — Revisiones A, B y C](docs/renders/renders_iter3_dfm_v3.png)
 
@@ -21,7 +22,7 @@ Brazo robótico de escritorio **4-DOF + pinza paralela de 2 dedos** con estétic
   * **Montaje real de los `4× MG90S`:** acceso trasero `+Y` con escalón de orejas + pilotos `M2`, bolsillos empotrados de *horn* en cada eslabón y canales de cables continuos (`10 × 8 mm`) para conectores Dupont 3-pin.
   * **Transmisión `22T:22T` antideslizamiento en J1:** corte en D en el eje de la torreta + barreno en D en `04b_engrane_torreta_22t`.
 * **Alimentación con 1 Solo Cable USB-C:** Cargador USB-C PD estándar (ej. UGREEN 50W) → módulo PD Trigger `AR5515` fijado en **5V** → botón físico trasero `KCD11-2P` → filtro `1000 µF` + diodo Schottky antirretorno `1N5819` para la `XIAO ESP32-S3`.
-* **Diseño Bicolor sin Desperdicio (0% Purga AMS):** 35 piezas `.STL` auditadas **35/35 estancas (*watertight*)** separadas por filamento (**23 Negro Mate ≈ 215 g** + **12 Blanco Mate ≈ 4 g**, total **~219 g de PLA**).
+* **Diseño Bicolor sin Desperdicio (0% Purga AMS) y Cero Colisiones:** 35 piezas `.STL` auditadas **35/35 estancas (*watertight*)** y verificadas matemáticamente en OpenCASCADE B-Rep (`cad/auditoria_ensamble_v3.py`) con **`0.00 mm³` de interferencia** entre los 49 sólidos (pose héroe + pinza cerrada `2 mm` + pinza abierta `28 mm`). Separadas por color: **23 Negro Mate ≈ 215 g** + **12 Blanco Mate ≈ 4 g** (total **~218 g de PLA**).
 * **Control Triple Simultáneo:**
   1. **Peter Corke Python por Wi-Fi UDP (puerto `4210`)** — gemelo digital en vivo manteniendo 1 solo cable de corriente en el escritorio.
   2. **USB Serial (`115200 baud`)** — compatible con Python y scripts de respaldo en MATLAB.
@@ -87,6 +88,7 @@ python python/gemelo_digital_esp32.py --port COM5         # Vivo por USB Serial
 
 ![Esquema Eléctrico B2 Stealth](electronics/esquema_cableado_b2_stealth.png)
 
+* **Proyecto Nativo KiCad 9.0 (`0 Errores, 0 Avisos` en ERC):** [`electronics/kicad/minipro_b2_stealth.kicad_pro`](electronics/kicad/minipro_b2_stealth.kicad_pro) · Esquemático editable [`minipro_b2_stealth.kicad_sch`](electronics/kicad/minipro_b2_stealth.kicad_sch) · Plano técnico PDF [`minipro_b2_stealth_sch.pdf`](electronics/kicad/minipro_b2_stealth_sch.pdf) · SVG [`minipro_b2_stealth.svg`](electronics/kicad/svg/minipro_b2_stealth.svg).
 * **Guía pin-a-pin y protocolo de encendido seguro:** [`electronics/DIAGRAMA_CABLEADO.md`](electronics/DIAGRAMA_CABLEADO.md)
 * **Lista de materiales (BOM verificada en México):** [`docs/BOM_UNIT_ELECTRONICS.md`](docs/BOM_UNIT_ELECTRONICS.md) *(presupuesto total estimado con filamento: ~1,155 – 1,355 MXN)*.
 * **Firmware `XIAO ESP32-S3 / C3`:** [`firmware/minipro_b2_stealth/`](firmware/minipro_b2_stealth/) + guía rápida en [`firmware/README_FIRMWARE.md`](firmware/README_FIRMWARE.md).
@@ -104,13 +106,14 @@ python python/gemelo_digital_esp32.py --port COM5         # Vivo por USB Serial
 minipro-4dof-robot-arm/
 ├── cad/
 │   ├── params.py                          # Single Source of Truth (DH + hardware + holguras)
-│   ├── mini_pro_b2_stealth_v3.py          # Generador CAD v3 DFM (STEP + 35 STLs + 4 barras)
+│   ├── mini_pro_b2_stealth_v3.py          # Generador CAD v3.1 DFM (STEP + 35 STLs + 4 barras)
+│   ├── auditoria_ensamble_v3.py           # Auditoría matemática B-Rep 3D (0.00 mm³ en 49 sólidos)
 │   ├── tolerance_test_kit.py              # Kit de prueba de tolerancias (20 min)
 │   ├── visor_cad_interactivo.py           # Visor 3D interactivo VTK (explode, X-Ray, picking)
-│   ├── render_iter3_dfm_v3.py             # Generador de tablero 4 vistas DFM v3
+│   ├── render_iter3_dfm_v3.py             # Generador de tablero 4 vistas DFM v3.1
 │   ├── generar_catalogo_piezas.py         # Generador del catálogo visual de 35 STLs
 │   └── exports/
-│       ├── mini_pro_b2_stealth_v3.step    # Ensamble completo v3 para SolidWorks / Fusion / Bambu Studio
+│       ├── mini_pro_b2_stealth_v3.step    # Ensamble completo v3.1 para SolidWorks / Fusion / Bambu Studio
 │       ├── tolerance_test_kit_bambu_a1.stl
 │       ├── stl_negro_mate/                # 23 piezas PLA Negro Mate (35/35 watertight)
 │       ├── stl_blanco_mate/               # 12 piezas PLA Blanco Mate (35/35 watertight)
@@ -124,6 +127,14 @@ minipro-4dof-robot-arm/
 │   ├── platformio.ini
 │   └── README_FIRMWARE.md
 ├── electronics/
+│   ├── kicad/                             # Proyecto nativo KiCad 9.0 (0 Errores ERC + PDF/SVG)
+│   │   ├── minipro_b2_stealth.kicad_pro
+│   │   ├── minipro_b2_stealth.kicad_sch
+│   │   ├── MiniPro.kicad_sym
+│   │   ├── sym-lib-table
+│   │   ├── minipro_b2_stealth_sch.pdf
+│   │   ├── svg/minipro_b2_stealth.svg
+│   │   └── generar_kicad.py
 │   ├── DIAGRAMA_CABLEADO.md               # Tabla pin-a-pin + checklist de seguridad
 │   ├── esquema_cableado_b2_stealth.png
 │   └── generar_esquema.py

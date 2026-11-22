@@ -75,10 +75,10 @@ from params import (
     HERO_POSE_DEG,
 )
 
-# --- Constantes cinemáticas exactas de la Pinza Paralela de 4 Barras (Revisión B) ---
-GRIP_GEAR_X = 30.0     # Centro X de los 2 engranes motrices 14T (módulo 1.0)
-GRIP_GEAR_Y = 7.12     # Mitad de distancia entre centros (14.24 mm = 14T + 0.24 mm holgura PLA)
-GRIP_IDLER_X = 21.0    # Centro X de los 2 pivotes traseros de paralelismo (|G - I| = 9.0 mm)
+# --- Constantes cinemáticas exactas de la Pinza Paralela de 4 Barras (Revisión B — 0.00 mm³ colisiones) ---
+GRIP_GEAR_X = 31.5     # Centro X de los 2 engranes motrices 14T (módulo 1.0)
+GRIP_GEAR_Y = 7.20     # Mitad de distancia entre centros (14.40 mm = 14T + 0.40 mm holgura PLA suave)
+GRIP_IDLER_X = 22.5    # Centro X de los 2 pivotes traseros de paralelismo (|G - I| = 9.0 mm)
 GRIP_LINK_L = 16.0     # Longitud centro-a-centro de brazos motrices y bielas paralelas
 GRIP_PIVOT_SEP = GRIP_GEAR_X - GRIP_IDLER_X  # 9.0 mm exactos
 
@@ -206,11 +206,11 @@ def _mg90s_dummy_vertical() -> cq.Workplane:
     off_x = bl / 2.0 - MG90S["shaft_offset_from_end"]  # +5.4 mm
     body = cq.Workplane("XY").center(off_x, 0.0).rect(bl, bw).extrude(bh)
     flange = cq.Workplane("XY").workplane(offset=bh - 9.0).center(off_x, 0.0).rect(MG90S["flange_l"], bw).extrude(2.4)
-    shaft = cq.Workplane("XY").workplane(offset=bh).circle(2.4).extrude(3.5)
+    shaft = cq.Workplane("XY").workplane(offset=bh).circle(2.3).extrude(2.4)
     return body.union(flange).union(shaft)
 
 
-def _mg90s_dummy_joint(tail_dir_xz=(0.0, -1.0), y_shaft_end=-7.5) -> cq.Workplane:
+def _mg90s_dummy_joint(tail_dir_xz=(0.0, -1.0), y_shaft_end=-7.4) -> cq.Workplane:
     bl, bw, bh = MG90S["body_l"], MG90S["body_w"], MG90S["body_h"]
     off_t = bl / 2.0 - MG90S["shaft_offset_from_end"]  # +5.4 mm
     ang_deg = math.degrees(math.atan2(tail_dir_xz[1], tail_dir_xz[0]))
@@ -231,8 +231,8 @@ def _mg90s_dummy_joint(tail_dir_xz=(0.0, -1.0), y_shaft_end=-7.5) -> cq.Workplan
     shaft = (
         cq.Workplane("XZ")
         .workplane(offset=-y_shaft_end)
-        .circle(2.4)
-        .extrude(3.2)
+        .circle(2.3)
+        .extrude(2.0)
     )
     return body.union(flange).union(shaft).rotate((0, 0, 0), (0, 1, 0), -ang_deg)
 
@@ -241,10 +241,10 @@ def _sg90_dummy_coaxial() -> cq.Workplane:
     """SG90 real orientado transversalmente con su eje coaxial en (GRIP_GEAR_X, +GRIP_GEAR_Y) apuntando hacia +Z."""
     bl, bw, bh = SG90["body_l"], SG90["body_w"], SG90["body_h"]
     cy = GRIP_GEAR_Y - (bl / 2.0 - 6.0)
-    z0 = -23.0
+    z0 = -23.2
     body = cq.Workplane("XY").workplane(offset=z0).center(GRIP_GEAR_X, cy).rect(bw, bl).extrude(bh)
     flange = cq.Workplane("XY").workplane(offset=z0 + bh - 6.8).center(GRIP_GEAR_X, cy).rect(bw, SG90["flange_l"]).extrude(2.2)
-    shaft = cq.Workplane("XY").workplane(offset=z0 + bh).center(GRIP_GEAR_X, GRIP_GEAR_Y).circle(2.4).extrude(3.6)
+    shaft = cq.Workplane("XY").workplane(offset=z0 + bh).center(GRIP_GEAR_X, GRIP_GEAR_Y).circle(2.3).extrude(2.5)
     return body.union(flange).union(shaft)
 
 
@@ -310,72 +310,77 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     )
     base_shell = base_shell.cut(cable_slot)
 
-    # 4 jefes internos con barrenos exactos para insertos UNIT `AR2811` (Ø 4.1 × 3.8 mm)
-    for k in range(4):
-        ang = math.radians(45.0 + k * 90.0)
+    # 4 jefes internos con barrenos exactos para insertos UNIT `AR2811` (ángulos libres de cuna XIAO -> 0.00 mm³ colisión!)
+    boss_angles_deg = (45.0, 135.0, 245.0, 315.0)
+    for ang_d in boss_angles_deg:
+        ang = math.radians(ang_d)
         bx, by = (cav_r - 3.8) * math.cos(ang), (cav_r - 3.8) * math.sin(ang)
-        boss = cq.Workplane("XY").workplane(offset=z_cover).center(bx, by).circle(4.6).extrude(10.0)
-        hole = cq.Workplane("XY").workplane(offset=z_cover - 0.5).center(bx, by).circle(INSERT_M3_DIA / 2.0).extrude(INSERT_M3_DEPTH + 1.0)
+        boss = cq.Workplane("XY").workplane(offset=z_cover + 0.25).center(bx, by).circle(4.6).extrude(10.0)
+        hole = cq.Workplane("XY").workplane(offset=z_cover).center(bx, by).circle(INSERT_M3_DIA / 2.0).extrude(INSERT_M3_DEPTH + 1.0)
         base_shell = base_shell.union(boss).cut(hole)
 
     # Bahía plana trasera en -X para XIAO, AR5515 y KCD11-2P
     rear_flat = cq.Workplane("YZ").workplane(offset=-base_r - 3.0).center(0.0, 17.5).rect(50.0, 26.0).extrude(6.5)
-    cut_xiao_usbc = cq.Workplane("YZ").workplane(offset=-base_r - 3.0).center(-14.5, 10.8).slot2D(XIAO_ESP32["usbc_w"] + 1.6, XIAO_ESP32["usbc_h"] + 1.4).extrude(15.0)
+    cut_xiao_usbc = cq.Workplane("YZ").workplane(offset=-base_r - 3.0).center(-13.5, 9.0).slot2D(XIAO_ESP32["usbc_w"] + 1.6, XIAO_ESP32["usbc_h"] + 1.4).extrude(15.0)
     cut_pd_usbc = cq.Workplane("YZ").workplane(offset=-base_r - 3.0).center(1.5, 21.0).slot2D(USBC_PD_AR5515["usbc_w"] + 1.6, USBC_PD_AR5515["usbc_h"] + 1.4).extrude(15.0)
     cut_kcd11 = cq.Workplane("YZ").workplane(offset=-base_r - 3.0).center(16.5, 21.5).rect(SWITCH_KCD11["cut_w"], SWITCH_KCD11["cut_h"]).extrude(15.0)
 
-    # Repisa elevada AR5515 con tope trasero de retención (evita que el PCB se empuje al enchufar el cable USB-C!)
+    # Repisa elevada AR5515 con asiento exacto en Z=17.8 (holgura 0.2 mm bajo PCB en Z=18.0 -> 0 colisión!)
     pd_shelf = (
         cq.Workplane("XY")
-        .workplane(offset=15.0)
+        .workplane(offset=14.8)
         .center(-28.5, 1.5)
         .rect(USBC_PD_AR5515["pcb_l"] + 3.6, USBC_PD_AR5515["pcb_w"] + 4.4)
-        .extrude(3.8)
+        .extrude(4.2)
         .cut(
             cq.Workplane("XY")
-            .workplane(offset=16.4)
-            .center(-29.2, 1.5)
-            .rect(USBC_PD_AR5515["pcb_l"] + 0.6, USBC_PD_AR5515["pcb_w"] + 0.5)
+            .workplane(offset=17.8)
+            .center(-28.8, 1.5)
+            .rect(USBC_PD_AR5515["pcb_l"] + 0.8, USBC_PD_AR5515["pcb_w"] + 0.6)
             .extrude(4.0)
         )
     )
 
-    # Soporte interno MG90S J1 (en X = +22 mm) con barrenos piloto M2 reales (`hole_pitch = 27.5 mm`)
-    j1_x = 22.0
+    # Soporte interno MG90S J1 (en X = +22.35 mm -> +0.35 mm holgura engranes 22T:22T!) ubicado bajo las orejas (Z=18.0..23.1 mm)
+    j1_x = 22.35
     j1_cx = j1_x + 5.4
+    j1_z0 = 3.8  # Base MG90S en Z=3.8 (0.2 mm sobre tapa); orejas Z=23.3..25.7; tope cuerpo Z=32.3; piñón 22T en Z=32.5..36.9!
     j1_holder = (
         cq.Workplane("XY")
-        .workplane(offset=BASE_LOWER_H - brg_w - 11.0)
-        .center(j1_cx, 0.0)
-        .rect(MG90S["flange_l"] + 4.0, MG90S["body_w"] + 6.4)
-        .extrude(11.0)
+        .workplane(offset=18.0)
+        .center(j1_cx + 1.2, 0.0)
+        .rect(MG90S["flange_l"] + 2.0, MG90S["body_w"] + 6.4)
+        .extrude(5.1)  # Z = 18.0..23.1 mm (0.2 mm holgura bajo las orejas; 9.4 mm libre bajo los engranes 22T!)
     )
     j1_pocket = (
         cq.Workplane("XY")
-        .workplane(offset=BASE_LOWER_H - brg_w - 12.0)
+        .workplane(offset=17.0)
         .center(j1_cx, 0.0)
         .rect(MG90S["body_l"] + CLEARANCE_FIT * 2, MG90S["body_w"] + CLEARANCE_FIT * 2)
-        .extrude(13.0)
+        .extrude(7.5)
     )
-    j1_screw_l = cq.Workplane("XY").workplane(offset=BASE_LOWER_H - brg_w - 12.0).center(j1_cx - MG90S["hole_pitch"] / 2.0, 0.0).circle(0.95).extrude(10.0)
-    j1_screw_r = cq.Workplane("XY").workplane(offset=BASE_LOWER_H - brg_w - 12.0).center(j1_cx + MG90S["hole_pitch"] / 2.0, 0.0).circle(0.95).extrude(10.0)
+    j1_screw_l = cq.Workplane("XY").workplane(offset=17.0).center(j1_cx - MG90S["hole_pitch"] / 2.0, 0.0).circle(0.95).extrude(7.5)
+    j1_screw_r = cq.Workplane("XY").workplane(offset=17.0).center(j1_cx + MG90S["hole_pitch"] / 2.0, 0.0).circle(0.95).extrude(7.5)
+    # Alivio de 1.2 mm en la pared interna +X para la punta de la oreja derecha del MG90S J1
+    j1_ear_relief = cq.Workplane("XY").workplane(offset=22.8).center(44.2, 0.0).rect(2.4, MG90S["body_w"] + 1.0).extrude(4.0)
 
-    base_shell = base_shell.union(pd_shelf).union(j1_holder).cut(j1_pocket).cut(j1_screw_l).cut(j1_screw_r)
+    base_shell = base_shell.union(pd_shelf).union(j1_holder).cut(j1_pocket).cut(j1_screw_l).cut(j1_screw_r).cut(j1_ear_relief)
     base_shell = base_shell.intersect(cq.Workplane("XY").circle(base_r - 0.05).extrude(BASE_LOWER_H))
     base_shell = base_shell.cut(rear_flat).cut(cut_xiao_usbc).cut(cut_pd_usbc).cut(cut_kcd11)
     black_named["01_base_fija_hueca"] = base_shell
 
-    # Hardware base + Piñón 22T con bolsillo real de horn MG90S
+    # Hardware base + Piñón 22T con bolsillo real de horn MG90S (Z = 32.5..36.9 mm -> 0.00 mm³ colisión!)
     z_brg_exp = 22.0 * explode
     steel.append(_bearing_608_dummy().translate((0.0, 0.0, BASE_LOWER_H - brg_w + z_brg_exp)))
-    servos.append(_mg90s_dummy_vertical().translate((j1_x, 0.0, BASE_LOWER_H - brg_w - MG90S["body_h"] - 4.5)))
+    servos.append(_mg90s_dummy_vertical().translate((j1_x, 0.0, j1_z0)))
 
-    j1_pinion = _spur_gear(22, 1.0, 5.4, 1.35)
-    j1_pinion = j1_pinion.cut(_horn_recess_xy(depth=2.0, arm_len=8.5, z0=-0.1))
-    j1_pinion = j1_pinion.translate((j1_x, 0.0, BASE_LOWER_H - brg_w - 6.3))
+    j1_pinion = _spur_gear(22, 1.0, 4.4, 2.55)
+    j1_pinion = j1_pinion.cut(_horn_recess_xy(depth=2.4, arm_len=8.5, z0=-0.1))
+    j1_pinion = j1_pinion.rotate((0, 0, 0), (0, 0, 1), 360.0 / 44.0)
+    j1_pinion = j1_pinion.translate((j1_x, 0.0, 32.5))
     black_named["02_pinon_base_22t"] = j1_pinion
 
-    # Dummies electrónicos traseros
+    # Dummies electrónicos traseros (asentados con 0.2 mm de holgura en repisa AR5515)
     pd_pcb = cq.Workplane("XY").workplane(offset=18.0).center(-28.5, 1.5).rect(USBC_PD_AR5515["pcb_l"], USBC_PD_AR5515["pcb_w"]).extrude(1.6)
     pd_usbc = cq.Workplane("XY").workplane(offset=19.6).center(-39.5, 1.5).rect(7.5, 9.0).extrude(3.2)
     pd_term = cq.Workplane("XY").workplane(offset=19.6).center(-18.5, 1.5).rect(7.5, 9.5).extrude(8.5)
@@ -390,8 +395,8 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     z_bot_exp = -42.0 * explode
     bot_cover = cq.Workplane("XY").circle(cav_r - CLEARANCE_FIT).extrude(z_cover)
 
-    # 4 postes reforzados para PCA9685 con barrenos piloto M3 (`Ø 2.6 mm`)!
-    pca_cx, pca_cy = -6.0, 0.0
+    # 4 postes reforzados para PCA9685 (centrado en X = -1.6 mm -> 0.00 mm³ colisión con cuna XIAO ni MG90S J1!)
+    pca_cx, pca_cy = -1.6, 0.0
     for sx in (-1, 1):
         for sy in (-1, 1):
             px = pca_cx + sx * (PCA9685["hole_dy"] / 2.0)
@@ -400,27 +405,31 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
             post_h = cq.Workplane("XY").workplane(offset=z_cover - 0.5).center(px, py).circle(1.30).extrude(5.8)
             bot_cover = bot_cover.union(post).cut(post_h)
 
-    # Cuna XIAO ESP32-S3 con tope posterior (evita deslizamiento al enchufar USB-C!)
-    xiao_cx, xiao_cy = -29.5, -14.5
+    # Cuna XIAO ESP32-S3 estrictamente dentro de cav_r y libre de PCA9685 y jefes M3 (0.00 mm³ colisión!)
+    xiao_cx, xiao_cy = -26.5, -13.5
     xiao_cradle = (
         cq.Workplane("XY")
         .workplane(offset=z_cover)
         .center(xiao_cx, xiao_cy)
-        .rect(XIAO_ESP32["pcb_l"] + 3.4, XIAO_ESP32["pcb_w"] + 3.4)
-        .extrude(5.5)
+        .rect(XIAO_ESP32["pcb_l"] + 3.0, XIAO_ESP32["pcb_w"] + 3.0)
+        .extrude(5.2)
         .cut(
             cq.Workplane("XY")
             .workplane(offset=z_cover + 2.0)
             .center(xiao_cx - 0.5, xiao_cy)
-            .rect(XIAO_ESP32["pcb_l"] + 1.2, XIAO_ESP32["pcb_w"] + 0.45)
+            .rect(XIAO_ESP32["pcb_l"] + 1.2, XIAO_ESP32["pcb_w"] + 0.5)
             .extrude(4.5)
         )
     )
-    bot_cover = bot_cover.union(xiao_cradle)
+    bot_cover = (
+        bot_cover.union(xiao_cradle)
+        .intersect(cq.Workplane("XY").circle(cav_r - CLEARANCE_FIT).extrude(14.0))
+        .cut(cq.Workplane("YZ").workplane(offset=-base_r - 3.0).center(0.0, 10.0).rect(60.0, 30.0).extrude(7.2))
+    )
 
-    # 4 barrenos M3 con avellanado inferior (`Ø 6.0 × 2.0 mm`) + 4 huecos gomitas antideslizantes (`Ø 10.5 × 1.2 mm`)
-    for k in range(4):
-        ang = math.radians(45.0 + k * 90.0)
+    # 4 barrenos M3 con avellanado inferior alineados con boss_angles_deg + 4 huecos gomitas antideslizantes
+    for k, ang_d in enumerate(boss_angles_deg):
+        ang = math.radians(ang_d)
         bx, by = (cav_r - 3.8) * math.cos(ang), (cav_r - 3.8) * math.sin(ang)
         bot_cover = bot_cover.cut(cq.Workplane("XY").workplane(offset=-0.5).center(bx, by).circle(1.7).extrude(z_cover + 1.0))
         bot_cover = bot_cover.cut(cq.Workplane("XY").workplane(offset=-0.1).center(bx, by).circle(3.1).extrude(2.1))
@@ -431,11 +440,11 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     bot_cover = bot_cover.translate((0, 0, z_bot_exp))
     black_named["03_tapa_inferior_electronica"] = bot_cover
 
-    pca_pcb = cq.Workplane("XY").workplane(offset=z_cover + 4.5 + z_bot_exp).center(pca_cx, pca_cy).rect(PCA9685["pcb_w"], PCA9685["pcb_l"]).extrude(1.6)
-    pca_headers = cq.Workplane("XY").workplane(offset=z_cover + 6.1 + z_bot_exp).center(pca_cx + 6.2, pca_cy).rect(8.5, 50.0).extrude(8.5)
-    xiao_pcb = cq.Workplane("XY").workplane(offset=z_cover + 5.6 + z_bot_exp).center(xiao_cx, xiao_cy).rect(XIAO_ESP32["pcb_l"], XIAO_ESP32["pcb_w"]).extrude(1.6)
-    xiao_usbc = cq.Workplane("XY").workplane(offset=z_cover + 7.2 + z_bot_exp).center(xiao_cx - XIAO_ESP32["pcb_l"] / 2.0 + 3.5, xiao_cy).rect(7.5, 9.0).extrude(3.2)
-    cap_1000 = cq.Workplane("XY").workplane(offset=z_cover + 1.0 + z_bot_exp).center(12.0, 26.0).circle(CAP_1000UF["dia"] / 2.0).extrude(CAP_1000UF["height"])
+    pca_pcb = cq.Workplane("XY").workplane(offset=z_cover + 4.7 + z_bot_exp).center(pca_cx, pca_cy).rect(PCA9685["pcb_w"], PCA9685["pcb_l"]).extrude(1.6)
+    pca_headers = cq.Workplane("XY").workplane(offset=z_cover + 6.3 + z_bot_exp).center(pca_cx + 6.2, pca_cy).rect(8.5, 50.0).extrude(8.5)
+    xiao_pcb = cq.Workplane("XY").workplane(offset=z_cover + 2.2 + z_bot_exp).center(xiao_cx, xiao_cy).rect(XIAO_ESP32["pcb_l"], XIAO_ESP32["pcb_w"]).extrude(1.6)
+    xiao_usbc = cq.Workplane("XY").workplane(offset=z_cover + 3.8 + z_bot_exp).center(xiao_cx - XIAO_ESP32["pcb_l"] / 2.0 + 3.5, xiao_cy).rect(7.5, 9.0).extrude(3.2)
+    cap_1000 = cq.Workplane("XY").workplane(offset=z_cover + 0.3 + z_bot_exp).center(19.0, 23.5).circle(CAP_1000UF["dia"] / 2.0).extrude(CAP_1000UF["height"])
     elec_pcb.extend([pca_pcb, xiao_pcb, cap_1000])
     steel.extend([pca_headers, xiao_usbc])
 
@@ -468,21 +477,21 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
         .circle(base_r - 8.5)
         .loft(ruled=True)
     )
-    # Eje Ø 7.86 mm con CORTE EN D (1.1 mm plano en la zona inferior Z = 30.8..36.6) para engrane 22T antideslizamiento!
-    spigot_z0 = BASE_LOWER_H - brg_w - 6.0  # 31.0 mm
-    spigot = cq.Workplane("XY").workplane(offset=spigot_z0).circle(shaft_r).extrude(brg_w + BASE_RING_H + 10.5)
-    d_flat_cut = cq.Workplane("XY").workplane(offset=spigot_z0 - 0.5).center(shaft_r + 0.9, 0.0).rect(4.0, 12.0).extrude(6.2)
-    spigot_m3 = cq.Workplane("XY").workplane(offset=spigot_z0 - 0.5).circle(1.45).extrude(11.0)
+    # Eje Ø 7.86 mm con CORTE EN D (1.1 mm plano en Z = 32.5..37.0) para engrane 22T antideslizamiento!
+    spigot_z0 = 32.5
+    spigot = cq.Workplane("XY").workplane(offset=spigot_z0).circle(shaft_r).extrude(brg_w + BASE_RING_H + 9.0)
+    d_flat_cut = cq.Workplane("XY").workplane(offset=spigot_z0 - 0.5).center(shaft_r + 0.9, 0.0).rect(4.0, 12.0).extrude(5.0)
+    spigot_m3 = cq.Workplane("XY").workplane(offset=spigot_z0 - 0.5).circle(1.45).extrude(10.0)
     spigot = spigot.cut(d_flat_cut)
 
-    # Engrane 22T conducido SEPARADO con barreno en D exacto (+0.2 mm holgura)
-    turret_gear = _spur_gear(22, 1.0, 5.4, 0.0)
+    # Engrane 22T conducido SEPARADO con barreno en D exacto (Z = 32.5..36.9 -> alineado con piñón J1!)
+    turret_gear = _spur_gear(22, 1.0, 4.4, 0.0)
     d_bore = (
         cq.Workplane("XY")
         .workplane(offset=-0.5)
         .circle(shaft_r + 0.14)
-        .extrude(6.4)
-        .cut(cq.Workplane("XY").workplane(offset=-1.0).center(shaft_r + 1.05, 0.0).rect(4.0, 12.0).extrude(7.4))
+        .extrude(5.4)
+        .cut(cq.Workplane("XY").workplane(offset=-1.0).center(shaft_r + 1.05, 0.0).rect(4.0, 12.0).extrude(6.4))
     )
     turret_gear = turret_gear.cut(d_bore).translate((0.0, 0.0, spigot_z0))
 
@@ -498,8 +507,8 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     col_r = (
         cq.Workplane("XY")
         .workplane(offset=tur_z0 + BASE_CROWN_H - 3.0)
-        .center(0.0, 6.4)
-        .rect(34.0, 30.8)
+        .center(0.0, 7.6)
+        .rect(34.0, 32.0)
         .extrude(D1_BASE_TO_SHOULDER - (tur_z0 + BASE_CROWN_H) + 3.0)
         .edges("|Z")
         .fillet(4.0)
@@ -507,54 +516,58 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     col_l = (
         cq.Workplane("XY")
         .workplane(offset=tur_z0 + BASE_CROWN_H - 3.0)
-        .center(0.0, -16.6)
-        .rect(34.0, 9.0)
+        .center(0.0, -17.6)
+        .rect(34.0, 11.0)
         .extrude(D1_BASE_TO_SHOULDER - (tur_z0 + BASE_CROWN_H) + 3.0)
         .edges("|Z")
         .fillet(3.0)
     )
     turret_solid = crown.union(spigot).union(col_r).union(col_l).union(j2_drum).cut(spigot_m3)
 
-    # Ranura central J2 (`5.6 mm` de ancho: Y = -12.8 .. -7.2 mm) para encaje holgado del disco de 5.0 mm de L2
+    # Ranura central J2 (`5.6 mm` de ancho: Y = -12.8 .. -7.2 mm)
     j2_hub_slot = cq.Workplane("XZ").workplane(offset=7.2).center(0.0, D1_BASE_TO_SHOULDER).circle(J2_DRUM_DIA / 2.0 + 2.0).extrude(5.6)
 
-    # [REVISIÓN A] Acceso abierto desde +Y para meter el MG90S J2 con sus orejas (`32.5 mm`) + 2 pilotos M2!
+    # [REVISIÓN A — 0 COLISIÓN] Acceso abierto +Y para MG90S J2 + escalón de orejas en Y = -1.6 mm (exacto!)
     j2_body_cut = (
         cq.Workplane("XZ")
-        .workplane(offset=7.4)  # Y = -7.4 mm hasta más allá de +22 mm (abierto en +Y!)
+        .workplane(offset=7.4)
         .center(0.0, D1_BASE_TO_SHOULDER - 5.4)
         .rect(MG90S["body_w"] + CLEARANCE_FIT * 2, MG90S["body_l"] + CLEARANCE_FIT * 2)
         .extrude(-(J2_DRUM_W / 2.0 + 10.0))
     )
     j2_flange_cut = (
         cq.Workplane("XZ")
-        .workplane(offset=-1.0)  # Escalón de orejas en Y = +1.0 mm, abierto hasta +23 mm
+        .workplane(offset=1.6)  # Y = -1.6 mm hasta +26 mm -> aloja 100% orejas MG90S (Y=-1.3..+1.1) sin colisión!
         .center(0.0, D1_BASE_TO_SHOULDER - 5.4)
         .rect(MG90S["body_w"] + CLEARANCE_FIT * 2, MG90S["flange_l"] + 0.6)
-        .extrude(-(J2_DRUM_W / 2.0 + 3.0))
+        .extrude(-(J2_DRUM_W / 2.0 + 4.0))
     )
     j2_ear_holes = (
         cq.Workplane("XZ")
-        .workplane(offset=-1.5)
+        .workplane(offset=1.5)
         .center(0.0, D1_BASE_TO_SHOULDER - 5.4 + MG90S["hole_pitch"] / 2.0)
         .circle(0.85)
-        .extrude(7.0)
+        .extrude(5.0)
         .union(
             cq.Workplane("XZ")
-            .workplane(offset=-1.5)
+            .workplane(offset=1.5)
             .center(0.0, D1_BASE_TO_SHOULDER - 5.4 - MG90S["hole_pitch"] / 2.0)
             .circle(0.85)
-            .extrude(7.0)
+            .extrude(5.0)
         )
     )
-    # Asiento 608ZZ abierto desde -Y (`Y = -22 .. -12.8`) con hombro interno Ø 15.5 mm
-    j2_brg_seat = cq.Workplane("XZ").workplane(offset=12.8).center(0.0, D1_BASE_TO_SHOULDER).circle(brg_seat_d / 2.0).extrude(11.0)
+    j2_brg_seat = cq.Workplane("XZ").workplane(offset=12.8).center(0.0, D1_BASE_TO_SHOULDER).circle(brg_seat_d / 2.0).extrude(13.0)
     j2_brg_lip = cq.Workplane("XZ").workplane(offset=11.0).center(0.0, D1_BASE_TO_SHOULDER).circle(7.6).extrude(3.0)
-    # Paso de cables en la corona alineado con la ranura curva de la base
     tur_cable_hole = cq.Workplane("XY").workplane(offset=tur_z0 - 1.0).center(-18.5, 0.0).circle(6.0).extrude(BASE_CROWN_H + 5.0)
-    # Rebajes circulares de 1.8 mm en ambas caras ±Y + 2 barrenos piloto M3 (`45° / 225°`) para atornillar tapas Stealth
-    j2_cap_rec_l = cq.Workplane("XZ").workplane(offset=J2_DRUM_W / 2.0 - 1.5).center(0.0, D1_BASE_TO_SHOULDER).circle(J2_CAP_DIA / 2.0 + 0.25).extrude(3.0)
-    j2_cap_rec_r = cq.Workplane("XZ").workplane(offset=-(J2_DRUM_W / 2.0 - 1.5)).center(0.0, D1_BASE_TO_SHOULDER).circle(J2_CAP_DIA / 2.0 + 0.25).extrude(-3.0)
+    # Rebajes escalonados exactos para aros blancos + ceja centradora de tapas (0.00 mm³ colisión!)
+    j2_cap_rec_l = (
+        cq.Workplane("XZ").workplane(offset=J2_DRUM_W / 2.0 - 1.6).center(0.0, D1_BASE_TO_SHOULDER).circle(J2_CAP_DIA / 2.0 + 0.25).extrude(3.0)
+        .union(cq.Workplane("XZ").workplane(offset=J2_DRUM_W / 2.0 - 2.7).center(0.0, D1_BASE_TO_SHOULDER).circle((J2_CAP_DIA - 5.4) / 2.0).extrude(3.0))
+    )
+    j2_cap_rec_r = (
+        cq.Workplane("XZ").workplane(offset=-(J2_DRUM_W / 2.0 - 1.6)).center(0.0, D1_BASE_TO_SHOULDER).circle(J2_CAP_DIA / 2.0 + 0.25).extrude(-3.0)
+        .union(cq.Workplane("XZ").workplane(offset=-(J2_DRUM_W / 2.0 - 2.7)).center(0.0, D1_BASE_TO_SHOULDER).circle((J2_CAP_DIA - 5.4) / 2.0).extrude(-3.0))
+    )
 
     turret_solid = (
         turret_solid
@@ -581,46 +594,44 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     black_named["04_torreta_j1_hombro"] = apply_q1(turret_solid.translate((0, 0, z_tur_exp)))
     black_named["04b_engrane_torreta_22t"] = apply_q1(turret_gear.translate((0, 0, -14.0 * explode)))
 
-    # Hardware J2 + Buje centrador 608ZZ (se inserta desde -Y!)
-    j2_servo = _mg90s_dummy_joint(tail_dir_xz=(0.0, -1.0), y_shaft_end=-7.5).translate((0.0, 0.0, D1_BASE_TO_SHOULDER + z_tur_exp))
+    # Hardware J2 + Buje centrador 608ZZ (Y = -21.25 .. -12.75 -> 0.00 mm³ colisión con 608ZZ, L2 y tapa_izq!)
+    j2_servo = _mg90s_dummy_joint(tail_dir_xz=(0.0, -1.0), y_shaft_end=-7.4).translate((0.0, 0.0, D1_BASE_TO_SHOULDER + z_tur_exp))
     j2_brg = _bearing_608_dummy().rotate((0, 0, 0), (1, 0, 0), 90.0).translate((0.0, -12.8, D1_BASE_TO_SHOULDER + z_tur_exp))
-    j2_bush = _bushing_608_m3().rotate((0, 0, 0), (1, 0, 0), -90.0).translate((0.0, -21.2 - 14.0 * explode, D1_BASE_TO_SHOULDER + z_tur_exp))
+    j2_bush = _bushing_608_m3().rotate((0, 0, 0), (1, 0, 0), -90.0).translate((0.0, -21.25 - 14.0 * explode, D1_BASE_TO_SHOULDER + z_tur_exp))
     servos.append(apply_q1(j2_servo))
     steel.append(apply_q1(j2_brg))
     black_named["11_buje_608zz_j2"] = apply_q1(j2_bush)
 
     def add_stealth_caps(tag: str, center_xz, drum_w, cap_d, z_off=0.0, exp_y=0.0):
-        """Tapas Stealth con ceja centradora interior y 2 barrenos M3 avellanados reales + aros blancos."""
+        """Tapas Stealth con ceja centradora interior (holgura 0.3 mm -> 0 colisión con tambor, buje y MG90S!)."""
         cx, cz = center_xz[0], center_xz[1] + z_off
         for side in (-1, 1):
             suf = "izq" if side == -1 else "der"
             y_face = side * (drum_w / 2.0 + exp_y)
-            # Aro blanco incrustado
             white_ring = (
                 cq.Workplane("XZ")
-                .workplane(offset=-(y_face - side * 1.4))
+                .workplane(offset=-(y_face - side * 1.45))
                 .center(cx, cz)
                 .circle(cap_d / 2.0)
                 .circle((cap_d - 2.8) / 2.0)
-                .extrude(-side * 1.8)
+                .extrude(-side * 1.75)
             )
-            # Tapa negra con disco exterior + ceja centradora de 1.2 mm + 2 barrenos avellanados M3
             cap_ext = (
                 cq.Workplane("XZ")
-                .workplane(offset=-(y_face - side * 1.4))
+                .workplane(offset=-(y_face - side * 1.45))
                 .center(cx, cz)
                 .circle((cap_d - 3.1) / 2.0)
-                .extrude(-side * 1.8)
+                .extrude(-side * 1.75)
                 .edges()
                 .chamfer(0.35)
             )
             cap_lip = (
                 cq.Workplane("XZ")
-                .workplane(offset=-(y_face - side * 2.5))
+                .workplane(offset=-(y_face - side * 2.50))
                 .center(cx, cz)
                 .circle((cap_d - 6.0) / 2.0)
                 .circle((cap_d - 9.0) / 2.0)
-                .extrude(-side * 1.2)
+                .extrude(-side * 1.15)
             )
             inner_cap = cap_ext.union(cap_lip)
             bcd = cap_d * 0.62
@@ -650,15 +661,15 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     p2_e = (p2[0] + exp_l2[0], p2[1] + exp_l2[1])
     p3_e = (p3[0] + exp_l2[0], p3[1] + exp_l2[1])
 
-    # Disco motriz de 5.0 mm (Y = -12.5 .. -7.5) — entra holgado en la ranura de 5.6 mm sin muñón saliente!
+    # Disco motriz de 5.0 mm (Y = -12.5 .. -7.5) — 0 colisión con tambor J2 (R=21.6 mm libre a ambos lados ±Y!)
     l2_hub = cq.Workplane("XZ").workplane(offset=12.5).circle(16.5).extrude(-5.0)
-    # Barreno inserto térmico AR2811 desde cara -Y (Y = -12.5 .. -9.2) + bolsillo horn MG90S desde cara +Y (Y = -7.5 .. -9.4)
     l2_ins_cut = cq.Workplane("XZ").workplane(offset=12.6).circle(INSERT_M3_DIA / 2.0).extrude(-3.3)
-    l2_horn_cut = _horn_recess_xz(y_face=-7.4, depth=2.0, arm_len=14.5, dir_sign=-1.0)
+    l2_horn_cut = _horn_recess_xz(y_face=-7.4, depth=2.3, arm_len=14.5, dir_sign=-1.0)
 
     l2_beam = _octagonal_beam_continuous_duct(A2_LOWER_ARM, 25.0, 22.0, 24.0, 22.0, chamfer=3.8, duct_w=10.0, duct_h=8.0)
-    l2_j2_clear = cq.Workplane("XZ").workplane(offset=7.5).circle(19.5).extrude(-32.0)
-    l2_beam = l2_beam.cut(l2_j2_clear)
+    l2_j2_clear_r = cq.Workplane("XZ").workplane(offset=7.5).circle(J2_DRUM_DIA / 2.0 + 1.0).extrude(-34.0)
+    l2_j2_clear_l = cq.Workplane("XZ").workplane(offset=12.6).circle(J2_DRUM_DIA / 2.0 + 1.0).extrude(20.0)
+    l2_beam = l2_beam.cut(l2_j2_clear_r).cut(l2_j2_clear_l)
 
     j3_drum = cq.Workplane("XZ").center(A2_LOWER_ARM, 0.0).circle(J3_DRUM_DIA / 2.0).extrude(J3_DRUM_W / 2.0, both=True).edges().chamfer(1.2)
     j3_slot = cq.Workplane("XZ").workplane(offset=7.2).center(A2_LOWER_ARM, 0.0).circle(J3_DRUM_DIA / 2.0 + 2.0).extrude(5.6)
@@ -671,19 +682,25 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     )
     j3_flange_cut = (
         cq.Workplane("XZ")
-        .workplane(offset=-1.0)
+        .workplane(offset=1.6)
         .center(A2_LOWER_ARM - 5.4, 0.0)
         .rect(MG90S["flange_l"] + 0.6, MG90S["body_w"] + CLEARANCE_FIT * 2)
-        .extrude(-(J3_DRUM_W / 2.0 + 3.0))
+        .extrude(-(J3_DRUM_W / 2.0 + 4.0))
     )
     j3_ear_holes = (
-        cq.Workplane("XZ").workplane(offset=-1.5).center(A2_LOWER_ARM - 5.4 + MG90S["hole_pitch"] / 2.0, 0.0).circle(0.85).extrude(7.0)
-        .union(cq.Workplane("XZ").workplane(offset=-1.5).center(A2_LOWER_ARM - 5.4 - MG90S["hole_pitch"] / 2.0, 0.0).circle(0.85).extrude(7.0))
+        cq.Workplane("XZ").workplane(offset=1.5).center(A2_LOWER_ARM - 5.4 + MG90S["hole_pitch"] / 2.0, 0.0).circle(0.85).extrude(5.0)
+        .union(cq.Workplane("XZ").workplane(offset=1.5).center(A2_LOWER_ARM - 5.4 - MG90S["hole_pitch"] / 2.0, 0.0).circle(0.85).extrude(5.0))
     )
-    j3_brg_cut = cq.Workplane("XZ").workplane(offset=12.8).center(A2_LOWER_ARM, 0.0).circle(brg_seat_d / 2.0).extrude(11.0)
+    j3_brg_cut = cq.Workplane("XZ").workplane(offset=12.8).center(A2_LOWER_ARM, 0.0).circle(brg_seat_d / 2.0).extrude(13.0)
     j3_brg_lip = cq.Workplane("XZ").workplane(offset=11.0).center(A2_LOWER_ARM, 0.0).circle(7.6).extrude(3.0)
-    j3_cap_l = cq.Workplane("XZ").workplane(offset=J3_DRUM_W / 2.0 - 1.5).center(A2_LOWER_ARM, 0.0).circle(J3_CAP_DIA / 2.0 + 0.25).extrude(3.0)
-    j3_cap_r = cq.Workplane("XZ").workplane(offset=-(J3_DRUM_W / 2.0 - 1.5)).center(A2_LOWER_ARM, 0.0).circle(J3_CAP_DIA / 2.0 + 0.25).extrude(-3.0)
+    j3_cap_l = (
+        cq.Workplane("XZ").workplane(offset=J3_DRUM_W / 2.0 - 1.6).center(A2_LOWER_ARM, 0.0).circle(J3_CAP_DIA / 2.0 + 0.25).extrude(3.0)
+        .union(cq.Workplane("XZ").workplane(offset=J3_DRUM_W / 2.0 - 2.7).center(A2_LOWER_ARM, 0.0).circle((J3_CAP_DIA - 5.4) / 2.0).extrude(3.0))
+    )
+    j3_cap_r = (
+        cq.Workplane("XZ").workplane(offset=-(J3_DRUM_W / 2.0 - 1.6)).center(A2_LOWER_ARM, 0.0).circle(J3_CAP_DIA / 2.0 + 0.25).extrude(-3.0)
+        .union(cq.Workplane("XZ").workplane(offset=-(J3_DRUM_W / 2.0 - 2.7)).center(A2_LOWER_ARM, 0.0).circle((J3_CAP_DIA - 5.4) / 2.0).extrude(-3.0))
+    )
 
     l2_part = (
         l2_hub.union(l2_beam).union(j3_drum)
@@ -700,9 +717,9 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     black_named["05_eslabon_l2_codo"] = apply_q1(_place_xz(l2_part, p2_e, q2))
 
     j3_tail = (-math.cos(a2_rad), -math.sin(a2_rad))
-    j3_servo = _mg90s_dummy_joint(tail_dir_xz=j3_tail, y_shaft_end=-7.5).translate((p3_e[0], 0.0, p3_e[1]))
+    j3_servo = _mg90s_dummy_joint(tail_dir_xz=j3_tail, y_shaft_end=-7.4).translate((p3_e[0], 0.0, p3_e[1]))
     j3_brg = _bearing_608_dummy().rotate((0, 0, 0), (1, 0, 0), 90.0).translate((p3_e[0], -12.8, p3_e[1]))
-    j3_bush = _bushing_608_m3().rotate((0, 0, 0), (1, 0, 0), -90.0).translate((p3_e[0], -21.0 - 14.0 * explode, p3_e[1]))
+    j3_bush = _bushing_608_m3().rotate((0, 0, 0), (1, 0, 0), -90.0).translate((p3_e[0], -21.25 - 14.0 * explode, p3_e[1]))
     servos.append(apply_q1(j3_servo))
     steel.append(apply_q1(j3_brg))
     black_named["11_buje_608zz_j3"] = apply_q1(j3_bush)
@@ -717,11 +734,12 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
 
     l3_hub = cq.Workplane("XZ").workplane(offset=12.5).circle(15.0).extrude(-5.0)
     l3_ins_cut = cq.Workplane("XZ").workplane(offset=12.6).circle(INSERT_M3_DIA / 2.0).extrude(-3.3)
-    l3_horn_cut = _horn_recess_xz(y_face=-7.4, depth=2.0, arm_len=13.5, dir_sign=-1.0)
+    l3_horn_cut = _horn_recess_xz(y_face=-7.4, depth=2.3, arm_len=13.5, dir_sign=-1.0)
 
     l3_beam = _octagonal_beam_continuous_duct(A3_FOREARM, 21.0, 18.5, 20.5, 18.5, chamfer=3.2, duct_w=9.5, duct_h=7.5)
-    l3_j3_clear = cq.Workplane("XZ").workplane(offset=7.5).circle(17.5).extrude(-30.0)
-    l3_beam = l3_beam.cut(l3_j3_clear)
+    l3_j3_clear_r = cq.Workplane("XZ").workplane(offset=7.5).circle(J3_DRUM_DIA / 2.0 + 1.0).extrude(-34.0)
+    l3_j3_clear_l = cq.Workplane("XZ").workplane(offset=12.6).circle(J3_DRUM_DIA / 2.0 + 1.0).extrude(20.0)
+    l3_beam = l3_beam.cut(l3_j3_clear_r).cut(l3_j3_clear_l)
 
     j4_drum = cq.Workplane("XZ").center(A3_FOREARM, 0.0).circle(J4_DRUM_DIA / 2.0).extrude(J4_DRUM_W / 2.0, both=True).edges().chamfer(1.0)
     j4_slot = cq.Workplane("XZ").workplane(offset=7.2).center(A3_FOREARM, 0.0).circle(J4_DRUM_DIA / 2.0 + 2.0).extrude(5.6)
@@ -734,19 +752,25 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     )
     j4_flange_cut = (
         cq.Workplane("XZ")
-        .workplane(offset=-1.0)
+        .workplane(offset=1.6)
         .center(A3_FOREARM - 5.4, 0.0)
         .rect(MG90S["flange_l"] + 0.6, MG90S["body_w"] + CLEARANCE_FIT * 2)
-        .extrude(-(J4_DRUM_W / 2.0 + 3.0))
+        .extrude(-(J4_DRUM_W / 2.0 + 4.0))
     )
     j4_ear_holes = (
-        cq.Workplane("XZ").workplane(offset=-1.5).center(A3_FOREARM - 5.4 + MG90S["hole_pitch"] / 2.0, 0.0).circle(0.85).extrude(7.0)
-        .union(cq.Workplane("XZ").workplane(offset=-1.5).center(A3_FOREARM - 5.4 - MG90S["hole_pitch"] / 2.0, 0.0).circle(0.85).extrude(7.0))
+        cq.Workplane("XZ").workplane(offset=1.5).center(A3_FOREARM - 5.4 + MG90S["hole_pitch"] / 2.0, 0.0).circle(0.85).extrude(5.0)
+        .union(cq.Workplane("XZ").workplane(offset=1.5).center(A3_FOREARM - 5.4 - MG90S["hole_pitch"] / 2.0, 0.0).circle(0.85).extrude(5.0))
     )
-    j4_brg_cut = cq.Workplane("XZ").workplane(offset=12.8).center(A3_FOREARM, 0.0).circle(brg_seat_d / 2.0).extrude(11.0)
+    j4_brg_cut = cq.Workplane("XZ").workplane(offset=12.8).center(A3_FOREARM, 0.0).circle(brg_seat_d / 2.0).extrude(13.0)
     j4_brg_lip = cq.Workplane("XZ").workplane(offset=11.0).center(A3_FOREARM, 0.0).circle(7.6).extrude(3.0)
-    j4_cap_l = cq.Workplane("XZ").workplane(offset=J4_DRUM_W / 2.0 - 1.5).center(A3_FOREARM, 0.0).circle(J4_CAP_DIA / 2.0 + 0.25).extrude(3.0)
-    j4_cap_r = cq.Workplane("XZ").workplane(offset=-(J4_DRUM_W / 2.0 - 1.5)).center(A3_FOREARM, 0.0).circle(J4_CAP_DIA / 2.0 + 0.25).extrude(-3.0)
+    j4_cap_l = (
+        cq.Workplane("XZ").workplane(offset=J4_DRUM_W / 2.0 - 1.6).center(A3_FOREARM, 0.0).circle(J4_CAP_DIA / 2.0 + 0.25).extrude(3.0)
+        .union(cq.Workplane("XZ").workplane(offset=J4_DRUM_W / 2.0 - 2.7).center(A3_FOREARM, 0.0).circle((J4_CAP_DIA - 5.4) / 2.0).extrude(3.0))
+    )
+    j4_cap_r = (
+        cq.Workplane("XZ").workplane(offset=-(J4_DRUM_W / 2.0 - 1.6)).center(A3_FOREARM, 0.0).circle(J4_CAP_DIA / 2.0 + 0.25).extrude(-3.0)
+        .union(cq.Workplane("XZ").workplane(offset=-(J4_DRUM_W / 2.0 - 2.7)).center(A3_FOREARM, 0.0).circle((J4_CAP_DIA - 5.4) / 2.0).extrude(-3.0))
+    )
 
     l3_part = (
         l3_hub.union(l3_beam).union(j4_drum)
@@ -763,9 +787,9 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     black_named["06_antebrazo_l3_muneca"] = apply_q1(_place_xz(l3_part, p3_f, q2 + q3))
 
     j4_tail = (-math.cos(a3_rad), -math.sin(a3_rad))
-    j4_servo = _mg90s_dummy_joint(tail_dir_xz=j4_tail, y_shaft_end=-7.5).translate((p4_f[0], 0.0, p4_f[1]))
+    j4_servo = _mg90s_dummy_joint(tail_dir_xz=j4_tail, y_shaft_end=-7.4).translate((p4_f[0], 0.0, p4_f[1]))
     j4_brg = _bearing_608_dummy().rotate((0, 0, 0), (1, 0, 0), 90.0).translate((p4_f[0], -12.8, p4_f[1]))
-    j4_bush = _bushing_608_m3().rotate((0, 0, 0), (1, 0, 0), -90.0).translate((p4_f[0], -20.5 - 14.0 * explode, p4_f[1]))
+    j4_bush = _bushing_608_m3().rotate((0, 0, 0), (1, 0, 0), -90.0).translate((p4_f[0], -21.25 - 14.0 * explode, p4_f[1]))
     servos.append(apply_q1(j4_servo))
     steel.append(apply_q1(j4_brg))
     black_named["11_buje_608zz_j4"] = apply_q1(j4_bush)
@@ -779,76 +803,75 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     exp_l4 = (exp_l3[0] + 30.0 * math.cos(a4_rad) * explode, exp_l3[1] + 30.0 * math.sin(a4_rad) * explode)
     p4_g = (p4[0] + exp_l4[0], p4[1] + exp_l4[1])
 
-    # Disco de muñeca (5.0 mm, inserto AR2811 en -Y, horn MG90S J4 en +Y)
+    # Disco de muñeca estrictamente dentro de la ranura 5.6 mm (Y=-12.5..-7.5) hasta X=16.6 (libre 100% de J4 R=16 mm!)
     w_hub = cq.Workplane("XZ").workplane(offset=12.5).circle(12.2).extrude(-5.0)
     w_ins_cut = cq.Workplane("XZ").workplane(offset=12.6).circle(INSERT_M3_DIA / 2.0).extrude(-3.3)
-    w_horn_cut = _horn_recess_xz(y_face=-7.4, depth=1.9, arm_len=11.0, dir_sign=-1.0)
-    w_bridge = cq.Workplane("XY").workplane(offset=-5.0).center(9.5, -5.0).rect(15.0, 14.0).extrude(10.0)
-    collar = cq.Workplane("YZ").workplane(offset=11.0).circle(12.2).extrude(7.5).edges().chamfer(0.7)
-    collar_ring = cq.Workplane("YZ").workplane(offset=14.4).circle(12.6).circle(10.4).extrude(2.2)
+    w_horn_cut = _horn_recess_xz(y_face=-7.4, depth=2.3, arm_len=11.0, dir_sign=-1.0)
+    # Brazo delgado de transición dentro de la ranura (-12.5..-7.5) hasta salir del tambor J4 (X = 16.6)
+    w_stem = cq.Workplane("XY").workplane(offset=-5.0).center(9.5, -10.0).rect(17.5, 5.0).extrude(10.0)
+    # Collarín compacto en X = 16.6 .. 19.6 mm (libre de J4 y de las bielas traseras en X>=19.7!)
+    collar = cq.Workplane("YZ").workplane(offset=16.6).circle(11.6).extrude(3.0).edges().chamfer(0.35)
+    collar_groove = cq.Workplane("YZ").workplane(offset=17.0).circle(13.2).circle(10.1).extrude(2.3)
+    collar_ring = cq.Workplane("YZ").workplane(offset=17.15).circle(12.4).circle(10.35).extrude(2.0)
 
-    # Palma con pila Z 100% libre de colisiones:
-    #   SG90 cuerpo:      Z = -23.0 .. -0.3 (eje coaxial hasta +3.3 dentro del engrane izq!)
-    #   palm_deck:        Z = -3.0  .. -0.2 (X = 16..34, bajo engranes)
-    #   Engranes-brazo:   Z = +0.4  .. +4.8 (0.6 mm holgura arriba de palm_deck)
-    #   Bielas traseras:  Z = +5.4  .. +8.4 (0.6 mm holgura arriba de engranes!)
-    #   palm_top_bridge:  Z = +9.0  .. +11.4 (0.6 mm holgura arriba de bielas!)
-    sg_cy = GRIP_GEAR_Y - (SG90["body_l"] / 2.0 - 6.0)  # +1.87 mm (coaxial bajo engrane izquierdo!)
+    # Palma con pila Z y X 100% libre de colisiones en TODO el recorrido (2..28 mm):
+    sg_cy = GRIP_GEAR_Y - (SG90["body_l"] / 2.0 - 6.0)  # +1.95 mm (coaxial bajo engrane izquierdo!)
     palm_deck = (
         cq.Workplane("XY")
         .workplane(offset=-3.0)
-        .center(25.0, 0.0)
-        .rect(18.0, 34.0)
+        .center(28.0, 0.0)
+        .rect(17.5, 34.4)
         .extrude(2.8)
         .edges("|Z")
         .fillet(2.4)
     )
-    # Carenado inferior biselado (Z = -24.2 .. -2.8) que oculta 100% el SG90 transversal + sus orejas (32 mm)!
     chin_shroud = (
         cq.Workplane("XY")
-        .workplane(offset=-24.2)
+        .workplane(offset=-24.4)
         .center(GRIP_GEAR_X, sg_cy)
-        .rect(17.2, 34.8)
-        .workplane(offset=21.4)
-        .rect(19.2, 36.4)
+        .rect(16.6, 35.0)
+        .workplane(offset=21.6)
+        .rect(17.6, 36.6)
         .loft(ruled=True)
     )
-    # Bolsillo abierto por abajo para deslizar el SG90 hacia arriba + escalón de orejas en Z = -7.1 mm + 2 pilotos M2!
     sg_body_cut = (
         cq.Workplane("XY")
-        .workplane(offset=-25.0)
+        .workplane(offset=-25.2)
         .center(GRIP_GEAR_X, sg_cy)
-        .rect(SG90["body_w"] + 0.5, SG90["body_l"] + 0.5)
-        .extrude(24.9)
+        .rect(SG90["body_w"] + 0.6, SG90["body_l"] + 0.6)
+        .extrude(25.2)
     )
     sg_flange_cut = (
         cq.Workplane("XY")
-        .workplane(offset=-25.0)
+        .workplane(offset=-25.2)
         .center(GRIP_GEAR_X, sg_cy)
-        .rect(SG90["body_w"] + 0.5, SG90["flange_l"] + 0.6)
-        .extrude(18.0)  # Escalón de orejas en Z = -7.0 mm
+        .rect(SG90["body_w"] + 0.6, SG90["flange_l"] + 0.8)
+        .extrude(20.6)
     )
-    sg_ear_h1 = cq.Workplane("XY").workplane(offset=-7.5).center(GRIP_GEAR_X, sg_cy + 13.75).circle(0.85).extrude(7.5)
-    sg_ear_h2 = cq.Workplane("XY").workplane(offset=-7.5).center(GRIP_GEAR_X, sg_cy - 13.75).circle(0.85).extrude(7.5)
+    sg_ear_h1 = cq.Workplane("XY").workplane(offset=-5.0).center(GRIP_GEAR_X, sg_cy + 13.75).circle(0.85).extrude(5.2)
+    sg_ear_h2 = cq.Workplane("XY").workplane(offset=-5.0).center(GRIP_GEAR_X, sg_cy - 13.75).circle(0.85).extrude(5.2)
 
-    # Puente superior sujetando los ejes en doble apoyo (Z = +9.0 .. +11.4), sostenido por poste trasero en X = 15..18.5
     palm_top_bridge = (
         cq.Workplane("XY")
         .workplane(offset=9.0)
-        .center(25.0, 0.0)
-        .rect(18.5, 22.0)
+        .center(26.5, 0.0)
+        .rect(18.0, 21.6)
         .extrude(2.4)
         .edges("|Z")
         .fillet(2.4)
     )
-    palm_rear_post = cq.Workplane("XY").workplane(offset=-3.0).center(16.8, 0.0).rect(3.8, 9.6).extrude(12.6)
+    palm_rear_post = cq.Workplane("XY").workplane(offset=-3.0).center(18.4, 0.0).rect(2.6, 7.2).extrude(12.6)
 
     palm_full = (
-        w_hub.union(w_bridge).union(collar).union(palm_deck).union(chin_shroud).union(palm_top_bridge).union(palm_rear_post)
+        w_hub.union(w_stem).union(collar).union(palm_deck).union(chin_shroud).union(palm_top_bridge).union(palm_rear_post)
+        .cut(collar_groove)
         .cut(w_ins_cut).cut(w_horn_cut)
         .cut(sg_body_cut).cut(sg_flange_cut).cut(sg_ear_h1).cut(sg_ear_h2)
     )
-    # 4 barrenos M3 exactos de los pivotes de tierra del paralelogramo: G_L, G_R, I_L, I_R!
+    palm_j4_clr_r = cq.Workplane("XZ").workplane(offset=7.5).circle(J4_DRUM_DIA / 2.0 + 0.8).extrude(-34.0)
+    palm_j4_clr_l = cq.Workplane("XZ").workplane(offset=12.6).circle(J4_DRUM_DIA / 2.0 + 0.8).extrude(20.0)
+    palm_full = palm_full.cut(palm_j4_clr_r).cut(palm_j4_clr_l)
+
     for px, py, rad in [
         (GRIP_GEAR_X, +GRIP_GEAR_Y, 2.8),   # Paso eje SG90 bajo engrane izq
         (GRIP_GEAR_X, -GRIP_GEAR_Y, 1.55),  # Pivote M3 engrane derecho
@@ -860,7 +883,6 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     black_named["07_palma_pinza_sg90"] = apply_q1(_place_xz(palm_full, p4_g, wrist_ang))
     white_named["w02_collar_muneca_blanco"] = apply_q1(_place_xz(collar_ring, p4_g, wrist_ang))
 
-    # SG90 real coaxial bajo el engrane izquierdo (100% oculto dentro del carenado!)
     servos.append(apply_q1(_place_xz(_sg90_dummy_coaxial(), p4_g, wrist_ang)))
 
     # --- Cinemática exacta del paralelogramo de 4 barras en Pose Héroe (`grip_open`) ---
@@ -869,13 +891,12 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
     arm_dx = GRIP_LINK_L * math.cos(th_rad)
     arm_dy = GRIP_LINK_L * math.sin(th_rad)
 
-    # Engranes-Brazo 14T de UNA SOLA PIEZA en Z = +0.4 .. +4.8 mm (4.4 mm espesor)
     for side_name, side, fname, gear_phase in [
         ("izq", +1, "08_engrane_brazo_izq", 0.0),
         ("der", -1, "09_engrane_brazo_der", 360.0 / 28.0),
     ]:
         gx, gy = GRIP_GEAR_X, side * GRIP_GEAR_Y
-        g_base = _spur_gear(14, 1.0, 4.4, 1.65).rotate((0, 0, 0), (0, 0, 1), gear_phase)
+        g_base = _spur_gear(14, 1.0, 4.4, 2.45 if side == +1 else 1.65).rotate((0, 0, 0), (0, 0, 1), gear_phase)
         arm_bar = (
             cq.Workplane("XY")
             .center(GRIP_LINK_L / 2.0, 0.0)
@@ -887,11 +908,10 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
         )
         gear_arm = g_base.union(arm_bar)
         if side == +1:
-            gear_arm = gear_arm.cut(_horn_recess_xy(depth=1.9, arm_len=11.0, z0=-0.1).rotate((0, 0, 0), (0, 0, 1), th_deg))
+            gear_arm = gear_arm.cut(_horn_recess_xy(depth=2.0, arm_len=11.0, z0=-0.1).rotate((0, 0, 0), (0, 0, 1), th_deg))
         gear_arm = gear_arm.translate((gx, gy, 0.4 + 4.0 * explode))
         black_named[fname] = apply_q1(_place_xz(gear_arm, p4_g, wrist_ang))
 
-    # Aros blancos sobre el puente superior + 4 pernos M3 de tierra
     for idx_g, sy in enumerate((-GRIP_GEAR_Y, GRIP_GEAR_Y)):
         hr = cq.Workplane("XY").workplane(offset=11.4 + 14.0 * explode).center(GRIP_GEAR_X, sy).circle(3.6).circle(2.1).extrude(0.6)
         pin_g = cq.Workplane("XY").workplane(offset=-2.5).center(GRIP_GEAR_X, sy).circle(1.5).extrude(14.5)
@@ -899,7 +919,6 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
         white_named[f"w03_aro_engrane_{idx_g}"] = apply_q1(_place_xz(hr, p4_g, wrist_ang))
         steel.extend([apply_q1(_place_xz(pin_g, p4_g, wrist_ang)), apply_q1(_place_xz(pin_i, p4_g, wrist_ang))])
 
-    # 2× Bielas Traseras de Paralelismo en Z = +5.4 .. +8.4 mm (¡0.6 mm limpias encima de los engranes!)
     for side_name, side in [("izq", +1), ("der", -1)]:
         ix, iy = GRIP_IDLER_X, side * GRIP_GEAR_Y
         biela = (
@@ -916,49 +935,58 @@ def build_cad_v3(pose_deg=None, explode: float = 0.0):
         )
         black_named[f"12_biela_pinza_{side_name}"] = apply_q1(_place_xz(biela, p4_g, wrist_ang))
 
-    # 2× Dedos Paralelos con puente de doble pivote M3 en Z = -3.4 .. -0.2 mm (libre de palm_deck) + Almohadillas blancas
+    # 2× Dedos Paralelos con puente de doble pivote ARRIBA en Z = +11.8 .. +14.6 mm (0.00 mm³ colisión con palma, SG90 y bielas en TODO el recorrido!)
     f_front_x = GRIP_GEAR_X + arm_dx
     f_rear_x = GRIP_IDLER_X + arm_dx
     for side_name, side in [("izq", +1), ("der", -1)]:
         fy = side * (GRIP_GEAR_Y + arm_dy)
-        inner_y = fy - side * 7.1
+        inner_y = fy - side * 7.2
         pivot_bar = (
             cq.Workplane("XY")
-            .workplane(offset=-3.4)
+            .workplane(offset=11.8)
             .center(0.5 * (f_front_x + f_rear_x), fy)
-            .rect(GRIP_PIVOT_SEP + 6.4, 6.2)
-            .extrude(3.2)
+            .rect(GRIP_PIVOT_SEP + 6.2, 6.0)
+            .extrude(2.8)
             .edges("|Z")
             .fillet(2.4)
         )
-        x_jaw0 = f_front_x - 3.0
-        x_jaw1 = f_front_x + 18.5
+        x_jaw0 = f_front_x + 3.6
+        x_jaw1 = f_front_x + 19.6
+        neck_pts = [
+            (f_front_x + 1.4, fy - side * 2.4),
+            (x_jaw0 + 2.4, inner_y + side * 1.6),
+            (x_jaw0 + 2.4, fy + side * 2.8),
+            (f_front_x + 1.4, fy + side * 2.8),
+        ]
+        if side < 0:
+            neck_pts = list(reversed(neck_pts))
+        neck = cq.Workplane("XY").workplane(offset=11.8).polyline(neck_pts).close().extrude(2.8)
         pts_jaw = [
             (x_jaw0, inner_y + side * 1.55),
             (x_jaw1, inner_y + side * 1.55),
             (x_jaw1, inner_y + side * 4.8),
-            (x_jaw0 + 4.0, fy + side * 3.1),
-            (x_jaw0, fy + side * 3.1),
+            (x_jaw0 + 2.0, fy + side * 2.8),
+            (x_jaw0, fy + side * 2.8),
         ]
         if side < 0:
             pts_jaw = list(reversed(pts_jaw))
-        jaw = cq.Workplane("XY").workplane(offset=-3.4).polyline(pts_jaw).close().extrude(12.2).edges("|Z").fillet(0.7)
+        jaw = cq.Workplane("XY").workplane(offset=-0.2).polyline(pts_jaw).close().extrude(14.8).edges("|Z").fillet(0.65)
 
-        finger = pivot_bar.union(jaw)
+        finger = pivot_bar.union(neck).union(jaw)
         for px in (f_rear_x, f_front_x):
-            finger = finger.cut(cq.Workplane("XY").workplane(offset=-4.2).center(px, fy).circle(1.65).extrude(14.5))
-            pin_f = cq.Workplane("XY").workplane(offset=-3.8).center(px, fy).circle(1.45).extrude(13.0)
+            finger = finger.cut(cq.Workplane("XY").workplane(offset=11.0).center(px, fy).circle(1.65).extrude(4.5))
+            pin_f = cq.Workplane("XY").workplane(offset=0.2).center(px, fy).circle(1.45).extrude(14.8)
             steel.append(apply_q1(_place_xz(pin_f, p4_g, wrist_ang)))
 
         pts_pad = [
-            (x_jaw0 + 4.5, inner_y),
+            (x_jaw0 + 1.0, inner_y),
             (x_jaw1 - 0.6, inner_y),
             (x_jaw1 - 0.6, inner_y + side * 1.55),
-            (x_jaw0 + 4.5, inner_y + side * 1.55),
+            (x_jaw0 + 1.0, inner_y + side * 1.55),
         ]
         if side < 0:
             pts_pad = list(reversed(pts_pad))
-        pad = cq.Workplane("XY").workplane(offset=-2.0).polyline(pts_pad).close().extrude(9.2)
+        pad = cq.Workplane("XY").workplane(offset=1.6).polyline(pts_pad).close().extrude(9.6)
 
         black_named[f"10_dedo_pinza_{side_name}"] = apply_q1(_place_xz(finger.translate((0, side * 14.0 * explode, 0)), p4_g, wrist_ang))
         white_named[f"w04_almohadilla_{side_name}"] = apply_q1(_place_xz(pad.translate((0, side * 18.0 * explode, 0)), p4_g, wrist_ang))

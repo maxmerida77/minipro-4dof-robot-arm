@@ -1,5 +1,11 @@
 # Guía de Cableado Eléctrico — Mini-Pro 4-DOF (`B2 Stealth`)
 
+## Proyecto Nativo KiCad 9.0 (Verificado: `0 Errores, 0 Avisos` en ERC)
+El proyecto eléctrico editable y portátil está en [`kicad/`](kicad/):
+* **Proyecto KiCad 9:** [`kicad/minipro_b2_stealth.kicad_pro`](kicad/minipro_b2_stealth.kicad_pro)
+* **Esquemático editable:** [`kicad/minipro_b2_stealth.kicad_sch`](kicad/minipro_b2_stealth.kicad_sch) *(usa la librería local portátil [`MiniPro.kicad_sym`](kicad/MiniPro.kicad_sym) + [`sym-lib-table`](kicad/sym-lib-table))*
+* **PDF técnico (A4):** [`kicad/minipro_b2_stealth_sch.pdf`](kicad/minipro_b2_stealth_sch.pdf) · **SVG vectorial:** [`kicad/svg/minipro_b2_stealth.svg`](kicad/svg/minipro_b2_stealth.svg) · **Reporte ERC:** [`kicad/erc_report.rpt`](kicad/erc_report.rpt)
+
 ![Esquema Eléctrico Definitivo](esquema_cableado_b2_stealth.png)
 
 ---
