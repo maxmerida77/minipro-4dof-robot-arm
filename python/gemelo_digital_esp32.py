@@ -15,6 +15,7 @@ Arquitectura cinemática real (100% idéntica al CAD v2):
 """
 
 import argparse
+import ctypes
 import math
 import os
 import socket
@@ -360,6 +361,9 @@ class DigitalTwinApp:
         self.show_kin = True
         self.relaxed = False
         self.active_slider = None
+        self.orbiting = False
+        self._dirty_render = False
+        self._timer_tick = 0
 
         # Cola de animación no bloqueante (lista de tuplas (q_deg[4], grip_mm, cube_pos_or_None))
         self.anim_queue = []
@@ -392,8 +396,17 @@ class DigitalTwinApp:
         self.iren.SetRenderWindow(self.win)
         self.style = vtk.vtkInteractorStyleTrackballCamera()
         self.iren.SetInteractorStyle(self.style)
-        # Evitar que VTK cierre con 'e'/'q' o active wireframe con 'w'
-        self.iren.RemoveObservers("CharEvent")
+        # Enrutamiento limpio de eventos: quitar los observadores por defecto de TrackballCamera para
+        # que el panel derecho de sliders NUNCA compita ni se quede pegado con la captura del mouse 3D.
+        for evt in (
+            "CharEvent",
+            "LeftButtonPressEvent",
+            "MouseMoveEvent",
+            "LeftButtonReleaseEvent",
+            "MouseWheelForwardEvent",
+            "MouseWheelBackwardEvent",
+        ):
+            self.iren.RemoveObservers(evt)
 
         # Transformaciones dinámicas compartidas por grupo cinemático (incluye paralelogramo 4 barras!)
         self.tfs = {
@@ -411,11 +424,14 @@ class DigitalTwinApp:
         self._build_ui_panel()
         self._build_sliders()
 
-        # Enlazar eventos (prioridad -1.0 en LeftButtonPress para cancelar rotación de cámara cuando el clic cae en el panel derecho)
-        self.iren.AddObserver("KeyPressEvent", self._on_key, 1.0)
-        self.iren.AddObserver("LeftButtonPressEvent", self._on_left_press, -1.0)
-        self.iren.AddObserver("MouseMoveEvent", self._on_mouse_move, -1.0)
-        self.iren.AddObserver("LeftButtonReleaseEvent", self._on_left_release, -1.0)
+        # Enlazar nuestro despachador único de ratón, rueda, teclado y reloj
+        self.iren.AddObserver("KeyPressEvent", self._on_key)
+        self.iren.AddObserver("LeftButtonPressEvent", self._on_left_press)
+        self.iren.AddObserver("MouseMoveEvent", self._on_mouse_move)
+        self.iren.AddObserver("LeftButtonReleaseEvent", self._on_left_release)
+        self.iren.AddObserver("MouseWheelForwardEvent", self._on_wheel_fwd)
+        self.iren.AddObserver("MouseWheelBackwardEvent", self._on_wheel_bwd)
+        self.iren.AddObserver("LeaveEvent", self._on_leave)
         self.iren.AddObserver("TimerEvent", self._on_timer)
 
         self._apply_visual_toggles()
@@ -779,15 +795,16 @@ class DigitalTwinApp:
                 "fill_poly": fill_poly,
                 "knob_pts": knob_pts,
                 "knob_poly": knob_poly,
+                "knob_actor": kact,
             })
 
     # ------------------------------------------------------------------
-    # Actualización cinemática exacta de los 30 STLs + Peter Corke fkine
+    # Actualización cinemática exacta de los 35 STLs + Peter Corke fkine
     # ------------------------------------------------------------------
     def _sync_sliders(self):
         vals = [self.q_deg[0], self.q_deg[1], self.q_deg[2], self.q_deg[3], self.grip_mm]
         kw, kh = 0.014, 0.011
-        for ui, v in zip(self.slider_ui, vals):
+        for idx, (ui, v) in enumerate(zip(self.slider_ui, vals)):
             t = (float(v) - ui["vmin"]) / max(1e-6, ui["vmax"] - ui["vmin"])
             t = max(0.0, min(1.0, t))
             x = self.slider_x0 + t * (self.slider_x1 - self.slider_x0)
@@ -804,6 +821,10 @@ class DigitalTwinApp:
             ui["knob_pts"].SetPoint(3, x - kw, y + kh, 0)
             ui["knob_pts"].Modified()
             ui["knob_poly"].Modified()
+            if self.active_slider == idx:
+                ui["knob_actor"].GetProperty().SetColor(0.98, 0.45, 0.14)
+            else:
+                ui["knob_actor"].GetProperty().SetColor(1.0, 1.0, 1.0)
 
             if ui["unit"] == "deg":
                 vv = 0.0 if abs(v) < 0.05 else v
@@ -1061,7 +1082,24 @@ class DigitalTwinApp:
             self.link.send_raw("RELAX")
             self.update_pose(transmit=False)
 
-    def _set_slider_from_x(self, idx: int, xn_ui: float):
+    def _is_physical_lbutton_down(self) -> bool:
+        """Verifica en Windows el estado físico real del botón izquierdo del ratón (evita sliders pegados)."""
+        if self.offscreen or os.name != "nt":
+            return True
+        try:
+            return bool(ctypes.windll.user32.GetAsyncKeyState(0x01) & 0x8000)
+        except Exception:
+            return True
+
+    def _hit_slider(self, xn_ui: float, yn_global: float):
+        if not ((self.slider_x0 - 0.05) <= xn_ui <= (self.slider_x1 + 0.05)):
+            return None
+        for idx, ui in enumerate(self.slider_ui):
+            if abs(yn_global - ui["y"]) <= 0.036:
+                return idx
+        return None
+
+    def _set_slider_from_x(self, idx: int, xn_ui: float, render_now: bool = True):
         ui = self.slider_ui[idx]
         t = (xn_ui - self.slider_x0) / max(1e-6, self.slider_x1 - self.slider_x0)
         t = max(0.0, min(1.0, t))
@@ -1074,7 +1112,17 @@ class DigitalTwinApp:
             self.q_deg[idx] = val
         else:
             self.grip_mm = val
-        self.update_pose(transmit=True, throttle_s=0.025)
+        if render_now:
+            self._dirty_render = False
+            self.update_pose(transmit=True, throttle_s=0.025)
+        else:
+            self._dirty_render = True
+
+    def _release_slider(self):
+        if self.active_slider is not None:
+            self.active_slider = None
+            self._dirty_render = False
+            self.update_pose(transmit=True, throttle_s=0.0)
 
     def _on_left_press(self, obj, _evt):
         x, y = obj.GetEventPosition()
@@ -1083,40 +1131,95 @@ class DigitalTwinApp:
             return
         xn_global = x / float(w)
         yn_global = y / float(h)
+
+        # Soltar siempre cualquier estado anterior antes de procesar el nuevo clic
+        if self.active_slider is not None:
+            self._release_slider()
+
         if xn_global >= 0.72:
-            # Cancelar cualquier rotación/pan de la cámara 3D cuando el clic está sobre el panel derecho
-            self.style.EndRotate()
-            self.style.EndPan()
-            self.style.EndSpin()
-            self.style.EndDolly()
+            # Clic dentro del panel derecho -> NUNCA invocar TrackballCamera
             xn_ui = (xn_global - 0.72) / 0.28
-            # 1. Revisar si tocó alguno de los 5 sliders
-            for idx, ui in enumerate(self.slider_ui):
-                if (self.slider_x0 - 0.04) <= xn_ui <= (self.slider_x1 + 0.04) and abs(yn_global - ui["y"]) <= 0.032:
-                    self.active_slider = idx
-                    self._set_slider_from_x(idx, xn_ui)
-                    return
-            # 2. Revisar si tocó alguno de los botones de acción
+            s_idx = self._hit_slider(xn_ui, yn_global)
+            if s_idx is not None:
+                self.active_slider = s_idx
+                self._set_slider_from_x(s_idx, xn_ui, render_now=True)
+                return
             for bid, x0, y0, x1, y1 in self.buttons:
                 if x0 <= xn_ui <= x1 and y0 <= yn_global <= y1:
                     self._trigger_action(bid)
                     return
+        else:
+            # Clic dentro de la escena 3D -> órbita normal de cámara
+            self.orbiting = True
+            self.style.OnLeftButtonDown()
 
     def _on_mouse_move(self, obj, _evt):
-        if self.active_slider is None:
+        if self.active_slider is not None:
+            if not self._is_physical_lbutton_down():
+                self._release_slider()
+                return
+            x, _y = obj.GetEventPosition()
+            w, _h = self.win.GetSize()
+            if w <= 0:
+                return
+            xn_ui = ((x / float(w)) - 0.72) / 0.28
+            # Actualizar valor sin bloquear la cola de mensajes de Windows (renderiza el reloj a 60 Hz)
+            self._set_slider_from_x(self.active_slider, xn_ui, render_now=self.offscreen)
             return
-        x, _y = obj.GetEventPosition()
-        w, _h = self.win.GetSize()
-        if w <= 0:
-            return
-        xn_ui = ((x / float(w)) - 0.72) / 0.28
-        self._set_slider_from_x(self.active_slider, xn_ui)
+
+        if self.orbiting:
+            if not self._is_physical_lbutton_down():
+                self.orbiting = False
+                self.style.OnLeftButtonUp()
+                return
+            self.style.OnMouseMove()
 
     def _on_left_release(self, _obj, _evt):
         if self.active_slider is not None:
-            self.active_slider = None
-            # Enviar pose final exacta sin throttle al soltar slider
-            self.update_pose(transmit=True, throttle_s=0.0)
+            self._release_slider()
+        if self.orbiting:
+            self.orbiting = False
+            self.style.OnLeftButtonUp()
+
+    def _on_leave(self, _obj, _evt):
+        if self.active_slider is not None and not self._is_physical_lbutton_down():
+            self._release_slider()
+        if self.orbiting and not self._is_physical_lbutton_down():
+            self.orbiting = False
+            self.style.OnLeftButtonUp()
+
+    def _handle_wheel(self, obj, direction: int):
+        x, y = obj.GetEventPosition()
+        w, h = self.win.GetSize()
+        if w <= 0 or h <= 0:
+            return
+        xn_global = x / float(w)
+        yn_global = y / float(h)
+        if xn_global >= 0.72:
+            # Rueda sobre un slider -> ajuste fino (±2° o ±1 mm)
+            xn_ui = (xn_global - 0.72) / 0.28
+            s_idx = self._hit_slider(xn_ui, yn_global)
+            if s_idx is not None:
+                ui = self.slider_ui[s_idx]
+                step = 2.0 if s_idx < 4 else 1.0
+                self.anim_queue.clear()
+                self.relaxed = False
+                if s_idx < 4:
+                    self.q_deg[s_idx] = float(np.clip(self.q_deg[s_idx] + direction * step, ui["vmin"], ui["vmax"]))
+                else:
+                    self.grip_mm = float(np.clip(self.grip_mm + direction * step, ui["vmin"], ui["vmax"]))
+                self.update_pose(transmit=True, throttle_s=0.0)
+            return
+        if direction > 0:
+            self.style.OnMouseWheelForward()
+        else:
+            self.style.OnMouseWheelBackward()
+
+    def _on_wheel_fwd(self, obj, _evt):
+        self._handle_wheel(obj, +1)
+
+    def _on_wheel_bwd(self, obj, _evt):
+        self._handle_wheel(obj, -1)
 
     def _on_key(self, obj, _evt):
         key = (obj.GetKeySym() or "").lower()
@@ -1143,22 +1246,32 @@ class DigitalTwinApp:
             self._reset_camera()
 
     def _on_timer(self, _obj, _evt):
-        if not self.anim_queue:
+        self._timer_tick += 1
+
+        # Red de seguridad 60 Hz: si el botón físico ya se soltó, liberar slider inmediatamente
+        if self.active_slider is not None and not self._is_physical_lbutton_down():
+            self._release_slider()
             return
-        qd, g, cube_evt, rec = self.anim_queue.pop(0)
-        self.q_deg = np.array(qd, dtype=float)
-        self.grip_mm = float(g)
-        if cube_evt == "grab":
-            self.cube_held = True
-        elif cube_evt == "drop":
-            self.cube_held = False
-        self._sync_sliders()
-        self.update_pose(transmit=True, throttle_s=0.0, record_trail=rec)
+
+        if self._dirty_render:
+            self._dirty_render = False
+            self.update_pose(transmit=True, throttle_s=0.025)
+            return
+
+        if self.anim_queue and (self._timer_tick % 2 == 0):
+            qd, g, cube_evt, rec = self.anim_queue.pop(0)
+            self.q_deg = np.array(qd, dtype=float)
+            self.grip_mm = float(g)
+            if cube_evt == "grab":
+                self.cube_held = True
+            elif cube_evt == "drop":
+                self.cube_held = False
+            self.update_pose(transmit=True, throttle_s=0.0, record_trail=rec)
 
     def run(self):
         self.win.Render()
         self.iren.Initialize()
-        self.iren.CreateRepeatingTimer(28)  # ~35 FPS suaves para animaciones y streaming
+        self.iren.CreateRepeatingTimer(16)  # ~60 Hz para sliders ultra-fluidos (~30 Hz animaciones)
         try:
             self.iren.Start()
         finally:
