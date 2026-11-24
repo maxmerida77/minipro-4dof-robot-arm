@@ -357,6 +357,10 @@ class DigitalTwinApp:
 
         self.q_deg = np.rad2deg(Q_HERO_RAD).astype(float)
         self.grip_mm = float(HERO_GRIP)
+        self.control_mode = "FK"  # "FK" (J1..J4) | "IK" (X, Y, Z, phi)
+        tcp0 = self.robot.fkine_mm(Q_HERO_RAD)
+        self.ik_target = np.array([tcp0[0], tcp0[1], tcp0[2], float(self.q_deg[1] + self.q_deg[2] + self.q_deg[3])], dtype=float)
+        self.ik_status_msg = ""
         self.xray = False
         self.show_hw = False
         self.show_kin = True
@@ -677,14 +681,20 @@ class DigitalTwinApp:
         _add_2d_text(self.ren_ui, "MINI-PRO 4-DOF · B2 STEALTH", 0.06, 0.955, 16, (0.98, 0.98, 0.99), bold=True)
         self.txt_mode = _add_2d_text(self.ren_ui, f"MODO: {self.link.mode_label}", 0.06, 0.925, 12, (0.64, 0.64, 0.70))
 
-        # Tarjeta de telemetría cinemática Peter Corke
-        _add_2d_rect(self.ren_ui, 0.05, 0.805, 0.95, 0.905, (0.11, 0.11, 0.135), edge_rgb=(0.22, 0.22, 0.26))
-        _add_2d_text(self.ren_ui, "CINEMÁTICA DIRECTA (Peter Corke fkine)", 0.08, 0.882, 11, (0.62, 0.62, 0.68), bold=True)
-        self.txt_tcp = _add_2d_text(self.ren_ui, "TCP: (145.5, 0.0, 125.2) mm", 0.08, 0.850, 13, (0.98, 0.98, 0.99), bold=True)
-        self.txt_phi = _add_2d_text(self.ren_ui, "φ = 0.0°  |  Pinza = 16 mm  |  w = 0.000", 0.08, 0.820, 12, (0.92, 0.45, 0.22))
+        # Tarjeta de telemetría cinemática Peter Corke (FK + IK en vivo)
+        _add_2d_rect(self.ren_ui, 0.05, 0.812, 0.95, 0.910, (0.11, 0.11, 0.135), edge_rgb=(0.22, 0.22, 0.26))
+        self.txt_tel_hdr = _add_2d_text(self.ren_ui, "CINEMÁTICA DIRECTA · FK (Peter Corke fkine)", 0.08, 0.888, 11, (0.62, 0.62, 0.68), bold=True)
+        self.txt_tcp = _add_2d_text(self.ren_ui, "TCP: (145.5, 0.0, 125.2) mm", 0.08, 0.856, 13, (0.98, 0.98, 0.99), bold=True)
+        self.txt_phi = _add_2d_text(self.ren_ui, "φ = 0.0°  |  Pinza = 15 mm  |  w = 0.000", 0.08, 0.826, 11, (0.92, 0.45, 0.22))
 
-        # Encabezado Sección 1: 4 DOF
-        _add_2d_text(self.ren_ui, "ARTICULACIONES DEL BRAZO (4 DOF · 4× MG90S)", 0.06, 0.768, 11, (0.78, 0.78, 0.84), bold=True)
+        # Selector de Modo FK (Articular) <-> IK (Cartesiano X, Y, Z, φ)
+        self.buttons = []
+        self.tab_fk_bg = _add_2d_rect(self.ren_ui, 0.05, 0.758, 0.49, 0.800, (0.96, 0.96, 0.97), edge_rgb=(0.35, 0.35, 0.40))
+        self.tab_fk_tx = _add_2d_text(self.ren_ui, "Directa · FK [F]", 0.27, 0.779, 12, (0.08, 0.08, 0.10), bold=True, center=True)
+        self.tab_ik_bg = _add_2d_rect(self.ren_ui, 0.51, 0.758, 0.95, 0.800, (0.14, 0.14, 0.18), edge_rgb=(0.30, 0.30, 0.36))
+        self.tab_ik_tx = _add_2d_text(self.ren_ui, "Inversa · IK [I]", 0.73, 0.779, 12, (0.86, 0.86, 0.92), bold=True, center=True)
+        self.buttons.append(("mode_fk", 0.05, 0.758, 0.49, 0.800))
+        self.buttons.append(("mode_ik", 0.51, 0.758, 0.95, 0.800))
 
         # Divisor + Encabezado Sección 2: Efector Final
         _add_2d_rect(self.ren_ui, 0.06, 0.378, 0.94, 0.381, (0.24, 0.24, 0.28))
@@ -692,7 +702,6 @@ class DigitalTwinApp:
 
         # Botones clickeables en la parte inferior del panel derecho (coordenadas normalizadas del viewport derecho)
         _add_2d_rect(self.ren_ui, 0.06, 0.238, 0.94, 0.241, (0.24, 0.24, 0.28))
-        self.buttons = []
         btn_defs = [
             ("hero",  "Pose Héroe [1]",      0.05, 0.175, 0.48, 0.225, (0.96, 0.96, 0.97), (0.08, 0.08, 0.10)),
             ("home",  "Home Vertical [2]",   0.52, 0.175, 0.95, 0.225, (0.16, 0.16, 0.20), (0.95, 0.95, 0.97)),
@@ -707,7 +716,7 @@ class DigitalTwinApp:
             _add_2d_text(self.ren_ui, label, 0.5 * (x0 + x1), 0.5 * (y0 + y1), 12, fg, bold=True, center=True)
             self.buttons.append((bid, x0, y0, x1, y1))
 
-        _add_2d_text(self.ren_ui, "Mouse Izq: rotar · Rueda: zoom · [R] centrar · [Esc] salir", 0.50, 0.025, 11, (0.52, 0.52, 0.58), center=True)
+        _add_2d_text(self.ren_ui, "[F] FK · [I] IK · Mouse Izq: rotar · [R] centrar · [Esc] salir", 0.50, 0.025, 11, (0.52, 0.52, 0.58), center=True)
 
         # Pie informativo sutil en la esquina inferior izquierda de la escena 3D
         _add_2d_text(
@@ -717,12 +726,24 @@ class DigitalTwinApp:
         )
 
     def _build_sliders(self):
-        """Sliders vectoriales minimalistas B2 Stealth en el panel derecho (100% nativos, cero glitch)."""
+        """Sliders vectoriales minimalistas B2 Stealth (modo dual FK articular / IK cartesiano!)."""
+        self.fk_slider_specs = [
+            ("J1 · Base Yaw",       QLIM_DEG[0, 0], QLIM_DEG[0, 1], (0.96, 0.96, 0.98), "deg"),
+            ("J2 · Hombro Pitch",   QLIM_DEG[1, 0], QLIM_DEG[1, 1], (0.96, 0.96, 0.98), "deg"),
+            ("J3 · Codo Pitch",     QLIM_DEG[2, 0], QLIM_DEG[2, 1], (0.96, 0.96, 0.98), "deg"),
+            ("J4 · Muñeca Pitch",   QLIM_DEG[3, 0], QLIM_DEG[3, 1], (0.96, 0.96, 0.98), "deg"),
+        ]
+        self.ik_slider_specs = [
+            ("X · Alcance Frontal",   30.0, 205.0, (0.24, 0.68, 0.98), "mm"),
+            ("Y · Lateral Izq/Der", -170.0, 170.0, (0.24, 0.68, 0.98), "mm"),
+            ("Z · Altura Escritorio", 15.0, 240.0, (0.24, 0.68, 0.98), "mm"),
+            ("Phi · Inclinación Pinza", -90.0,  90.0, (0.24, 0.68, 0.98), "deg"),
+        ]
         self.slider_defs = [
-            ("J1 · Base Yaw",       QLIM_DEG[0, 0], QLIM_DEG[0, 1], 0.718, (0.96, 0.96, 0.98), "deg"),
-            ("J2 · Hombro Pitch",   QLIM_DEG[1, 0], QLIM_DEG[1, 1], 0.632, (0.96, 0.96, 0.98), "deg"),
-            ("J3 · Codo Pitch",     QLIM_DEG[2, 0], QLIM_DEG[2, 1], 0.546, (0.96, 0.96, 0.98), "deg"),
-            ("J4 · Muñeca Pitch",   QLIM_DEG[3, 0], QLIM_DEG[3, 1], 0.460, (0.96, 0.96, 0.98), "deg"),
+            ("J1 · Base Yaw",       QLIM_DEG[0, 0], QLIM_DEG[0, 1], 0.706, (0.96, 0.96, 0.98), "deg"),
+            ("J2 · Hombro Pitch",   QLIM_DEG[1, 0], QLIM_DEG[1, 1], 0.622, (0.96, 0.96, 0.98), "deg"),
+            ("J3 · Codo Pitch",     QLIM_DEG[2, 0], QLIM_DEG[2, 1], 0.538, (0.96, 0.96, 0.98), "deg"),
+            ("J4 · Muñeca Pitch",   QLIM_DEG[3, 0], QLIM_DEG[3, 1], 0.454, (0.96, 0.96, 0.98), "deg"),
             ("Pinza Paralela SG90", 0.0,            30.0,           0.296, (0.94, 0.42, 0.14), "mm"),
         ]
         self.slider_x0 = 0.07
@@ -730,15 +751,12 @@ class DigitalTwinApp:
         self.slider_ui = []
 
         for idx, (title, vmin, vmax, y_track, accent, unit) in enumerate(self.slider_defs):
-            # Título izquierdo + valor numérico derecho
-            _add_2d_text(self.ren_ui, title, self.slider_x0, y_track + 0.022, 12, (0.90, 0.90, 0.94), bold=True)
+            title_txt = _add_2d_text(self.ren_ui, title, self.slider_x0, y_track + 0.022, 12, (0.90, 0.90, 0.94), bold=True)
             val_txt = _add_2d_text(self.ren_ui, "", self.slider_x1, y_track + 0.022, 12, accent, bold=True)
             val_txt.GetTextProperty().SetJustificationToRight()
 
-            # Pista de fondo oscura
             _add_2d_rect(self.ren_ui, self.slider_x0, y_track - 0.004, self.slider_x1, y_track + 0.004, (0.22, 0.22, 0.27))
 
-            # Barra de progreso dinámica (puntos actualizables)
             fill_pts = vtk.vtkPoints()
             for p in [(self.slider_x0, y_track - 0.0045, 0), (self.slider_x0, y_track - 0.0045, 0),
                       (self.slider_x0, y_track + 0.0045, 0), (self.slider_x0, y_track + 0.0045, 0)]:
@@ -760,7 +778,6 @@ class DigitalTwinApp:
             fact.GetProperty().SetColor(*accent)
             self.ren_ui.AddActor2D(fact)
 
-            # Perilla (thumb) dinámica
             knob_pts = vtk.vtkPoints()
             for _ in range(4):
                 knob_pts.InsertNextPoint(0, 0, 0)
@@ -779,10 +796,9 @@ class DigitalTwinApp:
             kact.GetProperty().SetColor(1.0, 1.0, 1.0)
             self.ren_ui.AddActor2D(kact)
 
-            # Etiquetas min / max sutiles bajo la pista
-            lo_s = f"{vmin:+.0f}°" if unit == "deg" else "0 mm"
-            hi_s = f"{vmax:+.0f}°" if unit == "deg" else "30 mm"
-            _add_2d_text(self.ren_ui, lo_s, self.slider_x0, y_track - 0.024, 10, (0.48, 0.48, 0.55))
+            lo_s = f"{vmin:+.0f}°" if unit == "deg" else f"{vmin:.0f} mm"
+            hi_s = f"{vmax:+.0f}°" if unit == "deg" else f"{vmax:.0f} mm"
+            lo_t = _add_2d_text(self.ren_ui, lo_s, self.slider_x0, y_track - 0.024, 10, (0.48, 0.48, 0.55))
             hi_t = _add_2d_text(self.ren_ui, hi_s, self.slider_x1, y_track - 0.024, 10, (0.48, 0.48, 0.55))
             hi_t.GetTextProperty().SetJustificationToRight()
 
@@ -791,7 +807,11 @@ class DigitalTwinApp:
                 "vmax": float(vmax),
                 "y": y_track,
                 "unit": unit,
+                "title_txt": title_txt,
                 "val_txt": val_txt,
+                "lo_txt": lo_t,
+                "hi_txt": hi_t,
+                "fill_actor": fact,
                 "fill_pts": fill_pts,
                 "fill_poly": fill_poly,
                 "knob_pts": knob_pts,
@@ -799,11 +819,46 @@ class DigitalTwinApp:
                 "knob_actor": kact,
             })
 
+    def _set_control_mode(self, mode: str):
+        mode = "IK" if mode.upper() == "IK" else "FK"
+        self.control_mode = mode
+        self.ik_status_msg = ""
+        is_ik = (mode == "IK")
+        # Actualizar estilo de pestañas FK / IK
+        self.tab_fk_bg.GetProperty().SetColor(*(0.14, 0.14, 0.18) if is_ik else (0.96, 0.96, 0.97))
+        self.tab_fk_tx.GetTextProperty().SetColor(*(0.86, 0.86, 0.92) if is_ik else (0.08, 0.08, 0.10))
+        self.tab_ik_bg.GetProperty().SetColor(*(0.20, 0.58, 0.92) if is_ik else (0.14, 0.14, 0.18))
+        self.tab_ik_tx.GetTextProperty().SetColor(*(1.00, 1.00, 1.00) if is_ik else (0.86, 0.86, 0.92))
+        self.txt_tel_hdr.SetInput(
+            "CINEMÁTICA INVERSA · IK (X,Y,Z,Phi -> J1..J4)" if is_ik else "CINEMÁTICA DIRECTA · FK (Peter Corke fkine)"
+        )
+        # Sincronizar objetivo IK actual al entrar en modo IK (cero saltos!)
+        if is_ik:
+            tcp = self.robot.fkine_mm(np.deg2rad(self.q_deg))
+            phi = float(self.q_deg[1] + self.q_deg[2] + self.q_deg[3])
+            self.ik_target = np.array([tcp[0], tcp[1], tcp[2], phi], dtype=float)
+        specs = self.ik_slider_specs if is_ik else self.fk_slider_specs
+        for i in range(4):
+            title, vmin, vmax, accent, unit = specs[i]
+            ui = self.slider_ui[i]
+            ui["vmin"] = float(vmin)
+            ui["vmax"] = float(vmax)
+            ui["unit"] = unit
+            ui["title_txt"].SetInput(title)
+            ui["val_txt"].GetTextProperty().SetColor(*accent)
+            ui["fill_actor"].GetProperty().SetColor(*accent)
+            ui["lo_txt"].SetInput(f"{vmin:+.0f}°" if unit == "deg" else f"{vmin:.0f} mm")
+            ui["hi_txt"].SetInput(f"{vmax:+.0f}°" if unit == "deg" else f"{vmax:.0f} mm")
+        self.update_pose(transmit=False)
+
     # ------------------------------------------------------------------
-    # Actualización cinemática exacta de los 35 STLs + Peter Corke fkine
+    # Actualización cinemática exacta de los 34 STLs + Peter Corke fkine/ikine
     # ------------------------------------------------------------------
     def _sync_sliders(self):
-        vals = [self.q_deg[0], self.q_deg[1], self.q_deg[2], self.q_deg[3], self.grip_mm]
+        if self.control_mode == "IK":
+            vals = [self.ik_target[0], self.ik_target[1], self.ik_target[2], self.ik_target[3], self.grip_mm]
+        else:
+            vals = [self.q_deg[0], self.q_deg[1], self.q_deg[2], self.q_deg[3], self.grip_mm]
         kw, kh = 0.014, 0.011
         for idx, (ui, v) in enumerate(zip(self.slider_ui, vals)):
             t = (float(v) - ui["vmin"]) / max(1e-6, ui["vmax"] - ui["vmin"])
@@ -831,7 +886,7 @@ class DigitalTwinApp:
                 vv = 0.0 if abs(v) < 0.05 else v
                 ui["val_txt"].SetInput(f"{vv:+.1f}°")
             else:
-                ui["val_txt"].SetInput(f"{v:.0f} mm")
+                ui["val_txt"].SetInput(f"{v:.1f} mm" if idx < 4 else f"{v:.0f} mm")
 
     def _update_trail_poly(self):
         pts = vtk.vtkPoints()
@@ -942,9 +997,14 @@ class DigitalTwinApp:
         # Sincronizar sliders y telemetría en panel derecho
         self._sync_sliders()
         phi_clean = 0.0 if abs(phi) < 0.05 else phi
-        self.txt_tcp.SetInput(f"TCP: ({tcp[0]:5.1f}, {tcp[1]:5.1f}, {tcp[2]:5.1f}) mm")
+        if self.control_mode == "IK":
+            self.txt_tcp.SetInput(f"q: ({q1:+.0f}°, {q2:.0f}°, {q3:+.0f}°, {q4:+.0f}°) · TCP({tcp[0]:.0f},{tcp[1]:.0f},{tcp[2]:.0f})")
+        else:
+            self.txt_tcp.SetInput(f"TCP: ({tcp[0]:5.1f}, {tcp[1]:5.1f}, {tcp[2]:5.1f}) mm")
         if self.relaxed:
             self.txt_phi.SetInput("SERVOS RELAJADOS (FULL_OFF 4096)")
+        elif self.ik_status_msg:
+            self.txt_phi.SetInput(f"[IK!] {self.ik_status_msg}")
         elif not safe_z:
             self.txt_phi.SetInput(f"[!] GUARDA MESA: Z_eff={z_tcp_eff:.1f} mm (< 8 mm)")
         else:
@@ -1060,14 +1120,38 @@ class DigitalTwinApp:
                 if okk:
                     self.anim_queue.append((np.rad2deg(qk), 10.0, None, True))
 
+    def _apply_ik_target(self, new_ik):
+        """Resuelve Cinemática Inversa analítica + guarda anti-mesa y actualiza `q_deg` si es válida."""
+        x, y, z, phi = [float(v) for v in new_ik]
+        q_rad, ok, msg = self.robot.ikine_analytic_mm(x, y, z, phi, elbow_up=True)
+        if not ok:
+            self.ik_status_msg = msg
+            return False
+        safe_z, _z3, _z4, _zt, gmsg = self.robot.check_table_guard(q_rad, self.grip_mm)
+        if not safe_z:
+            self.ik_status_msg = gmsg
+            return False
+        self.ik_target = np.array([x, y, z, phi], dtype=float)
+        self.q_deg = np.rad2deg(q_rad)
+        self.ik_status_msg = ""
+        return True
+
     def _trigger_action(self, bid: str):
-        if bid == "hero":
+        if bid == "mode_fk":
+            self._set_control_mode("FK")
+        elif bid == "mode_ik":
+            self._set_control_mode("IK")
+        elif bid == "hero":
+            self.ik_status_msg = ""
             self._queue_move(np.rad2deg(Q_HERO_RAD), HERO_GRIP)
         elif bid == "home":
-            self._queue_move(np.rad2deg(Q_HOME_RAD), 18.0)
+            self.ik_status_msg = ""
+            self._queue_move(np.rad2deg(Q_HOME_RAD), 15.0)
         elif bid == "jtraj":
+            self.ik_status_msg = ""
             self._start_demo_jtraj()
         elif bid == "ctraj":
+            self.ik_status_msg = ""
             self._start_demo_ctraj()
         elif bid == "xray":
             self.xray = not self.xray
@@ -1108,7 +1192,13 @@ class DigitalTwinApp:
         self.cube_held = False
         self.relaxed = False
         if idx < 4:
-            self.q_deg[idx] = val
+            if self.control_mode == "IK":
+                cand = self.ik_target.copy()
+                cand[idx] = val
+                self._apply_ik_target(cand)
+            else:
+                self.ik_status_msg = ""
+                self.q_deg[idx] = val
         else:
             self.grip_mm = val
         if render_now:
@@ -1200,11 +1290,17 @@ class DigitalTwinApp:
             s_idx = self._hit_slider(xn_ui, yn_global)
             if s_idx is not None:
                 ui = self.slider_ui[s_idx]
-                step = 2.0 if s_idx < 4 else 1.0
+                step = (5.0 if s_idx < 3 else 3.0) if (self.control_mode == "IK" and s_idx < 4) else (2.0 if s_idx < 4 else 1.0)
                 self.anim_queue.clear()
                 self.relaxed = False
                 if s_idx < 4:
-                    self.q_deg[s_idx] = float(np.clip(self.q_deg[s_idx] + direction * step, ui["vmin"], ui["vmax"]))
+                    if self.control_mode == "IK":
+                        cand = self.ik_target.copy()
+                        cand[s_idx] = float(np.clip(cand[s_idx] + direction * step, ui["vmin"], ui["vmax"]))
+                        self._apply_ik_target(cand)
+                    else:
+                        self.ik_status_msg = ""
+                        self.q_deg[s_idx] = float(np.clip(self.q_deg[s_idx] + direction * step, ui["vmin"], ui["vmax"]))
                 else:
                     self.grip_mm = float(np.clip(self.grip_mm + direction * step, ui["vmin"], ui["vmax"]))
                 self.update_pose(transmit=True, throttle_s=0.0)
@@ -1232,6 +1328,10 @@ class DigitalTwinApp:
             self._trigger_action("jtraj")
         elif key == "4":
             self._trigger_action("ctraj")
+        elif key == "f":
+            self._set_control_mode("FK")
+        elif key == "i":
+            self._set_control_mode("IK")
         elif key == "x":
             self._trigger_action("xray")
         elif key == "h":
@@ -1261,6 +1361,8 @@ class DigitalTwinApp:
             qd, g, cube_evt, rec = self.anim_queue.pop(0)
             self.q_deg = np.array(qd, dtype=float)
             self.grip_mm = float(g)
+            tcp = self.robot.fkine_mm(np.deg2rad(self.q_deg))
+            self.ik_target = np.array([tcp[0], tcp[1], tcp[2], float(self.q_deg[1] + self.q_deg[2] + self.q_deg[3])], dtype=float)
             if cube_evt == "grab":
                 self.cube_held = True
             elif cube_evt == "drop":

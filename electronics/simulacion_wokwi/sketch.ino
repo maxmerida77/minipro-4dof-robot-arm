@@ -161,9 +161,44 @@ static bool startMove(const float qIn[5], float durMs) {
   return true;
 }
 
+static void computeFK(const float q[5], float &x, float &y, float &z, float &phi) {
+  const float d2r = 3.14159265f / 180.0f;
+  float t1 = q[0] * d2r, t2 = q[1] * d2r, t23 = (q[1] + q[2]) * d2r, t234 = (q[1] + q[2] + q[3]) * d2r;
+  float r = DH_A2_MM * cosf(t2) + DH_A3_MM * cosf(t23) + DH_A4_MM * cosf(t234);
+  x = r * cosf(t1);
+  y = r * sinf(t1);
+  z = DH_D1_MM + DH_A2_MM * sinf(t2) + DH_A3_MM * sinf(t23) + DH_A4_MM * sinf(t234);
+  phi = q[1] + q[2] + q[3];
+}
+
+static bool computeIK(float x, float y, float z, float phiDeg, float qOut[4], String &err) {
+  const float d2r = 3.14159265f / 180.0f, r2d = 180.0f / 3.14159265f;
+  float phi = phiDeg * d2r;
+  float q1 = atan2f(y, x), r = hypotf(x, y);
+  float rw = r - DH_A4_MM * cosf(phi), zw = (z - DH_D1_MM) - DH_A4_MM * sinf(phi);
+  float D = (rw * rw + zw * zw - DH_A2_MM * DH_A2_MM - DH_A3_MM * DH_A3_MM) / (2.0f * DH_A2_MM * DH_A3_MM);
+  if (fabsf(D) > 1.0005f) { err = "Fuera de alcance"; return false; }
+  D = clampF(D, -1.0f, 1.0f);
+  float q3 = atan2f(-sqrtf(fmaxf(0.0f, 1.0f - D * D)), D);
+  float q2 = atan2f(zw, rw) - atan2f(DH_A3_MM * sinf(q3), DH_A2_MM + DH_A3_MM * cosf(q3));
+  float q4 = atan2f(sinf(phi - q2 - q3), cosf(phi - q2 - q3));
+  float qd[4] = { q1 * r2d, q2 * r2d, q3 * r2d, q4 * r2d };
+  for (int i = 0; i < 4; i++) {
+    if (qd[i] < AXES[i].q_min - 0.15f || qd[i] > AXES[i].q_max + 0.15f) {
+      err = "J" + String(i + 1) + " fuera de limite (" + String(qd[i], 1) + " deg)";
+      return false;
+    }
+    qOut[i] = clampF(qd[i], AXES[i].q_min, AXES[i].q_max);
+  }
+  err = "OK";
+  return true;
+}
+
 static void printStatus() {
-  Serial.printf("[STATUS] q=(%.1f, %.1f, %.1f, %.1f) deg | pinza=%.1f mm (TCP_x=%.2f mm) | %s\n",
-                curQ[0], curQ[1], curQ[2], curQ[3], curQ[4], gripMmToTcpX(curQ[4]),
+  float x, y, z, phi;
+  computeFK(curQ, x, y, z, phi);
+  Serial.printf("[STATUS] q=(%.1f, %.1f, %.1f, %.1f) deg | TCP=(%.1f, %.1f, %.1f) mm phi=%.1f | pinza=%.1f mm | %s\n",
+                curQ[0], curQ[1], curQ[2], curQ[3], x, y, z, phi, curQ[4],
                 relaxed ? "RELAX" : "ACTIVO");
 }
 
@@ -201,8 +236,25 @@ static void handleCmd(String line) {
     Serial.println("[OK] CENTER: CH0..CH3 en 1500 us + estado interno resincronizado");
   } else if (up == "RELAX") {
     relaxAll();
-  } else if (up == "STATUS") {
+  } else if (up == "STATUS" || up == "FK") {
     printStatus();
+  } else if (up.startsWith("IK ")) {
+    sweepActive = false;
+    float x, y, z, phi, g = curQ[4], dur = 1100.0f;
+    if (sscanf(line.c_str() + 3, "%f %f %f %f %f %f", &x, &y, &z, &phi, &g, &dur) >= 4) {
+      float qs[4]; String err;
+      if (computeIK(x, y, z, phi, qs, err)) {
+        float q[5] = { qs[0], qs[1], qs[2], qs[3], g };
+        if (startMove(q, dur)) {
+          Serial.printf("[IK OK] (%.1f, %.1f, %.1f, phi=%.1f) -> q=(%.1f, %.1f, %.1f, %.1f) en %.0f ms\n",
+                        x, y, z, phi, qs[0], qs[1], qs[2], qs[3], dur);
+        }
+      } else {
+        Serial.printf("[IK ERR] %s\n", err.c_str());
+      }
+    } else {
+      Serial.println("[ERR] Uso: IK x y z phi [grip_mm] [ms]");
+    }
   } else if (up.startsWith("M ") || up.startsWith("G ")) {
     sweepActive = false;
     float q[5] = { curQ[0], curQ[1], curQ[2], curQ[3], curQ[4] };

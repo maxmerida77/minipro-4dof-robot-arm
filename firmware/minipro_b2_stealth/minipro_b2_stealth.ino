@@ -55,6 +55,8 @@ static const Waypoint DEMO_SEQ[] = {
 static const int DEMO_LEN = sizeof(DEMO_SEQ) / sizeof(DEMO_SEQ[0]);
 bool demoRunning = false;
 int  demoIdx     = 0;
+String lastMsg   = "Listo (FK + IK activos)";
+bool   lastOk    = true;
 
 // ----------------------------------------------------------------------------
 // Utilidades PWM, Conversión Inversa (Resincronización) y Guarda Anti-Mesa
@@ -219,11 +221,37 @@ String getCurrentIP() {
 }
 
 void printStatus() {
-    float zt = 0;
-    checkTableGuard(qCurr, &zt);
-    Serial.printf("[STATUS] q=[%.1f, %.1f, %.1f, %.1f] deg | grip=%.1f mm (TCP_x=%.1f, Z=%.1f mm) | relaxed=%d | IP=%s\n",
+    float fx = 0, fy = 0, fz = 0, fphi = 0;
+    computeFK(qCurr, fx, fy, fz, fphi);
+    Serial.printf("[STATUS] q=[%.1f, %.1f, %.1f, %.1f] deg | grip=%.1f mm | TCP=(%.1f, %.1f, %.1f) mm phi=%.1f deg | relaxed=%d | IP=%s\n",
                   qCurr[0], qCurr[1], qCurr[2], qCurr[3], qCurr[4],
-                  gripMmToTcpX(qCurr[4]), zt, isRelaxed ? 1 : 0, getCurrentIP().c_str());
+                  fx, fy, fz, fphi, isRelaxed ? 1 : 0, getCurrentIP().c_str());
+}
+
+bool moveByIK(float x_mm, float y_mm, float z_mm, float phi_deg, float grip_mm, uint32_t durationMs, bool streaming) {
+    float qSol[4];
+    String ikErr;
+    if (!computeIK(x_mm, y_mm, z_mm, phi_deg, qSol, &ikErr, true)) {
+        lastOk  = false;
+        lastMsg = "IK: " + ikErr;
+        Serial.printf("[IK ERR] (%.1f, %.1f, %.1f, phi=%.1f): %s\n", x_mm, y_mm, z_mm, phi_deg, ikErr.c_str());
+        return false;
+    }
+    float tgt[5] = { qSol[0], qSol[1], qSol[2], qSol[3], clampf(grip_mm, AXES[4].q_min, AXES[4].q_max) };
+    bool ok = streaming ? setStreamTarget(tgt) : startQuinticMove(tgt, durationMs);
+    if (!ok) {
+        lastOk  = false;
+        lastMsg = "Bloqueado por guarda anti-mesa (Z muy bajo)";
+        return false;
+    }
+    demoRunning = false;
+    lastOk  = true;
+    lastMsg = "IK OK -> q=[" + String(qSol[0], 1) + ", " + String(qSol[1], 1) + ", " + String(qSol[2], 1) + ", " + String(qSol[3], 1) + "]";
+    if (!streaming) {
+        Serial.printf("[IK OK] (%.1f, %.1f, %.1f, phi=%.1f) -> q=[%.1f, %.1f, %.1f, %.1f] en %lu ms\n",
+                      x_mm, y_mm, z_mm, phi_deg, qSol[0], qSol[1], qSol[2], qSol[3], (unsigned long)durationMs);
+    }
+    return true;
 }
 
 // ----------------------------------------------------------------------------
@@ -240,63 +268,87 @@ void processCommand(String line) {
         demoRunning = false;
         float tgt[5] = { AXES[0].q_hero, AXES[1].q_hero, AXES[2].q_hero, AXES[3].q_hero, AXES[4].q_hero };
         if (startQuinticMove(tgt, (uint32_t)DEFAULT_MOVE_MS)) {
+            lastOk = true; lastMsg = "Pose Heroe";
             Serial.println(F("[OK] Moviendo a Pose Heroe."));
         }
     } else if (up == "HOME") {
         demoRunning = false;
         float tgt[5] = { AXES[0].q_home, AXES[1].q_home, AXES[2].q_home, AXES[3].q_home, AXES[4].q_home };
         if (startQuinticMove(tgt, (uint32_t)DEFAULT_MOVE_MS)) {
+            lastOk = true; lastMsg = "Home Vertical";
             Serial.println(F("[OK] Moviendo a Home."));
         }
     } else if (up == "CENTER") {
         centerBench90();
+        lastOk = true; lastMsg = "CENTER 1500us";
     } else if (up == "DEMO") {
         startDemo();
+        lastOk = true; lastMsg = "Demo Pick & Place";
     } else if (up == "RELAX") {
         relaxAll();
-    } else if (up == "STATUS") {
+        lastOk = true; lastMsg = "Servos relajados";
+    } else if (up == "STATUS" || up == "FK") {
         printStatus();
+    } else if (up.startsWith("IKG ")) {
+        float x, y, z, phi, g = qCurr[4];
+        int n = sscanf(line.c_str() + 4, "%f %f %f %f %f", &x, &y, &z, &phi, &g);
+        if (n >= 4) moveByIK(x, y, z, phi, g, 0, true);
+    } else if (up.startsWith("IK ")) {
+        float x, y, z, phi, g = qCurr[4];
+        int ms = (int)DEFAULT_MOVE_MS;
+        int n = sscanf(line.c_str() + 3, "%f %f %f %f %f %d", &x, &y, &z, &phi, &g, &ms);
+        if (n >= 4) {
+            moveByIK(x, y, z, phi, g, (uint32_t)max(150, ms), false);
+        } else {
+            Serial.println(F("[ERR] Uso: IK x y z phi [grip_mm] [ms]"));
+        }
     } else if (up.startsWith("G ")) {
         float t[5];
         if (sscanf(line.c_str() + 2, "%f %f %f %f %f", &t[0], &t[1], &t[2], &t[3], &t[4]) == 5) {
-            setStreamTarget(t);
+            lastOk = setStreamTarget(t);
+            lastMsg = lastOk ? "FK activo" : "Bloqueado por guarda anti-mesa";
         }
     } else if (up.startsWith("M ")) {
         float t[5];
         int ms = (int)DEFAULT_MOVE_MS;
         if (sscanf(line.c_str() + 2, "%f %f %f %f %f %d", &t[0], &t[1], &t[2], &t[3], &t[4], &ms) >= 5) {
             demoRunning = false;
-            startQuinticMove(t, (uint32_t)max(150, ms));
+            lastOk = startQuinticMove(t, (uint32_t)max(150, ms));
+            lastMsg = lastOk ? "Movimiento FK quíntico" : "Bloqueado por guarda anti-mesa";
         }
     } else if (up.startsWith("RAW ")) {
         int ch = 0, us = 1500;
         if (sscanf(line.c_str() + 4, "%d %d", &ch, &us) == 2 && ch >= 0 && ch < 16) {
             demoRunning = false; trajActive = false; streamMode = false; isRelaxed = false;
             writeMicros((uint8_t)ch, (uint16_t)us);
-            // Resincronizar eje lógico correspondiente si ch pertenece a AXES[0..4]!
             for (uint8_t i = 0; i < 5; i++) {
                 if (AXES[i].channel == (uint8_t)ch) {
                     qCurr[i] = qTarget[i] = qStart[i] = servoUsToLogical(i, (uint16_t)us);
                 }
             }
+            lastOk = true; lastMsg = "RAW OK";
             Serial.printf("[OK] RAW CH%d -> %d us (resincronizado)\n", ch, us);
         }
     } else {
-        Serial.printf("[ERR] Comando desconocido: %s\n", line.c_str());
+        Serial.printf("[ERR] Comando desconocido: %s (usa HERO|HOME|CENTER|DEMO|RELAX|FK|G|M|IK|IKG|RAW)\n", line.c_str());
     }
 }
 
 // ----------------------------------------------------------------------------
-// Endpoints HTTP Web UI
+// Endpoints HTTP Web UI (FK + IK en vivo!)
 // ----------------------------------------------------------------------------
 String buildStatusJson() {
+    float fx = 0, fy = 0, fz = 0, fphi = 0;
+    computeFK(qCurr, fx, fy, fz, fphi);
     String j = "{\"q\":[";
     for (int i = 0; i < 5; i++) {
         j += String(qCurr[i], 1);
         if (i < 4) j += ",";
     }
-    j += "],\"relaxed\":";
-    j += (isRelaxed ? "true" : "false");
+    j += "],\"xyz\":[" + String(fx, 1) + "," + String(fy, 1) + "," + String(fz, 1) + "," + String(fphi, 1) + "]";
+    j += ",\"relaxed\":" + String(isRelaxed ? "true" : "false");
+    j += ",\"ok\":" + String(lastOk ? "true" : "false");
+    j += ",\"msg\":\"" + lastMsg + "\"";
     j += ",\"ip\":\"" + getCurrentIP() + "\"}";
     return j;
 }
@@ -312,7 +364,21 @@ void setupWebServer() {
             server.hasArg("q3") ? server.arg("q3").toFloat() : qTarget[3],
             server.hasArg("g")  ? server.arg("g").toFloat()  : qTarget[4]
         };
-        setStreamTarget(t);
+        lastOk = setStreamTarget(t);
+        lastMsg = lastOk ? "FK OK" : "Bloqueado por guarda anti-mesa";
+        server.send(200, "application/json", buildStatusJson());
+    });
+    server.on("/api/ik", HTTP_GET, []() {
+        float fx = 0, fy = 0, fz = 0, fphi = 0;
+        computeFK(qCurr, fx, fy, fz, fphi);
+        float x   = server.hasArg("x")   ? server.arg("x").toFloat()   : fx;
+        float y   = server.hasArg("y")   ? server.arg("y").toFloat()   : fy;
+        float z   = server.hasArg("z")   ? server.arg("z").toFloat()   : fz;
+        float phi = server.hasArg("phi") ? server.arg("phi").toFloat() : fphi;
+        float g   = server.hasArg("g")   ? server.arg("g").toFloat()   : qCurr[4];
+        uint32_t ms = server.hasArg("ms") ? (uint32_t)max(150, server.arg("ms").toInt()) : (uint32_t)DEFAULT_MOVE_MS;
+        bool stream = server.hasArg("stream") && (server.arg("stream") == "1");
+        moveByIK(x, y, z, phi, g, ms, stream);
         server.send(200, "application/json", buildStatusJson());
     });
     server.on("/api/cmd", HTTP_GET, []() {

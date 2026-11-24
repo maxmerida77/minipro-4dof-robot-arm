@@ -101,3 +101,63 @@ static inline float gripMmToTcpX(float grip_mm) {
     float th_nom = gripMmToThetaRad(GRIP_NOMINAL_OPEN_MM);
     return DH_A4_MM + GRIP_LINK_L_MM * (cosf(th_cur) - cosf(th_nom));
 }
+
+// --- Cinemática Directa (FK) 4R Estándar DH (idéntica a `python/robot_minipro_rtb.py`) ---
+static inline void computeFK(const float qDeg[4], float& x_mm, float& y_mm, float& z_mm, float& phi_deg) {
+    const float d2r = 3.14159265f / 180.0f;
+    float t1   = qDeg[0] * d2r;
+    float t2   = qDeg[1] * d2r;
+    float t23  = (qDeg[1] + qDeg[2]) * d2r;
+    float t234 = (qDeg[1] + qDeg[2] + qDeg[3]) * d2r;
+
+    float r = DH_A2_MM * cosf(t2) + DH_A3_MM * cosf(t23) + DH_A4_MM * cosf(t234);
+    x_mm    = r * cosf(t1);
+    y_mm    = r * sinf(t1);
+    z_mm    = DH_D1_MM + DH_A2_MM * sinf(t2) + DH_A3_MM * sinf(t23) + DH_A4_MM * sinf(t234);
+    phi_deg = qDeg[1] + qDeg[2] + qDeg[3];
+}
+
+// --- Cinemática Inversa (IK) Analítica Cerrada 4R (idéntica a `ikine_analytic_mm`) ---
+static inline bool computeIK(
+    float x_mm, float y_mm, float z_mm, float phi_deg,
+    float qOutDeg[4], String* errMsg = nullptr, bool elbowUp = true
+) {
+    const float d2r = 3.14159265f / 180.0f;
+    const float r2d = 180.0f / 3.14159265f;
+    float phi = phi_deg * d2r;
+    float q1  = atan2f(y_mm, x_mm);
+    float r   = hypotf(x_mm, y_mm);
+
+    float rw = r - DH_A4_MM * cosf(phi);
+    float zw = (z_mm - DH_D1_MM) - DH_A4_MM * sinf(phi);
+
+    float dist2 = rw * rw + zw * zw;
+    float D = (dist2 - DH_A2_MM * DH_A2_MM - DH_A3_MM * DH_A3_MM) / (2.0f * DH_A2_MM * DH_A3_MM);
+    if (fabsf(D) > 1.0005f) {
+        if (errMsg) *errMsg = "Fuera de alcance geometrico";
+        return false;
+    }
+    if (D > 1.0f)  D = 1.0f;
+    if (D < -1.0f) D = -1.0f;
+
+    float s3 = sqrtf(fmaxf(0.0f, 1.0f - D * D));
+    float q3 = elbowUp ? atan2f(-s3, D) : atan2f(s3, D);
+    float q2 = atan2f(zw, rw) - atan2f(DH_A3_MM * sinf(q3), DH_A2_MM + DH_A3_MM * cosf(q3));
+    float q4 = atan2f(sinf(phi - q2 - q3), cosf(phi - q2 - q3));
+
+    float qd[4] = { q1 * r2d, q2 * r2d, q3 * r2d, q4 * r2d };
+    static const char* NAMES[4] = { "J1", "J2", "J3", "J4" };
+    for (int i = 0; i < 4; i++) {
+        if (qd[i] < AXES[i].q_min - 0.15f || qd[i] > AXES[i].q_max + 0.15f) {
+            if (errMsg) {
+                *errMsg = String(NAMES[i]) + " fuera de limite (" + String(qd[i], 1) + " deg)";
+            }
+            return false;
+        }
+        if (qd[i] < AXES[i].q_min) qd[i] = AXES[i].q_min;
+        if (qd[i] > AXES[i].q_max) qd[i] = AXES[i].q_max;
+        qOutDeg[i] = qd[i];
+    }
+    if (errMsg) *errMsg = "OK";
+    return true;
+}
