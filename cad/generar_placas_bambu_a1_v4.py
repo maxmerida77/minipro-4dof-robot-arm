@@ -117,7 +117,12 @@ BLACK_PREC_SPECS = {
     "03_tapa_inferior_v4": (
         [],
         "Ninguno",
-        "Cara plana inferior en PEI (6 patas perimetrales r=45.5 mm); postes PCA9685, XIAO y aro lastre suben sin soportes",
+        "Cara plana inferior en PEI (6 patas Ø10.6 mm + bóveda lastre >=250 g + isla MG90S J1; 0 soportes)",
+    ),
+    "03b_bandeja_electronica_v4": (
+        [],
+        "Ninguno",
+        "Placa aislante plana en PEI (Z=0): separa lastre metálico de PCA9685/XIAO; 0 soportes",
     ),
     "04b_reten_axial_j1": ([], "Ninguno", "Anillo plano Z=0 (3 barrenos M3 circulares; 0 soportes)"),
     "08_engrane_brazo_izq_m15": (
@@ -126,9 +131,9 @@ BLACK_PREC_SPECS = {
         "Boca abajo: sector 12T mod 1.5 continuo en XY y bolsillo horn SG90 hacia arriba",
     ),
     "09_engrane_brazo_der_m15": (
-        [("z", -Q1), ("y", +WRIST_ANG)],
+        [("z", -Q1), ("y", +WRIST_ANG), ("x", 180.0)],
         "Ninguno",
-        "Plano en XY: dientes 12T mod 1.5 y brazo rígido en fibra continua",
+        "Boca abajo: dientes 12T mod 1.5 planos en PEI y avellanado M3×16 hacia arriba (0 overhang)",
     ),
     "10_dedo_pinza_izq_v4": (
         [("z", -Q1), ("y", +WRIST_ANG), ("x", 180.0)],
@@ -145,6 +150,13 @@ BLACK_PREC_SPECS = {
     "11_separador_m3_j2": ([("z", -Q1), ("x", +90.0)], "Ninguno", "Vertical sobre brida Ø8.3 mm: camisa Ø5.0 mm lisa"),
     "11_separador_m3_j3": ([("z", -Q1), ("x", +90.0)], "Ninguno", "Vertical sobre brida Ø8.3 mm: camisa Ø5.0 mm lisa"),
     "11_separador_m3_j4": ([("z", -Q1), ("x", +90.0)], "Ninguno", "Vertical sobre brida Ø8.3 mm: camisa Ø5.0 mm lisa"),
+    "11b_separador_pinza_engrane": ([("z", -Q1), ("y", +WRIST_ANG)], "Ninguno", "Casquillo liso Ø5.0×5.4 mm engrane der (0 soportes)"),
+    "11c_separador_pinza_biela_izq": ([("z", -Q1), ("y", +WRIST_ANG), ("x", 180.0)], "Ninguno", "Sobre brida Ø6.5 mm en PEI (camisa Ø5.0 mm arriba; 0 overhang)"),
+    "11c_separador_pinza_biela_der": ([("z", -Q1), ("y", +WRIST_ANG), ("x", 180.0)], "Ninguno", "Sobre brida Ø6.5 mm en PEI (camisa Ø5.0 mm arriba; 0 overhang)"),
+    "11d_separador_pinza_dedo_f_izq": ([("z", -Q1), ("y", +WRIST_ANG)], "Ninguno", "Casquillo escalonado pivote delantero dedo izq"),
+    "11d_separador_pinza_dedo_f_der": ([("z", -Q1), ("y", +WRIST_ANG)], "Ninguno", "Casquillo escalonado pivote delantero dedo der"),
+    "11e_separador_pinza_dedo_r_izq": ([("z", -Q1), ("y", +WRIST_ANG)], "Ninguno", "Casquillo escalonado pivote trasero dedo izq"),
+    "11e_separador_pinza_dedo_r_der": ([("z", -Q1), ("y", +WRIST_ANG)], "Ninguno", "Casquillo escalonado pivote trasero dedo der"),
     "13_tapa_cable_l2": ([("z", -Q1), ("y", +Q2), ("x", 180.0)], "Ninguno", "Boca abajo en PEI (perfil cola de milano 0 soportes)"),
     "13_tapa_cable_l3": ([("z", -Q1), ("y", +(Q2 + Q3)), ("x", 180.0)], "Ninguno", "Boca abajo en PEI (perfil cola de milano 0 soportes)"),
     "tapa_j2_izq": ([("z", -Q1), ("y", +Q2), ("x", +90.0)], "Ninguno", "Cara Stealth exterior en PEI, lengüetas bayoneta arriba"),
@@ -479,18 +491,22 @@ def _render_plate_view(placed, is_white_parts, mode="top", size=(740, 560)):
 
 def compose_board(p1a, s1a, p1b, s1b, p2, s2):
     tile_w, tile_h = 740, 560
+    n1a, n1b, n2 = len(p1a), len(p1b), len(p2)
+    n_tot = n1a + n1b + n2
+    n_nosup = sum(1 for p in (p1a + p1b + p2) if p["support"] == "Ninguno")
+    pct_nosup = int(round(100.0 * n_nosup / max(1, n_tot)))
     imgs = [
         (_render_plate_view(p1a, False, "top", (tile_w, tile_h)),
          _render_plate_view(p1a, False, "iso", (tile_w, tile_h)),
-         f"PLACA 1A v4 — NEGRO MATE ESTRUCTURA (5 PIEZAS · {s1a['total_g']:.1f} g · Capa 0.20 mm · Árbol solo cama ON)",
+         f"PLACA 1A v4 — PLA+ NEGRO ESTRUCTURA ({n1a} PIEZAS · {s1a['total_g']:.1f} g · Capa 0.20 mm · Árbol solo cama ON)",
          f"Base Ø106 coaxial, torreta J1, L2/L3 horquillas en U monolíticas y palma abierta · Gap mín: {s1a['min_gap_mm']:.1f} mm"),
         (_render_plate_view(p1b, False, "top", (tile_w, tile_h)),
          _render_plate_view(p1b, False, "iso", (tile_w, tile_h)),
-         f"PLACA 1B v4 — NEGRO MATE PRECISIÓN (19 PIEZAS · {s1b['total_g']:.1f} g · Capa 0.12 mm Fine · 0 / 19 SOPORTES)",
-         f"Tapa 6 patas perimetrales, retén axial J1, engranes 12T mod 1.5, dedos/bielas, separadores M3, dovetails y 6 bayonetas · Gap mín: {s1b['min_gap_mm']:.1f} mm"),
+         f"PLACA 1B v4 — PLA+ NEGRO PRECISIÓN ({n1b} PIEZAS · {s1b['total_g']:.1f} g · Capa 0.12 mm Fine · 0 / {n1b} SOPORTES)",
+         f"Tapa bóveda lastre, bandeja aislante, retén J1, engranes 12T, dedos/bielas, 10 casquillos M3, dovetails y 6 bayonetas · Gap mín: {s1b['min_gap_mm']:.1f} mm"),
         (_render_plate_view(p2, True, "top", (tile_w, tile_h)),
          _render_plate_view(p2, True, "iso", (tile_w, tile_h)),
-         f"PLACA 2 v4 — BLANCO MATE STEALTH (10 PIEZAS · {s2['total_g']:.1f} g · Capa 0.16 mm · 0 / 10 SOPORTES · 0% PURGA AMS)",
+         f"PLACA 2 v4 — BLANCO MATE STEALTH ({n2} PIEZAS · {s2['total_g']:.1f} g · Capa 0.16 mm · 0 / {n2} SOPORTES · 0% PURGA AMS)",
          f"Aro base Ø106 mm, 6 aros J2/J3/J4, collar muñeca y 2 almohadillas w04 (TCP=53 mm) · Gap mín: {s2['min_gap_mm']:.1f} mm"),
     ]
 
@@ -516,8 +532,8 @@ def compose_board(p1a, s1a, p1b, s1b, p2, s2):
     tot_g = s1a["total_g"] + s1b["total_g"] + s2["total_g"]
     draw.text(
         (pad, 58),
-        f"34 / 34 piezas 1-sólido estancas · 29 / 34 sin soporte (85%) · 0% Purga AMS · Total estimado: {tot_g:.1f} g PLA "
-        f"(Negro {s1a['total_g'] + s1b['total_g']:.1f} g + Blanco {s2['total_g']:.1f} g) · 0.00 mm³ colisiones",
+        f"{n_tot} / {n_tot} piezas 1-sólido estancas · {n_nosup} / {n_tot} sin soporte ({pct_nosup}%) · 0% Purga AMS · Total estimado: {tot_g:.1f} g PLA "
+        f"(Negro {s1a['total_g'] + s1b['total_g']:.1f} g + Blanco {s2['total_g']:.1f} g) · 0.0000 mm³ colisiones",
         fill=(148, 163, 184), font=f_sub,
     )
 

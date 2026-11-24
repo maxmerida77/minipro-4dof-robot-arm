@@ -133,18 +133,18 @@ def main():
         ),
         (
             _render_scene((275, -285, 200), (45, 0, 92), 30.0, xray=True, exploded=False, show_hw=True, size=(tw, th)),
-            "2 · RAYOS-X INTERNO (0.00 mm³ CON CONECTORES ENCHUFADOS)",
-            "MG90S J1 coaxial centrado · PCA9685 + Dupont (23 mm) · XIAO · AR5515 · KCD11 · 4× MG90S + SG90",
+            "2 · RAYOS-X INTERNO (0.0000 mm³ CON HERRAJES, NYLOCS Y LASTRE)",
+            "Bóveda lastre 247 g bajo bandeja aislante · Mamparo Nyloc J2/J3/J4 · PCA9685 + Dupont (23 mm) · 4× MG90S + SG90",
         ),
         (
             _render_scene((375, -420, 280), (55, 0, 108), 32.0, xray=False, exploded=True, show_hw=True, size=(tw, th)),
-            "3 · EXPLOSIONADO CLEAN-DFA (34/34 SÓLIDOS ÚNICOS CONECTADOS)",
-            "Retén axial J1 · Horquillas U monolíticas L2/L3 · Separadores M3 · Bayonetas 32° · Tapas dovetail",
+            "3 · EXPLOSIONADO CLEAN-DFA (42/42 SÓLIDOS ÚNICOS CONECTADOS)",
+            "Bandeja aislante · Retén axial J1 · Horquillas U monolíticas L2/L3 · 10 Casquillos M3 · Bayonetas 32° · Dovetail",
         ),
         (
             _render_scene((195, -135, 195), (132, 0, 128), 26.0, xray=False, exploded=False, show_hw=True, size=(tw, th)),
-            "4 · MACRO PINZA PARALELA ABIERTA MeArm MÓDULO 1.5 (12T)",
-            "Abierta arriba (0 puente cerrado) · Dientes gruesos FDM · Centro almohadilla = 53.000 mm exactos",
+            "4 · MACRO PINZA PARALELA ABIERTA MeArm MÓDULO 1.5 (12T + 7 CASQUILLOS)",
+            "SG90 a +Y · Avellanado M3×16 · Nylocs sobre pilares palma · Punto agarre w04 = (53.000, +5.800) mm",
         ),
     ]
 
@@ -164,8 +164,8 @@ def main():
         f_h1 = f_sub = f_t = f_s = ImageFont.load_default()
 
     draw.rectangle([0, 0, W, header_h], fill=(15, 23, 42))
-    draw.text((pad, 16), "MINI-PRO 4-DOF B2 STEALTH — CAD v4 Clean-DFA VERIFICADO (AUDITORÍA CODEX 8/8)", fill=(248, 250, 252), font=f_h1)
-    draw.text((pad, 54), "DH 82/82/70/53 mm · 34/34 STLs sólido único estanco · 0.00 mm³ colisiones en 6 auditorías B-Rep · Masa móvil ~95 g", fill=(148, 163, 184), font=f_sub)
+    draw.text((pad, 16), "MINI-PRO 4-DOF B2 STEALTH — CAD v4 Clean-DFA VERIFICADO (RONDA 2 · GO)", fill=(248, 250, 252), font=f_h1)
+    draw.text((pad, 54), "DH 82/82/70/53 mm · 42/42 STLs 1-sólido estancos · 0.0000 mm³ en 8 auditorías B-Rep (tol=0.01 mm³) · Masa móvil ~122 g", fill=(148, 163, 184), font=f_sub)
 
     for idx, (im, title, sub) in enumerate(panels):
         r, c = divmod(idx, 2)

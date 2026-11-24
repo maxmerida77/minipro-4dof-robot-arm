@@ -43,7 +43,8 @@ static const float GUARD_FINGER_TIP_EXTRA_MM = 7.1f;    // Saliente físico de l
 
 // --- Geometría Exacta Pinza Paralela Abierta MeArm Módulo 1.5 (idéntica a `cad/params.py`) ---
 static const float GRIP_LINK_L_MM         = 16.5f;  // Longitud centro-a-centro brazos/bielas
-static const float GRIP_NOMINAL_OPEN_MM   = 15.0f;  // Apertura donde centro almohadillas == A4 (53.0 mm)
+static const float GRIP_NOMINAL_OPEN_MM   = 15.0f;  // Apertura donde centro X almohadillas == A4 (53.0 mm)
+static const float GRIP_PAD_CENTER_Z_MM   = 5.8f;   // Cota Z local del centro de almohadillas w04 respecto a J4
 static const float GRIP_CLOSED_SERVO_DEG  = 40.0f;  // Ángulo SG90 cuando apertura g = 0 mm (θ = 0°)
 
 // --- Interpolador Suave (Quíntico mínimo-jerk 100 Hz) ---
@@ -110,7 +111,7 @@ static inline float gripMmToTcpX(float grip_mm) {
     return DH_A4_MM + GRIP_LINK_L_MM * (cosf(th_cur) - cosf(th_nom));
 }
 
-// --- Cinemática Directa (FK) 4R Estándar DH (idéntica a `python/robot_minipro_rtb.py`) ---
+// --- Cinemática Directa (FK) 4R Estándar DH + Punto de Agarre Real Almohadillas ---
 static inline void computeFK(const float qDeg[4], float& x_mm, float& y_mm, float& z_mm, float& phi_deg) {
     const float d2r = 3.14159265f / 180.0f;
     float t1   = qDeg[0] * d2r;
@@ -125,18 +126,28 @@ static inline void computeFK(const float qDeg[4], float& x_mm, float& y_mm, floa
     phi_deg = qDeg[1] + qDeg[2] + qDeg[3];
 }
 
-// --- Cinemática Inversa (IK) Analítica Cerrada 4R (idéntica a `ikine_analytic_mm`) ---
-static inline bool computeIK(
-    float x_mm, float y_mm, float z_mm, float phi_deg,
-    float qOutDeg[4], String* errMsg = nullptr, bool elbowUp = true
+static inline void computeGripPointFK(const float qDeg[5], float& x_mm, float& y_mm, float& z_mm) {
+    const float d2r = 3.14159265f / 180.0f;
+    float t1   = qDeg[0] * d2r;
+    float t2   = qDeg[1] * d2r;
+    float t23  = (qDeg[1] + qDeg[2]) * d2r;
+    float t234 = (qDeg[1] + qDeg[2] + qDeg[3]) * d2r;
+    float gx   = gripMmToTcpX(qDeg[4]);
+    float gz   = GRIP_PAD_CENTER_Z_MM;
+    float r = DH_A2_MM * cosf(t2) + DH_A3_MM * cosf(t23) + gx * cosf(t234) - gz * sinf(t234);
+    x_mm = r * cosf(t1);
+    y_mm = r * sinf(t1);
+    z_mm = DH_D1_MM + DH_A2_MM * sinf(t2) + DH_A3_MM * sinf(t23) + gx * sinf(t234) + gz * cosf(t234);
+}
+
+static inline bool solveIKPlanar(
+    float q1Rad, float rSigned, float z_mm, float phi_deg,
+    float qOutDeg[4], String* errMsg, bool elbowUp
 ) {
     const float d2r = 3.14159265f / 180.0f;
     const float r2d = 180.0f / 3.14159265f;
     float phi = phi_deg * d2r;
-    float q1  = atan2f(y_mm, x_mm);
-    float r   = hypotf(x_mm, y_mm);
-
-    float rw = r - DH_A4_MM * cosf(phi);
+    float rw = rSigned - DH_A4_MM * cosf(phi);
     float zw = (z_mm - DH_D1_MM) - DH_A4_MM * sinf(phi);
 
     float dist2 = rw * rw + zw * zw;
@@ -153,13 +164,15 @@ static inline bool computeIK(
     float q2 = atan2f(zw, rw) - atan2f(DH_A3_MM * sinf(q3), DH_A2_MM + DH_A3_MM * cosf(q3));
     float q4 = atan2f(sinf(phi - q2 - q3), cosf(phi - q2 - q3));
 
-    float qd[4] = { q1 * r2d, q2 * r2d, q3 * r2d, q4 * r2d };
+    float qd[4] = { q1Rad * r2d, q2 * r2d, q3 * r2d, q4 * r2d };
     static const char* NAMES[4] = { "J1", "J2", "J3", "J4" };
     for (int i = 0; i < 4; i++) {
+        if (!isfinite(qd[i])) {
+            if (errMsg) *errMsg = "Resultado IK no finito";
+            return false;
+        }
         if (qd[i] < AXES[i].q_min - 0.15f || qd[i] > AXES[i].q_max + 0.15f) {
-            if (errMsg) {
-                *errMsg = String(NAMES[i]) + " fuera de limite (" + String(qd[i], 1) + " deg)";
-            }
+            if (errMsg) *errMsg = String(NAMES[i]) + " fuera de limite (" + String(qd[i], 1) + " deg)";
             return false;
         }
         if (qd[i] < AXES[i].q_min) qd[i] = AXES[i].q_min;
@@ -170,8 +183,65 @@ static inline bool computeIK(
     return true;
 }
 
+// --- Cinemática Inversa (IK) Analítica Cerrada 4R con radio firmado + rechazo NaN ---
+static inline bool computeIK(
+    float x_mm, float y_mm, float z_mm, float phi_deg,
+    float qOutDeg[4], String* errMsg = nullptr, bool elbowUp = true, float q1RefDeg = 0.0f
+) {
+    if (!isfinite(x_mm) || !isfinite(y_mm) || !isfinite(z_mm) || !isfinite(phi_deg) || !isfinite(q1RefDeg)) {
+        if (errMsg) *errMsg = "Entrada no finita (NaN/Inf)";
+        return false;
+    }
+    const float d2r = 3.14159265f / 180.0f;
+    float r = hypotf(x_mm, y_mm);
+    String firstErr;
+    bool branches[2] = { elbowUp, !elbowUp };
+    if (r < 1e-3f) {
+        float q1c = q1RefDeg;
+        if (q1c < AXES[0].q_min) q1c = AXES[0].q_min;
+        if (q1c > AXES[0].q_max) q1c = AXES[0].q_max;
+        for (int b = 0; b < 2; b++) {
+            String err;
+            if (solveIKPlanar(q1c * d2r, 0.0f, z_mm, phi_deg, qOutDeg, &err, branches[b])) {
+                if (errMsg) *errMsg = "OK";
+                return true;
+            }
+            if (b == 0) firstErr = err;
+        }
+        if (errMsg) *errMsg = firstErr;
+        return false;
+    }
+    float q1Fwd = atan2f(y_mm, x_mm);
+    float q1Rev = atan2f(sinf(q1Fwd + 3.14159265f), cosf(q1Fwd + 3.14159265f));
+    for (int b = 0; b < 2; b++) {
+        String errF, errR;
+        if (solveIKPlanar(q1Fwd, +r, z_mm, phi_deg, qOutDeg, &errF, branches[b])) {
+            if (errMsg) *errMsg = "OK";
+            return true;
+        }
+        if (b == 0) firstErr = errF;
+        // Rama sobre el hombro (radio firmado negativo -> soporta poses traseras legales X < 0!)
+        if (solveIKPlanar(q1Rev, -r, z_mm, phi_deg, qOutDeg, &errR, branches[b])) {
+            if (errMsg) *errMsg = "OK";
+            return true;
+        }
+    }
+    if (errMsg) *errMsg = firstErr;
+    return false;
+}
+
 // --- Guarda Física 3D Envolvente Real (idéntica a `check_physical_guard_v4` en `cad/params.py`) ---
 static inline bool checkPhysicalGuard(const float q[5], String* reasonOut = nullptr, float* zMinOut = nullptr) {
+    for (int i = 0; i < 5; i++) {
+        if (!isfinite(q[i])) {
+            if (reasonOut) *reasonOut = "Entrada no finita (NaN/Inf)";
+            return false;
+        }
+    }
+    if (q[4] < -0.05f || q[4] > 30.05f) {
+        if (reasonOut) *reasonOut = "Pinza fuera de rango [0, 30 mm]";
+        return false;
+    }
     static const char* NAMES[4] = { "J1", "J2", "J3", "J4" };
     for (int i = 0; i < 4; i++) {
         if (q[i] < AXES[i].q_min - 0.05f || q[i] > AXES[i].q_max + 0.05f) {

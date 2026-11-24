@@ -35,7 +35,9 @@ from params import (
     TABLE_SAFE_Z_JOINT_MM,
     Q_LIMITS_DEG,
     HERO_POSE_DEG,
+    GRIP_V4,
     gripper_kinematics_v4,
+    gripper_grip_point_local_v4,
     check_physical_guard_v4,
 )
 
@@ -90,21 +92,14 @@ class MiniPro4DOF(rtb.DHRobot):
         return np.array(pts)
 
     @staticmethod
-    def ikine_analytic_mm(x_mm: float, y_mm: float, z_mm: float, phi_deg: float = 0.0, elbow_up: bool = True):
-        """
-        Cinemática Inversa Analítica 4R exacta (en mm y grados):
-          - x_mm, y_mm, z_mm : Posición deseada del TCP (Z=0 es el escritorio).
-          - phi_deg          : Inclinación de la pinza en el plano vertical del brazo
-                               (0° horizontal, -90° vertical hacia abajo).
-          - elbow_up         : True = codo arriba (recomendado sobre escritorio).
-        Retorna: (q_rad, ok, msg)
-        """
+    def _solve_ik_planar(q1: float, r_signed: float, z_mm: float, phi_deg: float, elbow_up: bool,
+                         eff_x_mm: float = A4_MM, eff_z_mm: float = 0.0):
+        """Resuelve la cadena planar 2R+muñeca con radio firmado y offset opcional (eff_x, eff_z)."""
         phi = math.radians(phi_deg)
-        q1 = math.atan2(y_mm, x_mm)
-        r = math.hypot(x_mm, y_mm)
-
-        rw = r - A4_MM * math.cos(phi)
-        zw = (z_mm - D1_MM) - A4_MM * math.sin(phi)
+        c_p, s_p = math.cos(phi), math.sin(phi)
+        # Punto en marco J4 -> (eff_x*cos(phi) - eff_z*sin(phi), eff_x*sin(phi) + eff_z*cos(phi))
+        rw = r_signed - (eff_x_mm * c_p - eff_z_mm * s_p)
+        zw = (z_mm - D1_MM) - (eff_x_mm * s_p + eff_z_mm * c_p)
 
         dist2 = rw * rw + zw * zw
         D = (dist2 - A2_MM * A2_MM - A3_MM * A3_MM) / (2.0 * A2_MM * A3_MM)
@@ -122,7 +117,72 @@ class MiniPro4DOF(rtb.DHRobot):
         for i in range(4):
             if q[i] < QLIM_RAD[i, 0] - tol or q[i] > QLIM_RAD[i, 1] + tol:
                 return q, False, f"{names[i]} fuera de límite: {math.degrees(q[i]):.1f}°"
-        return q, True, "OK"
+        return np.clip(q, QLIM_RAD[:, 0], QLIM_RAD[:, 1]), True, "OK"
+
+    @staticmethod
+    def ikine_analytic_mm(
+        x_mm: float, y_mm: float, z_mm: float, phi_deg: float = 0.0,
+        elbow_up: bool = True, q1_ref_rad: float = 0.0,
+        eff_x_mm: float = A4_MM, eff_z_mm: float = 0.0,
+    ):
+        """
+        Cinemática Inversa Analítica 4R exacta (en mm y grados) con soporte de radio firmado:
+          - Rechaza entradas no finitas (`NaN`/`Inf`).
+          - Si `r ≈ 0`, conserva `q1_ref_rad` sin saltos espurios de base.
+          - Si la rama frontal (`r > 0`) saca a `J1` de `[-85°, +85°]` (p. ej. poses sobre el hombro
+            hacia atrás como `(0, 145, 20, 80)` con `X < 0`), evalúa automáticamente la rama
+            de radio negativo (`q1 ± π`, `r_signed = -r`).
+        Retorna: (q_rad, ok, msg)
+        """
+        vals = (float(x_mm), float(y_mm), float(z_mm), float(phi_deg), float(q1_ref_rad), float(eff_x_mm), float(eff_z_mm))
+        if not all(math.isfinite(v) for v in vals):
+            return None, False, "Entrada no finita (NaN/Inf) rechazada"
+
+        r = math.hypot(x_mm, y_mm)
+        if r < 1e-4:
+            q1_fwd = float(np.clip(q1_ref_rad, QLIM_RAD[0, 0], QLIM_RAD[0, 1]))
+            candidates = [(q1_fwd, 0.0)]
+        else:
+            q1_fwd = math.atan2(y_mm, x_mm)
+            q1_rev = math.atan2(math.sin(q1_fwd + math.pi), math.cos(q1_fwd + math.pi))
+            # Priorizar la rama con q1 dentro de límites (o frontal primero si ambas cumplen)
+            candidates = [(q1_fwd, +r), (q1_rev, -r)]
+
+        first_fail = (None, False, "Fuera de alcance")
+        for eu_c in (elbow_up, not elbow_up):
+            for q1_c, r_c in candidates:
+                q_sol, ok, msg = MiniPro4DOF._solve_ik_planar(q1_c, r_c, z_mm, phi_deg, eu_c, eff_x_mm, eff_z_mm)
+                if ok:
+                    return q_sol, True, "OK"
+                if first_fail[0] is None:
+                    first_fail = (q_sol, False, msg)
+        return first_fail
+
+    def fkine_grip_mm(self, q_rad: np.ndarray, grip_open_mm: float = 15.0) -> np.ndarray:
+        """
+        Posición 3D REAL del centro de agarre entre las almohadillas blancas `w04` (mm),
+        incluyendo el desplazamiento longitudinal `tcp_x(g)` y la altura local `Z = +5.80 mm`
+        respecto al TCP académico DH (`a4 = 53.0 mm`).
+        """
+        q1, q2, q3, q4 = [float(v) for v in q_rad]
+        gx_loc, _gy, gz_loc = gripper_grip_point_local_v4(grip_open_mm)
+        phi = q2 + q3 + q4
+        r = A2_MM * math.cos(q2) + A3_MM * math.cos(q2 + q3) + gx_loc * math.cos(phi) - gz_loc * math.sin(phi)
+        z = D1_MM + A2_MM * math.sin(q2) + A3_MM * math.sin(q2 + q3) + gx_loc * math.sin(phi) + gz_loc * math.cos(phi)
+        return np.array([r * math.cos(q1), r * math.sin(q1), z], dtype=float)
+
+    def ikine_grip_mm(
+        self, x_mm: float, y_mm: float, z_mm: float, phi_deg: float = 0.0,
+        grip_open_mm: float = 15.0, elbow_up: bool = True, q1_ref_rad: float = 0.0,
+    ):
+        """IK analítica apuntando el centro REAL de las almohadillas `w04` (con apertura `grip_open_mm` y `Z_pad=+5.8 mm`)."""
+        if not math.isfinite(float(grip_open_mm)):
+            return None, False, "Apertura de pinza no finita (NaN/Inf)"
+        gx_loc, _gy, gz_loc = gripper_grip_point_local_v4(grip_open_mm)
+        return self.ikine_analytic_mm(
+            x_mm, y_mm, z_mm, phi_deg, elbow_up=elbow_up, q1_ref_rad=q1_ref_rad,
+            eff_x_mm=gx_loc, eff_z_mm=gz_loc,
+        )
 
     def tcp_se3_mm(self, x_mm: float, y_mm: float, z_mm: float, phi_deg: float = 0.0) -> SE3:
         """Construye un objeto `spatialmath.SE3` (en metros) compatible con `rtb.ctraj`."""

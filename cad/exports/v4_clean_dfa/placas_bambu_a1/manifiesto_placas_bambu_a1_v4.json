@@ -10,7 +10,7 @@
     "stats": {
       "layer_mm": 0.2,
       "count": 5,
-      "total_g": 182.5,
+      "total_g": 197.3,
       "max_z_mm": 66.6,
       "min_gap_mm": 10.0,
       "n_supports": 5
@@ -26,11 +26,11 @@
         ],
         "bed_xy_mm": [
           63.8,
-          72.8
+          70.6
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 5973.5,
-        "grams_est": 46.87,
+        "grams_est": 45.87,
         "support": "Árbol (solo cama)",
         "note": "Boca abajo sobre techo plano Ø106 mm (pista anular Ø88 mm en PEI); jefes tuercas cautivas arriba"
       },
@@ -44,11 +44,11 @@
         ],
         "bed_xy_mm": [
           179.7,
-          72.8
+          70.5
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 267.3,
-        "grams_est": 86.96,
+        "grams_est": 92.79,
         "support": "Árbol (solo cama) + Brim 5 mm",
         "note": "Vertical: cuello coaxial y labio pista Ø88 mm concéntricos; árbol solo bajo corona y hub J2"
       },
@@ -58,15 +58,15 @@
         "ext_mm": [
           118.39,
           38.4,
-          39.6
+          48.0
         ],
         "bed_xy_mm": [
           186.0,
-          154.8
+          152.6
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 708.0,
-        "grams_est": 24.09,
+        "grams_est": 29.4,
         "support": "Árbol (solo cama)",
         "note": "Sobre cara -Y de horquilla U (fibra continua en brazos de horquilla!); bolsillo MG90S J3 abierto arriba"
       },
@@ -76,15 +76,15 @@
         "ext_mm": [
           103.4,
           36.39,
-          39.6
+          48.0
         ],
         "bed_xy_mm": [
           62.6,
-          153.9
+          151.7
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 659.0,
-        "grams_est": 18.05,
+        "grams_est": 22.24,
         "support": "Árbol (solo cama)",
         "note": "Sobre cara -Y de horquilla U (fibra continua!); bolsillo MG90S J4 abierto arriba sin soporte interno"
       },
@@ -92,17 +92,17 @@
         "id": 5,
         "name": "07_palma_pinza_v4",
         "ext_mm": [
-          42.45,
           52.1,
+          56.55,
           38.0
         ],
         "bed_xy_mm": [
-          32.1,
+          36.9,
           210.1
         ],
         "z_min_mm": 0.0,
-        "contact_area_mm2": 85.5,
-        "grams_est": 6.5,
+        "contact_area_mm2": 96.4,
+        "grams_est": 7.03,
         "support": "Árbol (solo cama)",
         "note": "Sobre base carenado SG90: cavidad SG90 vertical y 4 pivotes de pinza MeArm Mod 1.5 circulares"
       }
@@ -111,8 +111,8 @@
   "placa_1b_negro_precision": {
     "stats": {
       "layer_mm": 0.12,
-      "count": 19,
-      "total_g": 33.3,
+      "count": 27,
+      "total_g": 35.1,
       "max_z_mm": 15.0,
       "min_gap_mm": 8.0,
       "n_supports": 0
@@ -124,159 +124,159 @@
         "ext_mm": [
           98.77,
           99.16,
-          8.8
+          10.0
         ],
         "bed_xy_mm": [
-          115.3,
+          57.8,
           57.8
         ],
         "z_min_mm": 0.0,
-        "contact_area_mm2": 7327.3,
-        "grams_est": 18.21,
+        "contact_area_mm2": 7225.7,
+        "grams_est": 12.22,
         "support": "Ninguno",
-        "note": "Cara plana inferior en PEI (6 patas perimetrales r=45.5 mm); postes PCA9685, XIAO y aro lastre suben sin soportes"
+        "note": "Cara plana inferior en PEI (6 patas Ø10.6 mm + bóveda lastre >=250 g + isla MG90S J1; 0 soportes)"
       },
       {
         "id": 2,
-        "name": "04b_reten_axial_j1",
+        "name": "03b_bandeja_electronica_v4",
         "ext_mm": [
-          43.99,
-          44.0,
-          3.4
+          98.68,
+          98.95,
+          5.4
         ],
         "bed_xy_mm": [
-          87.9,
-          137.3
+          57.8,
+          164.8
         ],
         "z_min_mm": 0.0,
-        "contact_area_mm2": 1011.1,
-        "grams_est": 4.09,
+        "contact_area_mm2": 7282.3,
+        "grams_est": 7.93,
+        "support": "Ninguno",
+        "note": "Placa aislante plana en PEI (Z=0): separa lastre metálico de PCA9685/XIAO; 0 soportes"
+      },
+      {
+        "id": 3,
+        "name": "04b_reten_axial_j1",
+        "ext_mm": [
+          39.99,
+          40.0,
+          3.0
+        ],
+        "bed_xy_mm": [
+          135.1,
+          135.4
+        ],
+        "z_min_mm": 0.0,
+        "contact_area_mm2": 761.6,
+        "grams_est": 2.73,
         "support": "Ninguno",
         "note": "Anillo plano Z=0 (3 barrenos M3 circulares; 0 soportes)"
       },
       {
-        "id": 3,
+        "id": 4,
         "name": "tapa_j2_izq",
         "ext_mm": [
           27.49,
           27.5,
-          4.8
+          5.4
         ],
         "bed_xy_mm": [
-          79.7,
-          181.1
+          128.8,
+          177.1
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 593.7,
-        "grams_est": 1.29,
-        "support": "Ninguno",
-        "note": "Cara Stealth exterior en PEI, lengüetas bayoneta arriba"
-      },
-      {
-        "id": 4,
-        "name": "tapa_j2_der",
-        "ext_mm": [
-          27.49,
-          27.5,
-          4.8
-        ],
-        "bed_xy_mm": [
-          79.7,
-          216.6
-        ],
-        "z_min_mm": 0.0,
-        "contact_area_mm2": 593.7,
-        "grams_est": 1.29,
+        "grams_est": 1.47,
         "support": "Ninguno",
         "note": "Cara Stealth exterior en PEI, lengüetas bayoneta arriba"
       },
       {
         "id": 5,
-        "name": "tapa_j3_izq",
+        "name": "tapa_j2_der",
         "ext_mm": [
-          25.49,
-          25.5,
-          4.8
+          27.49,
+          27.5,
+          5.4
         ],
         "bed_xy_mm": [
-          114.2,
-          180.1
+          128.8,
+          212.6
         ],
         "z_min_mm": 0.0,
-        "contact_area_mm2": 510.5,
-        "grams_est": 1.06,
+        "contact_area_mm2": 593.7,
+        "grams_est": 1.47,
         "support": "Ninguno",
         "note": "Cara Stealth exterior en PEI, lengüetas bayoneta arriba"
       },
       {
         "id": 6,
-        "name": "tapa_j3_der",
+        "name": "tapa_j3_izq",
         "ext_mm": [
           25.49,
           25.5,
-          4.8
+          5.4
         ],
         "bed_xy_mm": [
-          130.7,
-          128.1
+          21.2,
+          235.1
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 510.5,
-        "grams_est": 1.06,
+        "grams_est": 1.22,
         "support": "Ninguno",
         "note": "Cara Stealth exterior en PEI, lengüetas bayoneta arriba"
       },
       {
         "id": 7,
-        "name": "08_engrane_brazo_izq_m15",
+        "name": "tapa_j3_der",
         "ext_mm": [
-          20.77,
-          27.08,
-          5.0
+          25.49,
+          25.5,
+          5.4
         ],
         "bed_xy_mm": [
-          111.8,
-          214.4
+          54.7,
+          235.1
         ],
         "z_min_mm": 0.0,
-        "contact_area_mm2": 208.3,
-        "grams_est": 0.56,
+        "contact_area_mm2": 510.5,
+        "grams_est": 1.22,
         "support": "Ninguno",
-        "note": "Boca abajo: sector 12T mod 1.5 continuo en XY y bolsillo horn SG90 hacia arriba"
+        "note": "Cara Stealth exterior en PEI, lengüetas bayoneta arriba"
       },
       {
         "id": 8,
-        "name": "09_engrane_brazo_der_m15",
+        "name": "08_engrane_brazo_izq_m15",
         "ext_mm": [
-          20.64,
-          25.7,
+          27.83,
+          21.52,
           5.0
         ],
         "bed_xy_mm": [
-          140.5,
-          213.7
+          89.3,
+          233.1
         ],
         "z_min_mm": 0.0,
-        "contact_area_mm2": 214.8,
-        "grams_est": 0.67,
+        "contact_area_mm2": 219.5,
+        "grams_est": 0.57,
         "support": "Ninguno",
-        "note": "Plano en XY: dientes 12T mod 1.5 y brazo rígido en fibra continua"
+        "note": "Boca abajo: sector 12T mod 1.5 continuo en XY y bolsillo horn SG90 hacia arriba"
       },
       {
         "id": 9,
         "name": "10_dedo_pinza_izq_v4",
         "ext_mm": [
-          18.35,
-          27.5,
+          20.05,
+          29.1,
           15.0
         ],
         "bed_xy_mm": [
-          144.1,
-          162.6
+          160.6,
+          177.9
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 191.5,
-        "grams_est": 1.16,
+        "grams_est": 1.14,
         "support": "Ninguno",
         "note": "Boca abajo: puente diagonal + cuello + mordaza 100% coplanares en PEI (0 soportes)"
       },
@@ -284,103 +284,121 @@
         "id": 10,
         "name": "10_dedo_pinza_der_v4",
         "ext_mm": [
-          27.5,
-          18.35,
+          20.05,
+          29.1,
           15.0
         ],
         "bed_xy_mm": [
-          165.2,
-          124.5
+          160.6,
+          215.0
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 191.5,
-        "grams_est": 1.16,
+        "grams_est": 1.14,
         "support": "Ninguno",
         "note": "Boca abajo: puente diagonal + cuello + mordaza 100% coplanares en PEI (0 soportes)"
       },
       {
         "id": 11,
-        "name": "tapa_j4_izq",
+        "name": "09_engrane_brazo_der_m15",
         "ext_mm": [
-          21.49,
-          21.5,
-          4.8
+          26.45,
+          21.39,
+          5.0
         ],
         "bed_xy_mm": [
-          169.6,
-          195.1
+          191.9,
+          18.9
         ],
         "z_min_mm": 0.0,
-        "contact_area_mm2": 362.9,
-        "grams_est": 0.67,
+        "contact_area_mm2": 212.2,
+        "grams_est": 0.64,
         "support": "Ninguno",
-        "note": "Cara Stealth exterior en PEI, lengüetas bayoneta arriba"
+        "note": "Boca abajo: dientes 12T mod 1.5 planos en PEI y avellanado M3×16 hacia arriba (0 overhang)"
       },
       {
         "id": 12,
-        "name": "tapa_j4_der",
+        "name": "tapa_j4_izq",
         "ext_mm": [
-          21.49,
           21.5,
-          4.8
+          21.49,
+          5.4
         ],
         "bed_xy_mm": [
-          169.6,
-          224.6
+          223.8,
+          18.9
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 362.9,
-        "grams_est": 0.67,
+        "grams_est": 0.77,
         "support": "Ninguno",
         "note": "Cara Stealth exterior en PEI, lengüetas bayoneta arriba"
       },
       {
         "id": 13,
-        "name": "12_biela_pinza_izq_v4",
+        "name": "tapa_j4_der",
         "ext_mm": [
-          20.5,
-          13.3,
-          3.0
+          21.5,
+          21.49,
+          5.4
         ],
         "bed_xy_mm": [
-          140.4,
-          241.2
+          189.4,
+          48.3
         ],
         "z_min_mm": 0.0,
-        "contact_area_mm2": 92.3,
-        "grams_est": 0.31,
+        "contact_area_mm2": 362.9,
+        "grams_est": 0.77,
         "support": "Ninguno",
-        "note": "Plana en XY (L=16.5 mm)"
+        "note": "Cara Stealth exterior en PEI, lengüetas bayoneta arriba"
       },
       {
         "id": 14,
-        "name": "12_biela_pinza_der_v4",
+        "name": "12_biela_pinza_izq_v4",
         "ext_mm": [
-          13.3,
-          20.5,
+          14.4,
+          21.6,
           3.0
         ],
         "bed_xy_mm": [
-          167.9,
-          151.9
+          122.4,
+          77.9
         ],
         "z_min_mm": 0.0,
-        "contact_area_mm2": 92.3,
-        "grams_est": 0.31,
+        "contact_area_mm2": 97.3,
+        "grams_est": 0.33,
         "support": "Ninguno",
         "note": "Plana en XY (L=16.5 mm)"
       },
       {
         "id": 15,
+        "name": "12_biela_pinza_der_v4",
+        "ext_mm": [
+          21.6,
+          14.4,
+          3.0
+        ],
+        "bed_xy_mm": [
+          148.4,
+          15.4
+        ],
+        "z_min_mm": 0.0,
+        "contact_area_mm2": 97.3,
+        "grams_est": 0.33,
+        "support": "Ninguno",
+        "note": "Plana en XY (L=16.5 mm)"
+      },
+      {
+        "id": 16,
         "name": "13_tapa_cable_l2",
         "ext_mm": [
-          31.4,
           7.5,
+          31.4,
           1.45
         ],
         "bed_xy_mm": [
-          81.6,
-          242.1
+          166.8,
+          46.3
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 191.5,
@@ -389,16 +407,16 @@
         "note": "Boca abajo en PEI (perfil cola de milano 0 soportes)"
       },
       {
-        "id": 16,
+        "id": 17,
         "name": "13_tapa_cable_l3",
         "ext_mm": [
-          7.5,
           20.4,
+          7.5,
           1.45
         ],
         "bed_xy_mm": [
-          186.3,
-          151.9
+          121.4,
+          241.3
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 124.4,
@@ -407,7 +425,7 @@
         "note": "Boca abajo en PEI (perfil cola de milano 0 soportes)"
       },
       {
-        "id": 17,
+        "id": 18,
         "name": "11_separador_m3_j2",
         "ext_mm": [
           8.3,
@@ -415,26 +433,8 @@
           4.75
         ],
         "bed_xy_mm": [
-          139.1,
-          188.5
-        ],
-        "z_min_mm": 0.0,
-        "contact_area_mm2": 45.5,
-        "grams_est": 0.06,
-        "support": "Ninguno",
-        "note": "Vertical sobre brida Ø8.3 mm: camisa Ø5.0 mm lisa"
-      },
-      {
-        "id": 18,
-        "name": "11_separador_m3_j4",
-        "ext_mm": [
-          8.3,
-          8.3,
-          4.75
-        ],
-        "bed_xy_mm": [
-          122.1,
-          153.0
+          143.8,
+          241.7
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 45.5,
@@ -444,6 +444,24 @@
       },
       {
         "id": 19,
+        "name": "11_separador_m3_j4",
+        "ext_mm": [
+          8.3,
+          8.3,
+          4.75
+        ],
+        "bed_xy_mm": [
+          160.1,
+          241.7
+        ],
+        "z_min_mm": 0.0,
+        "contact_area_mm2": 45.5,
+        "grams_est": 0.06,
+        "support": "Ninguno",
+        "note": "Vertical sobre brida Ø8.3 mm: camisa Ø5.0 mm lisa"
+      },
+      {
+        "id": 20,
         "name": "11_separador_m3_j3",
         "ext_mm": [
           8.3,
@@ -451,14 +469,140 @@
           4.75
         ],
         "bed_xy_mm": [
-          109.5,
-          240.1
+          176.4,
+          241.7
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 45.5,
         "grams_est": 0.06,
         "support": "Ninguno",
         "note": "Vertical sobre brida Ø8.3 mm: camisa Ø5.0 mm lisa"
+      },
+      {
+        "id": 21,
+        "name": "11c_separador_pinza_biela_izq",
+        "ext_mm": [
+          6.5,
+          6.5,
+          4.1
+        ],
+        "bed_xy_mm": [
+          118.4,
+          99.9
+        ],
+        "z_min_mm": 0.0,
+        "contact_area_mm2": 24.6,
+        "grams_est": 0.06,
+        "support": "Ninguno",
+        "note": "Sobre brida Ø6.5 mm en PEI (camisa Ø5.0 mm arriba; 0 overhang)"
+      },
+      {
+        "id": 22,
+        "name": "11c_separador_pinza_biela_der",
+        "ext_mm": [
+          6.5,
+          6.5,
+          4.1
+        ],
+        "bed_xy_mm": [
+          132.9,
+          99.9
+        ],
+        "z_min_mm": 0.0,
+        "contact_area_mm2": 24.6,
+        "grams_est": 0.06,
+        "support": "Ninguno",
+        "note": "Sobre brida Ø6.5 mm en PEI (camisa Ø5.0 mm arriba; 0 overhang)"
+      },
+      {
+        "id": 23,
+        "name": "11d_separador_pinza_dedo_f_izq",
+        "ext_mm": [
+          6.4,
+          6.4,
+          7.0
+        ],
+        "bed_xy_mm": [
+          147.4,
+          33.8
+        ],
+        "z_min_mm": 0.0,
+        "contact_area_mm2": 23.6,
+        "grams_est": 0.08,
+        "support": "Ninguno",
+        "note": "Casquillo escalonado pivote delantero dedo izq"
+      },
+      {
+        "id": 24,
+        "name": "11d_separador_pinza_dedo_f_der",
+        "ext_mm": [
+          6.4,
+          6.4,
+          7.0
+        ],
+        "bed_xy_mm": [
+          147.4,
+          48.2
+        ],
+        "z_min_mm": 0.0,
+        "contact_area_mm2": 23.6,
+        "grams_est": 0.08,
+        "support": "Ninguno",
+        "note": "Casquillo escalonado pivote delantero dedo der"
+      },
+      {
+        "id": 25,
+        "name": "11e_separador_pinza_dedo_r_izq",
+        "ext_mm": [
+          6.2,
+          6.2,
+          3.6
+        ],
+        "bed_xy_mm": [
+          147.3,
+          62.5
+        ],
+        "z_min_mm": 0.0,
+        "contact_area_mm2": 21.6,
+        "grams_est": 0.05,
+        "support": "Ninguno",
+        "note": "Casquillo escalonado pivote trasero dedo izq"
+      },
+      {
+        "id": 26,
+        "name": "11e_separador_pinza_dedo_r_der",
+        "ext_mm": [
+          6.2,
+          6.2,
+          3.6
+        ],
+        "bed_xy_mm": [
+          118.3,
+          11.3
+        ],
+        "z_min_mm": 0.0,
+        "contact_area_mm2": 21.6,
+        "grams_est": 0.05,
+        "support": "Ninguno",
+        "note": "Casquillo escalonado pivote trasero dedo der"
+      },
+      {
+        "id": 27,
+        "name": "11b_separador_pinza_engrane",
+        "ext_mm": [
+          5.0,
+          5.0,
+          5.4
+        ],
+        "bed_xy_mm": [
+          245.1,
+          10.7
+        ],
+        "z_min_mm": 0.0,
+        "contact_area_mm2": 11.1,
+        "grams_est": 0.04,
+        "support": "Ninguno",
+        "note": "Casquillo liso Ø5.0×5.4 mm engrane der (0 soportes)"
       }
     ]
   },
@@ -466,8 +610,8 @@
     "stats": {
       "layer_mm": 0.16,
       "count": 10,
-      "total_g": 7.4,
-      "max_z_mm": 3.6,
+      "total_g": 7.9,
+      "max_z_mm": 4.2,
       "min_gap_mm": 10.0,
       "n_supports": 0
     },
@@ -496,7 +640,7 @@
         "ext_mm": [
           31.0,
           30.99,
-          3.6
+          4.2
         ],
         "bed_xy_mm": [
           146.1,
@@ -504,7 +648,7 @@
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 139.0,
-        "grams_est": 0.56,
+        "grams_est": 0.65,
         "support": "Ninguno",
         "note": "Aro decorativo plano Ø31 mm en PEI"
       },
@@ -514,7 +658,7 @@
         "ext_mm": [
           31.0,
           30.99,
-          3.6
+          4.2
         ],
         "bed_xy_mm": [
           187.1,
@@ -522,7 +666,7 @@
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 139.0,
-        "grams_est": 0.56,
+        "grams_est": 0.65,
         "support": "Ninguno",
         "note": "Aro decorativo plano Ø31 mm en PEI"
       },
@@ -532,7 +676,7 @@
         "ext_mm": [
           29.0,
           28.99,
-          3.6
+          4.2
         ],
         "bed_xy_mm": [
           227.1,
@@ -540,7 +684,7 @@
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 129.5,
-        "grams_est": 0.52,
+        "grams_est": 0.61,
         "support": "Ninguno",
         "note": "Aro decorativo plano Ø29 mm en PEI"
       },
@@ -550,7 +694,7 @@
         "ext_mm": [
           29.0,
           28.99,
-          3.6
+          4.2
         ],
         "bed_xy_mm": [
           227.1,
@@ -558,7 +702,7 @@
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 129.5,
-        "grams_est": 0.52,
+        "grams_est": 0.61,
         "support": "Ninguno",
         "note": "Aro decorativo plano Ø29 mm en PEI"
       },
@@ -568,7 +712,7 @@
         "ext_mm": [
           25.0,
           24.99,
-          3.6
+          4.2
         ],
         "bed_xy_mm": [
           143.1,
@@ -576,7 +720,7 @@
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 110.7,
-        "grams_est": 0.44,
+        "grams_est": 0.52,
         "support": "Ninguno",
         "note": "Aro decorativo plano Ø25 mm en PEI"
       },
@@ -586,7 +730,7 @@
         "ext_mm": [
           25.0,
           24.99,
-          3.6
+          4.2
         ],
         "bed_xy_mm": [
           178.1,
@@ -594,7 +738,7 @@
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 110.7,
-        "grams_est": 0.44,
+        "grams_est": 0.52,
         "support": "Ninguno",
         "note": "Aro decorativo plano Ø25 mm en PEI"
       },
@@ -602,17 +746,17 @@
         "id": 8,
         "name": "w02_collar_muneca_blanco",
         "ext_mm": [
-          42.2,
+          50.6,
           5.6,
           1.4
         ],
         "bed_xy_mm": [
-          151.7,
+          155.9,
           153.7
         ],
         "z_min_mm": 0.0,
-        "contact_area_mm2": 93.8,
-        "grams_est": 0.15,
+        "contact_area_mm2": 108.9,
+        "grams_est": 0.17,
         "support": "Ninguno",
         "note": "Collar plano de muñeca en PEI"
       },
@@ -620,13 +764,13 @@
         "id": 9,
         "name": "w04_almohadilla_izq",
         "ext_mm": [
-          13.0,
           10.4,
+          13.0,
           1.6
         ],
         "bed_xy_mm": [
-          189.3,
-          156.1
+          196.4,
+          157.4
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 135.2,
@@ -643,8 +787,8 @@
           1.6
         ],
         "bed_xy_mm": [
-          137.1,
-          171.7
+          218.1,
+          158.1
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 135.2,

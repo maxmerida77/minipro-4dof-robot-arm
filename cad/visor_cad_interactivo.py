@@ -36,10 +36,11 @@ HW_DIR  = os.path.join(EXP, "hardware_ref")
 
 # Metadatos por pieza imprimible v4 Clean-DFA: (subensamble 1..5, descripción, vector explosión [dx, dy, dz] mm)
 PART_META = {
-    # 1 · Base Coaxial Ø106 mm + Retén Axial Independiente
+    # 1 · Base Coaxial Ø106 mm + Retén Axial Independiente + Bóveda Lastre + Bandeja Aislante
     "01_base_fija_v4.stl": (1, "Base fija coaxial Ø106 mm (v4): MG90S J1 centrado, pista anular Ø88 mm, 4 tuercas M3 cautivas, AR5515 + KCD11.", (0, 0, 0)),
-    "03_tapa_inferior_v4.stl": (1, "Tapa inferior (v4): 6 patas perimetrales (r=45.5 mm), aro lastre, postes PCA9685 (+X) y cuna XIAO (-X,-Y).", (0, 0, -52)),
-    "04b_reten_axial_j1.stl": (1, "Retén axial independiente J1 (v4): 3× M3 al cuello de torreta bajo el techo; libera al horn de cargas axiales.", (0, 0, -16)),
+    "03_tapa_inferior_v4.stl": (1, "Tapa inferior (v4): 6 patas perimetrales Ø10.6 mm + bóveda de lastre en herradura (~247-298 g acero).", (0, 0, -56)),
+    "03b_bandeja_electronica_v4.stl": (1, "Bandeja electrónica aislante plana (v4): separa lastre metálico de PCA9685, XIAO y C1 1000 µF (0 soportes).", (0, 0, -34)),
+    "04b_reten_axial_j1.stl": (1, "Retén axial independiente J1 (v4): 3× M3×8 al cuello de torreta bajo el techo; libera al horn de cargas axiales.", (0, 0, -16)),
     "w01_aro_base_blanco.stl": (1, "Aro estético blanco base Ø106 mm (0% purga AMS).", (0, 0, 26)),
     # 2 · Torreta J1 + Hombro J2 + Separador M3 + Bayonetas
     "04_torreta_j1_hombro_v4.stl": (2, "Torreta coaxial J1 + Hub J2 (v4): labio pista Ø88 mm, acceso superior Ø6 mm al horn J1, bolsillo M3 Nyloc en J2.", (0, 0, 48)),
@@ -73,8 +74,15 @@ PART_META = {
     "12_biela_pinza_der_v4.stl": (5, "Biela paralela trasera derecha (v4, L=16.5 mm): garantiza caras paralelas 0–30 mm.", (90, -14, 82)),
     "10_dedo_pinza_izq_v4.stl": (5, "Dedo paralelo izq (v4): puente diagonal rígido + mordaza calibrada a TCP = 53.00 mm @ g=15 mm.", (116, 18, 62)),
     "10_dedo_pinza_der_v4.stl": (5, "Dedo paralelo der (v4): apertura paralela simétrica 0–30 mm sin cámara.", (116, -18, 62)),
-    "w04_almohadilla_izq.stl": (5, "Almohadilla blanca dedo izquierdo (centro exacto en X = 53.00 mm a g=15 mm).", (120, 10, 62)),
-    "w04_almohadilla_der.stl": (5, "Almohadilla blanca dedo derecho (centro exacto en X = 53.00 mm a g=15 mm).", (120, -10, 62)),
+    "11b_separador_pinza_engrane.stl": (5, "Casquillo liso M3 engrane pasivo derecho (Ø5.0×5.4 mm): giro libre bajo apriete Nyloc.", (94, -12, 70)),
+    "11c_separador_pinza_biela_izq.stl": (5, "Casquillo liso con brida M3 biela izquierda sobre pilar palma (M3×10 arriba).", (90, 14, 88)),
+    "11c_separador_pinza_biela_der.stl": (5, "Casquillo liso con brida M3 biela derecha sobre pilar palma (M3×10 arriba).", (90, -14, 88)),
+    "11d_separador_pinza_dedo_f_izq.stl": (5, "Casquillo escalonado M3 pivote delantero dedo izq (M3×16 avellanado).", (116, 18, 72)),
+    "11d_separador_pinza_dedo_f_der.stl": (5, "Casquillo escalonado M3 pivote delantero dedo der (M3×16 avellanado).", (116, -18, 72)),
+    "11e_separador_pinza_dedo_r_izq.stl": (5, "Casquillo escalonado M3 pivote trasero dedo izq (M3×12).", (112, 22, 74)),
+    "11e_separador_pinza_dedo_r_der.stl": (5, "Casquillo escalonado M3 pivote trasero dedo der (M3×12).", (112, -22, 74)),
+    "w04_almohadilla_izq.stl": (5, "Almohadilla blanca dedo izquierdo (centro exacto en (53.00, 0, +5.80) mm a g=15 mm).", (120, 10, 62)),
+    "w04_almohadilla_der.stl": (5, "Almohadilla blanca dedo derecho (centro exacto en (53.00, 0, +5.80) mm a g=15 mm).", (120, -10, 62)),
 }
 
 HW_META = {
@@ -96,11 +104,11 @@ HW_META = {
 }
 
 SUBASSY_NAMES = {
-    1: "1 · Base Coaxial Ø106 mm + Retén Axial + Electrónica (4 pzas + PCBs/MG90S J1)",
-    2: "2 · Torreta J1 + Hub J2 + Separador M3 + Bayonetas (6 pzas)",
+    1: "1 · Base Coaxial Ø106 mm + Bóveda Lastre + Bandeja Aislante + Retén J1 (5 pzas)",
+    2: "2 · Torreta J1 + Hub J2 (Mamparo Nyloc) + Separador M3 + Bayonetas (6 pzas)",
     3: "3 · Eslabón L2 en U Monolítico + Canal Dovetail + Codo J3 (7 pzas)",
     4: "4 · Antebrazo L3 en U Monolítico + Canal Dovetail + Muñeca J4 (7 pzas)",
-    5: "5 · Pinza Paralela Abierta MeArm Mod 1.5 (10 pzas · TCP=53 mm)",
+    5: "5 · Pinza Paralela Abierta MeArm Mod 1.5 + 7 Casquillos M3 (17 pzas · TCP=53 mm)",
 }
 
 

@@ -133,10 +133,10 @@ CAP_1000UF = {
     "height": 16.5,
 }
 
-# --- Tolerancias Calibradas para Bambu Lab A1 Combo (Boquilla 0.4 mm · PLA Mate) ---
-CLEARANCE_FIT = 0.22         # Holgura general piezas acoplables (0.22 mm real para PLA Mate 0.4 mm)
-PIVOT_CLEARANCE = 0.25       # Holgura radial/axial en pivote liso sobre separador M3
-BAYONET_CLEARANCE = 0.25     # Holgura de giro suave para tapas de bayoneta (0 flexión en PLA Mate)
+# --- Tolerancias Calibradas para Bambu Lab A1 Combo (Boquilla 0.4 mm · PLA+ / PLA Pro) ---
+CLEARANCE_FIT = 0.22         # Holgura general piezas acoplables (0.22 mm real para FDM 0.4 mm)
+PIVOT_CLEARANCE = 0.20       # Holgura radial en pivote liso sobre separador M3 (Ø5.0 en Ø5.40 mm)
+BAYONET_CLEARANCE = 0.25     # Holgura de giro suave para tapas de bayoneta (0 flexión)
 BEARING_FIT = 0.14
 INSERT_M3_DIA = 4.10
 INSERT_M3_DEPTH = 3.80
@@ -146,39 +146,49 @@ M3_NYLOC_H = 4.25            # Altura tuerca M3 Nyloc (4.0 mm + 0.25 mm)
 M3_SPACER_OD = 5.00          # Diámetro exterior del casquillo separador liso (rosca M3 fuera de superficie de giro!)
 
 # --- Envolvente Industrial Minimalista `B2 Stealth` v4 Clean-DFA (mm) ---
-BASE_DIA = 106.0             # Ø106 mm: +67% estabilidad anti-vuelco (r_apoyo=45.5 mm) + empaquetado 0-colisión con J1 coaxial
+BASE_DIA = 106.0             # Ø106 mm: estabilidad anti-vuelco (r_apoyo=45.5 mm) + empaquetado 0-colisión con J1 coaxial
 BASE_WALL = 3.2
 BASE_LOWER_H = 44.0
 BASE_RING_H = 3.0            # Aro blanco base w01 + pista anular de apoyo Ø88 mm
 BASE_CROWN_H = 14.0          # Z = 47..61 mm; horquilla J2 sube al eje Z = 82.0 mm (d1 exacto!)
 BASE_TRACK_DIA = 88.0        # Diámetro de la pista anular amplia de apoyo axial/vuelco en J1
 BASE_FEET_R = 45.5           # 6 patas antideslizantes en el perímetro exterior (radio mínimo efectivo = 39.4 mm!)
+BASE_FEET_DIA = 10.6         # Rebajes para topes de silicona adhesivos Ø10 mm (Vmingo)
+BASE_BALLAST = {
+    "outer_dia_mm": 93.6,    # Bóveda inferior en herradura dentro de 03_tapa_inferior_v4 sellada bajo 03b_bandeja_electronica_v4
+    "z0_mm": 1.6,
+    "height_mm": 8.4,        # Z = 1.6 .. 10.0 mm (centro de gravedad bajísimo Z_cg = 5.80 mm!)
+    "stacks": 6,             # 4× Ø28.6 mm + 2× Ø26.2 mm × 8.4 mm modelados y auditados (0.00 mm³ colisión!)
+    "modeled_steel_g": 247.0,# 6 pilas acero sólido (~222 g en monedas $10/$5 MXN; hasta ~298 g rellenando herradura!)
+    "target_min_g": 220.0,   # Factor de seguridad anti-vuelco > 2.2× sin carga en la peor orientación J1
+}
 
-# Dimensiones compactas de las articulaciones v4 (Horquilla en U abierta + tapas bayoneta Stealth)
-# Alojamiento interno del servo: 29.6 mm (Y = -14.8 .. +14.8); horquilla externa: ±15.2 .. ±19.4; tapas bayoneta: ±19.4 .. ±21.4
+# Dimensiones de las articulaciones v4 (Horquilla en U abierta + Nyloc tras mamparo MG90S + bayoneta Stealth)
+# Alojamiento interno del servo + mamparo + Nyloc: 38.0 mm (Y = -19.0 .. +19.0); horquilla: ±19.4 .. ±24.0; tapas: ±27.2
 J2_DRUM_DIA = 38.0
-J2_DRUM_W = 42.8             # Más estrecho y ~35 g más ligero que los 48 mm de v3!
+J2_DRUM_W = 54.4
 J2_CAP_DIA = 31.0
 
 J3_DRUM_DIA = 36.0
-J3_DRUM_W = 42.8
+J3_DRUM_W = 54.4
 J3_CAP_DIA = 29.0
 
 J4_DRUM_DIA = 32.0
-J4_DRUM_W = 42.8
+J4_DRUM_W = 54.4
 J4_CAP_DIA = 25.0
 
 # --- Geometría Exacta de la Pinza Paralela Abierta MeArm Módulo 1.5 (Compartida CAD / Python / Firmware) ---
 GRIP_V4 = {
     "module": 1.5,            # Módulo 1.5 robusto para boquilla 0.4 mm FDM
-    "teeth": 12,              # 12T sector engranado -> pitch_d = 18.0 mm (0 undercut, calza al ras de muñeca Ø38.8!)
+    "teeth": 12,              # 12T sector engranado -> pitch_d = 18.0 mm (0 undercut, calza al ras de muñeca!)
     "gear_x": 27.5,           # Centro X de los 2 engranes motrices (desde eje J4)
     "gear_y": 9.20,           # Mitad de distancia entre centros (18.40 mm = 18.0 + 0.40 mm backlash imprimible)
-    "idler_x": 21.0,          # Centro X de los 2 pivotes traseros de paralelismo (despeja collar w02 y SG90!)
-    "idler_y": 16.90,         # Centro Y de los 2 pivotes traseros (paralelogramo exacto 10.08 mm, 100% libre de SG90!)
+    "idler_x": 20.2,          # Centro X de los 2 pivotes traseros (despeja collar w02, SG90 y aloja Nyloc cautiva arriba!)
+    "idler_y": 17.80,         # Centro Y de los 2 pivotes traseros (distancia a engrane 11.28 mm -> pilar Ø9.0 libre!)
     "link_l": 16.5,           # Longitud centro-a-centro de brazos motrices y bielas paralelas
-    "nominal_open_mm": 15.0,  # Apertura nominal donde el centro de las almohadillas w04 = A4_WRIST_TO_TCP (53.00 mm exactos!)
+    "nominal_open_mm": 15.0,  # Apertura nominal donde el centro X de almohadillas w04 = A4_WRIST_TO_TCP (53.00 mm!)
     "pad_len": 13.0,          # Longitud de la almohadilla blanca w04
+    "pad_center_z": 5.80,     # Cota Z local exacta del centro de las almohadillas w04 (Z = 0.6..11.0 mm) respecto a J4!
     "pad_offset_y": 9.20,     # Distancia lateral desde pivote del dedo hasta cara interna de almohadilla (g=0 -> contacto)
     "servo_closed_deg": 40.0, # Ángulo físico SG90 cuando apertura g = 0 mm (θ = 0°); g = 30 mm -> 40 + 65.38 = 105.38°
 }
@@ -207,6 +217,19 @@ def gripper_kinematics_v4(grip_open_mm: float):
     return th_deg, tcp_x, dx, servo_deg
 
 
+def gripper_grip_point_local_v4(grip_open_mm: float):
+    """
+    Transformación explícita desde el eje de muñeca J4 hasta el punto REAL de agarre
+    (centro geométrico de las almohadillas blancas w04) en el marco local CAD de L4:
+      - En g = 15 mm : (53.000, 0.0, +5.800) mm
+      - En g =  2 mm : (54.773, 0.0, +5.800) mm
+      - En g = 28 mm : (47.035, 0.0, +5.800) mm
+    Retorna (x_local_mm, y_local_mm, z_local_mm).
+    """
+    _th, tcp_x, _dx, _sdeg = gripper_kinematics_v4(grip_open_mm)
+    return tcp_x, 0.0, float(GRIP_V4["pad_center_z"])
+
+
 # Puntos de envolvente físico real en frame local (x, z) medidos de los STL v4 Clean-DFA
 _ENV_L3_LOCAL = (
     (15.0, -14.0), (35.0, -14.0), (55.0, -14.0), (70.0, -18.2),
@@ -231,6 +254,12 @@ def check_physical_guard_v4(q_deg, grip_open_mm: float = 15.0, z_floor_min: floa
     Retorna: (ok: bool, msg: str)
     """
     q1, q2, q3, q4 = [float(x) for x in q_deg]
+    grip_val = float(grip_open_mm)
+    z_lim = float(z_floor_min)
+    if not all(math.isfinite(v) for v in (q1, q2, q3, q4, grip_val, z_lim)):
+        return False, "Entrada no finita (NaN/Inf) rechazada"
+    if grip_val < -1e-3 or grip_val > 30.001:
+        return False, f"Pinza={grip_val:.1f} mm fuera de rango [0, 30 mm]"
     lims = (
         ("J1", Q_LIMITS_DEG["q1_base"]),
         ("J2", Q_LIMITS_DEG["q2_shoulder"]),

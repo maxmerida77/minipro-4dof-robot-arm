@@ -85,12 +85,13 @@ def main():
     base_items = [
         ("01_base_fija_v4", blk["01_base_fija_v4"], C_BLK),
         ("03_tapa_inferior_v4", blk["03_tapa_inferior_v4"], C_BLK),
+        ("03b_bandeja_electronica_v4", blk["03b_bandeja_electronica_v4"], C_BLK),
         ("w01_aro_base_blanco", wht["w01_aro_base_blanco"], C_WHT),
         ("hw_mg90s_j1", srvs[0], C_SRV),
     ]
     for i, e in enumerate(elec):
         base_items.append((f"hw_elec_{i:02d}", e, C_PCB))
-    for i in range(5):
+    for i in range(19):
         base_items.append((f"hw_base_steel_{i:02d}", stl[i], C_STL))
     save_sub("01_Base_Fija", base_items)
 
@@ -132,15 +133,21 @@ def main():
     save_sub("05_Palma_Muneca", [
         ("07_palma_pinza_v4", to_j4(blk["07_palma_pinza_v4"]), C_BLK),
         ("11_separador_m3_j4", to_j4(blk["11_separador_m3_j4"]), C_BLK),
+        ("11b_separador_pinza_engrane", to_j4(blk["11b_separador_pinza_engrane"]), C_BLK),
+        ("11c_separador_pinza_biela_izq", to_j4(blk["11c_separador_pinza_biela_izq"]), C_BLK),
+        ("11c_separador_pinza_biela_der", to_j4(blk["11c_separador_pinza_biela_der"]), C_BLK),
         ("tapa_j4_izq", to_j4(blk["tapa_j4_izq"]), C_BLK),
         ("tapa_j4_der", to_j4(blk["tapa_j4_der"]), C_BLK),
         ("w_aro_j4_izq", to_j4(wht["w_aro_j4_izq"]), C_WHT),
         ("w_aro_j4_der", to_j4(wht["w_aro_j4_der"]), C_WHT),
         ("w02_collar_muneca_blanco", to_j4(wht["w02_collar_muneca_blanco"]), C_WHT),
         ("hw_sg90_pinza", to_j4(srvs[4]), C_SRV),
-        ("hw_pin_palm_0", to_j4(stl[9]), C_STL),
-        ("hw_pin_palm_1", to_j4(stl[10]), C_STL),
-        ("hw_pin_palm_2", to_j4(stl[11]), C_STL),
+        ("hw_palm_hw_0", to_j4(stl[33]), C_STL),
+        ("hw_palm_hw_1", to_j4(stl[34]), C_STL),
+        ("hw_palm_hw_2", to_j4(stl[35]), C_STL),
+        ("hw_palm_hw_3", to_j4(stl[36]), C_STL),
+        ("hw_palm_hw_4", to_j4(stl[37]), C_STL),
+        ("hw_palm_hw_5", to_j4(stl[38]), C_STL),
     ])
 
     # 6 y 7. Engranes-brazo 12T Mod 1.5 (Origen = centro engrane (0,0,0); punta brazo en (link_l, 0, 0))
@@ -159,22 +166,26 @@ def main():
         ("12_biela_pinza_der_v4", to_j4(blk["12_biela_pinza_der_v4"]).translate((-ix, +iy, 0.0)), C_BLK),
     ])
 
-    # 10 y 11. Dedos paralelos + Almohadillas blancas (Origen = pivote delantero (gx+link_l, ±gy, 0)!)
-    # Así en marco local del dedo:
-    #   - Pivote delantero = (0, 0, 0)
-    #   - Pivote trasero   = (ix - gx, side*(iy - gy), 0) = (-6.5, ±7.7, 0)
-    #   - Cara interna almohadilla w04 = Y = -side * gy (en contacto cuando ambos están en g=0!)
+    # 10 y 11. Dedos paralelos + Almohadillas blancas + Casquillos escalonados (Origen = pivote delantero (gx+link_l, ±gy, 0)!)
     save_sub("10_Dedo_Izq", [
         ("10_dedo_pinza_izq_v4", to_j4(blk["10_dedo_pinza_izq_v4"]).translate((-(gx + link_l), -gy, 0.0)), C_BLK),
+        ("11d_separador_pinza_dedo_f_izq", to_j4(blk["11d_separador_pinza_dedo_f_izq"]).translate((-(gx + link_l), -gy, 0.0)), C_BLK),
+        ("11e_separador_pinza_dedo_r_izq", to_j4(blk["11e_separador_pinza_dedo_r_izq"]).translate((-(gx + link_l), -gy, 0.0)), C_BLK),
         ("w04_almohadilla_izq", to_j4(wht["w04_almohadilla_izq"]).translate((-(gx + link_l), -gy, 0.0)), C_WHT),
-        ("hw_pin_finger_l0", to_j4(stl[5]).translate((-(gx + link_l), -gy, 0.0)), C_STL),
-        ("hw_pin_finger_l1", to_j4(stl[6]).translate((-(gx + link_l), -gy, 0.0)), C_STL),
+        ("hw_pin_finger_l0", to_j4(stl[25]).translate((-(gx + link_l), -gy, 0.0)), C_STL),
+        ("hw_pin_finger_l1", to_j4(stl[26]).translate((-(gx + link_l), -gy, 0.0)), C_STL),
+        ("hw_pin_finger_l2", to_j4(stl[27]).translate((-(gx + link_l), -gy, 0.0)), C_STL),
+        ("hw_pin_finger_l3", to_j4(stl[28]).translate((-(gx + link_l), -gy, 0.0)), C_STL),
     ])
     save_sub("11_Dedo_Der", [
         ("10_dedo_pinza_der_v4", to_j4(blk["10_dedo_pinza_der_v4"]).translate((-(gx + link_l), +gy, 0.0)), C_BLK),
+        ("11d_separador_pinza_dedo_f_der", to_j4(blk["11d_separador_pinza_dedo_f_der"]).translate((-(gx + link_l), +gy, 0.0)), C_BLK),
+        ("11e_separador_pinza_dedo_r_der", to_j4(blk["11e_separador_pinza_dedo_r_der"]).translate((-(gx + link_l), +gy, 0.0)), C_BLK),
         ("w04_almohadilla_der", to_j4(wht["w04_almohadilla_der"]).translate((-(gx + link_l), +gy, 0.0)), C_WHT),
-        ("hw_pin_finger_r0", to_j4(stl[7]).translate((-(gx + link_l), +gy, 0.0)), C_STL),
-        ("hw_pin_finger_r1", to_j4(stl[8]).translate((-(gx + link_l), +gy, 0.0)), C_STL),
+        ("hw_pin_finger_r0", to_j4(stl[29]).translate((-(gx + link_l), +gy, 0.0)), C_STL),
+        ("hw_pin_finger_r1", to_j4(stl[30]).translate((-(gx + link_l), +gy, 0.0)), C_STL),
+        ("hw_pin_finger_r2", to_j4(stl[31]).translate((-(gx + link_l), +gy, 0.0)), C_STL),
+        ("hw_pin_finger_r3", to_j4(stl[32]).translate((-(gx + link_l), +gy, 0.0)), C_STL),
     ])
 
     # Guardar manifiesto exacto en metros (unidad interna API SolidWorks!) para automatización

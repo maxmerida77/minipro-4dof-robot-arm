@@ -35,8 +35,17 @@ Resuelve íntegramente los 8 hallazgos técnicos detectados en la auditoría ind
 7. **Pivotes con separador M3 + Bayonetas `32°` + Cupones progresivos:** Casquillos `11_separador_m3_*` (rosca fuera del giro, `Nyloc` no frena la horquilla), tapas Stealth de bayoneta (`0` flexión PLA), tapas de cables `dovetail` y **3 cupones `.3mf`** (`cupon_1`, `cupon_2` articulación piloto, `cupon_3` pinza independiente).
 8. **Potencia y seguridad de firmware:** `FULL_OFF` real (`4096`) desde `setup()`, resincronización tras `CENTER`/`RAW`, rampa de despertar (`≥ 1200 ms`), simulación SPICE con modelo OCP `3.0 A` (`I_PD máx = 2.53 A < 3.0 A`), y `2×` tiras Dupont `20 cm` en el BOM para bucles articulados holgados.
 
+### Iteración 4B — Cierre Integral Auditoría Pre-Fabricación Ronda 2 (`CAD v4 Clean-DFA` · **GO**) *(COMPLETADA Y VERIFICADA)*
+Resuelve todos los bloqueos `P0`, `P1`, control y potencia de [`AUDITORIA_RONDA_2_PRE_FABRICACION_V4.md`](AUDITORIA_RONDA_2_PRE_FABRICACION_V4.md):
+* **P0-1 Pivote pasivo `J2/J3/J4`:** `HUB_HALF_W = 19.0 mm` + mamparo sólido `1.20 mm` separando el cuerpo del `MG90S` del bolsillo `M3 Nyloc` y la punta del `M3×12` (`2.30 mm` libre del servo; **`0.0000 mm³`** colisión B-Rep con tornillos y tuercas reales).
+* **P0-2 Cupón 1:** Corte de cola de milano corregido a `extrude(+42.0)` (`Y = -21..+21 mm`) con `assert vol_removed > 1200 mm³`.
+* **P0-3 Tornillería y casquillos de la pinza:** `SG90` rotado 180° a `+Y` (`12.4 mm` libre del engrane pasivo derecho), `7×` casquillos lisos `M3` (`11b..11e`), pilares traseros con `Nyloc` cautivas sobre el `SG90`, avellanado `Ø 6.0×1.70 mm` en engranes para `2× M3×16` (cero `M3×18`), `≥ 0.70 mm` de rosca tras nylon en las 10 tuercas `Nyloc`, postes `PCA9685` estandarizados a `4× M3×6` y tabla exacta por unión en `BOM_UNIT_ELECTRONICS.md`.
+* **P0-4 Base y bóveda de lastre:** Bóveda inferior en herradura (`Z = 1.6..10.0 mm`) con 6 pilas guiadas modeladas (`~247 g` acero sólido / `~222 g` monedas MX / hasta `~298 g` rellenado) sellada bajo la bandeja electrónica aislante plana **`03b_bandeja_electronica_v4`** (`0 soportes`, `0.0000 mm³` vs `PCA9685`, Duponts `23 mm` y retén `04b`).
+* **P0-5 Compilación, reactivación y control:** Ambos sketches (`minipro_b2_stealth.ino` para `XIAO_ESP32S3` y `simulacion_wokwi/sketch.ino` para `esp32s3`) compilados con **`0 errores`** en `esp32:esp32 3.1.3`; reactivación segura unificada `≥ 1200 ms` incluso desde streaming; validación de trayectoria quíntica en 16 muestras + tick `100 Hz`; rechazo `NaN/Inf`; IK con radio firmado (`r < 0`), fallback de codo y preservación de `q1` en `r ≈ 0`.
+* **P1-1 y P1-2 Punto de agarre + Auditoría B-Rep estricta + SPICE `.cir`:** Transformación explícita `(tcp_x(g), 0, +5.800) mm` en Python, Gemelo 3D y firmware (`grip_xyz`); auditoría estricta `tol = 0.01 mm³` sin ocultar errores booleanos (**`42/42` STLs estancos 1-sólido, `0.0000 mm³` en los 8 escenarios**); `.cir` sincronizado con OCP `3.0 A` (`4.434 V`, `4.171 V`, `2.534 A`).
+
 ### Iteración 5 — Prototipado Progresivo, Pruebas en Banco y Entrega Escolar *(SIGUIENTE PASO FÍSICO)*
-1. Imprimir **Cupón 1 → Cupón 2 (1 articulación con servo real) → Cupón 3 (pinza independiente con SG90)**.
-2. Imprimir las **3 placas `v4` (`223.2 g` PLA, `0%` purga AMS)** en Bambu Lab A1 Combo.
+1. Imprimir **Cupón 1 → Cupón 2 (1 articulación con servo real) → Cupón 3 (pinza independiente con 7 casquillos y SG90)**.
+2. Imprimir las **3 placas `v4` (`240.3 g` PLA, `37/42` [88%] sin soportes, `0%` purga AMS)** en Bambu Lab A1 Combo.
 3. Verificar `5.0 V` del `AR5515` y caída real bajo carga con multímetro; ejecutar `CENTER` antes de fijar *horns*.
 4. Ejecutar demostración final sincronizada **Peter Corke Python ↔ Gemelo Digital 3D ↔ XIAO ESP32-S3 (Wi-Fi UDP)**.

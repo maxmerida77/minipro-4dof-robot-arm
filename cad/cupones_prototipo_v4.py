@@ -28,6 +28,7 @@ if HERE not in sys.path:
 from params import (
     MG90S,
     CLEARANCE_FIT,
+    PIVOT_CLEARANCE,
     M3_NUT_AF,
     M3_NUT_H,
     M3_NYLOC_H,
@@ -108,16 +109,20 @@ def build_cupon_1():
     hex_nyl = cq.Workplane("XY").workplane(offset=3.0).center(2.0, +10.0).polygon(6, M3_NUT_AF / math.cos(math.pi / 6.0)).extrude(M3_NYLOC_H)
     slot_nyl = cq.Workplane("XY").workplane(offset=3.0).center(2.0, +16.0).rect(M3_NUT_AF, 12.0).extrude(M3_NYLOC_H)
 
-    # 3) Mini-canal cola de milano (`dovetail`) en X = +20..+30 (eje Y)
+    # 3) Mini-canal cola de milano (`dovetail`) en X = +20..+30 (eje Y = -21 .. +21 mm!)
+    # Nota Ronda 2 P0-2: Workplane("XZ") tiene normal -Y -> offset=-21 es Y=+21; extrude(+42) corta hacia -Y hasta Y=-21!
     ch_w_bot, ch_w_top, ch_d = 8.0, 6.6, 4.8
     dove_pts = [
         (-ch_w_top / 2.0, 10.2), (ch_w_top / 2.0, 10.2),
         (ch_w_bot / 2.0, 10.0 - 1.6), (ch_w_bot / 2.0, 10.0 - ch_d),
         (-ch_w_bot / 2.0, 10.0 - ch_d), (-ch_w_bot / 2.0, 10.0 - 1.6),
     ]
-    dove_cut = cq.Workplane("XZ").workplane(offset=-21.0).center(22.0, 0.0).polyline(dove_pts).close().extrude(-42.0)
+    dove_cut = cq.Workplane("XZ").workplane(offset=-21.0).center(22.0, 0.0).polyline(dove_pts).close().extrude(+42.0)
 
-    blk = blk.cut(mg_body).cut(mg_flng).cut(mg_m2a).cut(mg_m2b).cut(m3_a).cut(hex_std).cut(slot_std).cut(m3_b).cut(hex_nyl).cut(slot_nyl).cut(dove_cut)
+    blk_pre = blk.cut(mg_body).cut(mg_flng).cut(mg_m2a).cut(mg_m2b).cut(m3_a).cut(hex_std).cut(slot_std).cut(m3_b).cut(hex_nyl).cut(slot_nyl)
+    blk = blk_pre.cut(dove_cut)
+    vol_removed = float(blk_pre.val().Volume() - blk.val().Volume())
+    assert vol_removed > 1200.0, f"Corte dovetail Cupón 1 no atravesó el bloque (vol_removed={vol_removed:.1f} mm³)"
 
     # Tapa mini cola de milano
     tol = 0.25
@@ -129,7 +134,7 @@ def build_cupon_1():
 
     # Placa de prueba de bayoneta real J2 (espesor 4.6 mm con rebaje + labio + ranura + barreno separador M3)
     bay_plate = _cyl_y(0.0, 0.0, J2_CAP_DIA / 2.0 + 3.5, -FORK_OUT_Y, -FORK_IN_Y)
-    bay_plate = bay_plate.cut(_cyl_y(0.0, 0.0, (M3_SPACER_OD + 0.40) / 2.0, -FORK_OUT_Y - 1.0, -FORK_IN_Y + 1.0))
+    bay_plate = bay_plate.cut(_cyl_y(0.0, 0.0, M3_SPACER_OD / 2.0 + PIVOT_CLEARANCE, -FORK_OUT_Y - 1.0, -FORK_IN_Y + 1.0))
     bay_plate = bay_plate.cut(_cyl_y(0.0, 0.0, 4.60, -FORK_OUT_Y - 0.5, -(FORK_OUT_Y - 1.45)))
     bay_plate = bay_plate.cut(_bayonet_socket_cut_xz((0.0, 0.0), J2_CAP_DIA, -1))
 
@@ -178,7 +183,7 @@ def build_cupon_2():
         _arm(FORK_IN_Y).union(_arm(-FORK_OUT_Y)).union(bridge)
         .cut(cq.Workplane("XZ").circle(j2_hub_r + 2.5).extrude(FORK_IN_Y, both=True))
         .cut(_horn_recess_xz(FORK_IN_Y, depth=1.8, arm_len=13.5))
-        .cut(_cyl_y(0.0, 0.0, (M3_SPACER_OD + 0.40) / 2.0, -FORK_OUT_Y - 1.0, -FORK_IN_Y + 1.0))
+        .cut(_cyl_y(0.0, 0.0, M3_SPACER_OD / 2.0 + PIVOT_CLEARANCE, -FORK_OUT_Y - 1.0, -FORK_IN_Y + 1.0))
         .cut(_cyl_y(0.0, 0.0, 4.60, -FORK_OUT_Y - 0.5, -(FORK_OUT_Y - 1.45)))
         .cut(_bayonet_socket_cut_xz((0.0, 0.0), J2_CAP_DIA, +1))
         .cut(_bayonet_socket_cut_xz((0.0, 0.0), J2_CAP_DIA, -1))
@@ -213,15 +218,22 @@ def build_cupon_3():
     wht_dir = os.path.join(V4_DIR, "stl_blanco_mate")
 
     specs = [
-        (blk_dir, "07_palma_pinza_v4", [("z", -q1), ("y", +wrist_ang)], 92.0, 128.0),
+        (blk_dir, "07_palma_pinza_v4", [("z", -q1), ("y", +wrist_ang)], 88.0, 128.0),
         (blk_dir, "08_engrane_brazo_izq_m15", [("z", -q1), ("y", +wrist_ang), ("x", 180.0)], 148.0, 148.0),
-        (blk_dir, "09_engrane_brazo_der_m15", [("z", -q1), ("y", +wrist_ang)], 148.0, 108.0),
+        (blk_dir, "09_engrane_brazo_der_m15", [("z", -q1), ("y", +wrist_ang), ("x", 180.0)], 148.0, 108.0),
         (blk_dir, "10_dedo_pinza_izq_v4", [("z", -q1), ("y", +wrist_ang), ("x", 180.0)], 190.0, 150.0),
         (blk_dir, "10_dedo_pinza_der_v4", [("z", -q1), ("y", +wrist_ang), ("x", 180.0)], 190.0, 108.0),
-        (blk_dir, "12_biela_pinza_izq_v4", [("z", -q1), ("y", +wrist_ang)], 148.0, 74.0),
-        (blk_dir, "12_biela_pinza_der_v4", [("z", -q1), ("y", +wrist_ang)], 182.0, 74.0),
-        (wht_dir, "w04_almohadilla_izq", [("z", -q1), ("y", +wrist_ang), ("x", 90.0)], 92.0, 74.0),
-        (wht_dir, "w04_almohadilla_der", [("z", -q1), ("y", +wrist_ang), ("x", 90.0)], 116.0, 74.0),
+        (blk_dir, "12_biela_pinza_izq_v4", [("z", -q1), ("y", +wrist_ang)], 148.0, 72.0),
+        (blk_dir, "12_biela_pinza_der_v4", [("z", -q1), ("y", +wrist_ang)], 182.0, 72.0),
+        (blk_dir, "11b_separador_pinza_engrane", [("z", -q1), ("y", +wrist_ang)], 142.0, 50.0),
+        (blk_dir, "11c_separador_pinza_biela_izq", [("z", -q1), ("y", +wrist_ang), ("x", 180.0)], 156.0, 50.0),
+        (blk_dir, "11c_separador_pinza_biela_der", [("z", -q1), ("y", +wrist_ang), ("x", 180.0)], 170.0, 50.0),
+        (blk_dir, "11d_separador_pinza_dedo_f_izq", [("z", -q1), ("y", +wrist_ang)], 184.0, 50.0),
+        (blk_dir, "11d_separador_pinza_dedo_f_der", [("z", -q1), ("y", +wrist_ang)], 198.0, 50.0),
+        (blk_dir, "11e_separador_pinza_dedo_r_izq", [("z", -q1), ("y", +wrist_ang)], 142.0, 34.0),
+        (blk_dir, "11e_separador_pinza_dedo_r_der", [("z", -q1), ("y", +wrist_ang)], 156.0, 34.0),
+        (wht_dir, "w04_almohadilla_izq", [("z", -q1), ("y", +wrist_ang), ("x", 90.0)], 88.0, 72.0),
+        (wht_dir, "w04_almohadilla_der", [("z", -q1), ("y", +wrist_ang), ("x", 90.0)], 114.0, 72.0),
     ]
     placed = []
     for folder, name, rots, tx, ty in specs:
@@ -230,7 +242,7 @@ def build_cupon_3():
 
     out_3mf = os.path.join(OUT_DIR, "cupon_3_pinza_independiente_mearm15.3mf")
     _export_plate(placed, out_3mf)
-    print(f"[OK] Cupón 3 exportado (9 piezas pinza @ Z=0): {out_3mf}")
+    print(f"[OK] Cupón 3 exportado ({len(placed)} piezas pinza + 7 casquillos M3 @ Z=0): {out_3mf}")
 
 
 if __name__ == "__main__":

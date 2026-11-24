@@ -65,8 +65,28 @@ static inline float clampf(float v, float lo, float hi) {
     return (v < lo) ? lo : ((v > hi) ? hi : v);
 }
 
+static inline uint32_t clampMoveMs(long ms) {
+    return (ms < 150L) ? 150U : (uint32_t)ms;
+}
+
 static bool checkTableGuard(const float q[5], String* reasonOut = nullptr, float* zMinOut = nullptr) {
     return checkPhysicalGuard(q, reasonOut, zMinOut);
+}
+
+static bool validateQuinticPath(const float q0[5], const float q1[5], String* reasonOut = nullptr, float* zMinOut = nullptr) {
+    // Valida la trayectoria completa en 16 muestras quínticas (evita que curvas intermedias rocen mesa/base!)
+    float qSample[5];
+    for (int k = 1; k <= 16; k++) {
+        float u = (float)k / 16.0f;
+        float s = u * u * u * (10.0f - 15.0f * u + 6.0f * u * u);
+        for (uint8_t i = 0; i < 5; i++) {
+            qSample[i] = q0[i] + s * (q1[i] - q0[i]);
+        }
+        if (!checkTableGuard(qSample, reasonOut, zMinOut)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void writeMicros(uint8_t ch, uint16_t us) {
@@ -144,6 +164,13 @@ void centerBench90() {
 }
 
 bool startQuinticMove(const float tgt[5], uint32_t durationMs) {
+    for (uint8_t i = 0; i < 5; i++) {
+        if (!isfinite(tgt[i])) {
+            lastOk = false;
+            lastMsg = "Entrada no finita (NaN/Inf)";
+            return false;
+        }
+    }
     float clamped[5];
     for (uint8_t i = 0; i < 5; i++) {
         clamped[i] = clampf(tgt[i], AXES[i].q_min, AXES[i].q_max);
@@ -153,7 +180,13 @@ bool startQuinticMove(const float tgt[5], uint32_t durationMs) {
     if (!checkTableGuard(clamped, &gReason, &zMin)) {
         lastOk = false;
         lastMsg = gReason;
-        Serial.printf("[GUARD] Movimiento bloqueado: %s (Z_min=%.1f mm)\n", gReason.c_str(), zMin);
+        Serial.printf("[GUARD] Destino bloqueado: %s (Z_min=%.1f mm)\n", gReason.c_str(), zMin);
+        return false;
+    }
+    if (!validateQuinticPath(qCurr, clamped, &gReason, &zMin)) {
+        lastOk = false;
+        lastMsg = "Trayectoria bloqueada: " + gReason;
+        Serial.printf("[GUARD] Trayectoria bloqueada: %s (Z_min=%.1f mm)\n", gReason.c_str(), zMin);
         return false;
     }
 
@@ -162,7 +195,7 @@ bool startQuinticMove(const float tgt[5], uint32_t durationMs) {
     streamMode  = false;
     trajActive  = true;
     trajStartMs = millis();
-    uint32_t minDur = wasRelaxed ? (uint32_t)MIN_WAKE_MOVE_MS : 120;
+    uint32_t minDur = wasRelaxed ? (uint32_t)MIN_WAKE_MOVE_MS : 120U;
     trajDurMs   = (durationMs < minDur) ? minDur : durationMs;
 
     for (uint8_t i = 0; i < 5; i++) {
@@ -170,12 +203,23 @@ bool startQuinticMove(const float tgt[5], uint32_t durationMs) {
         qTarget[i] = clamped[i];
     }
     if (wasRelaxed) {
-        Serial.printf("[INFO] Reactivando desde RELAX con rampa suave (%lu ms).\n", (unsigned long)trajDurMs);
+        Serial.printf("[INFO] Reactivando desde RELAX con rampa quintica obligatoria (%lu ms).\n", (unsigned long)trajDurMs);
     }
     return true;
 }
 
 bool setStreamTarget(const float tgt[5]) {
+    for (uint8_t i = 0; i < 5; i++) {
+        if (!isfinite(tgt[i])) {
+            lastOk = false;
+            lastMsg = "Entrada no finita (NaN/Inf)";
+            return false;
+        }
+    }
+    // Ronda 2 P0-5: JAMÁS evadir la rampa obligatoria de 1200 ms al reactivar desde RELAX!
+    if (isRelaxed) {
+        return startQuinticMove(tgt, (uint32_t)MIN_WAKE_MOVE_MS);
+    }
     float clamped[5];
     for (uint8_t i = 0; i < 5; i++) {
         clamped[i] = clampf(tgt[i], AXES[i].q_min, AXES[i].q_max);
@@ -190,7 +234,6 @@ bool setStreamTarget(const float tgt[5]) {
     }
     demoRunning = false;
     trajActive  = false;
-    isRelaxed   = false;
     streamMode  = true;
     for (uint8_t i = 0; i < 5; i++) {
         qTarget[i] = clamped[i];
@@ -223,10 +266,15 @@ void printStatus() {
 bool moveByIK(float x_mm, float y_mm, float z_mm, float phi_deg, float grip_mm, uint32_t durationMs, bool streaming) {
     float qSol[4];
     String ikErr;
-    if (!computeIK(x_mm, y_mm, z_mm, phi_deg, qSol, &ikErr, true)) {
+    if (!computeIK(x_mm, y_mm, z_mm, phi_deg, qSol, &ikErr, true, qCurr[0])) {
         lastOk  = false;
         lastMsg = "IK: " + ikErr;
         Serial.printf("[IK ERR] (%.1f, %.1f, %.1f, phi=%.1f): %s\n", x_mm, y_mm, z_mm, phi_deg, ikErr.c_str());
+        return false;
+    }
+    if (!isfinite(grip_mm)) {
+        lastOk  = false;
+        lastMsg = "Pinza no finita (NaN/Inf)";
         return false;
     }
     float tgt[5] = { qSol[0], qSol[1], qSol[2], qSol[3], clampf(grip_mm, AXES[4].q_min, AXES[4].q_max) };
@@ -285,10 +333,10 @@ void processCommand(String line) {
         if (n >= 4) moveByIK(x, y, z, phi, g, 0, true);
     } else if (up.startsWith("IK ")) {
         float x, y, z, phi, g = qCurr[4];
-        int ms = (int)DEFAULT_MOVE_MS;
-        int n = sscanf(line.c_str() + 3, "%f %f %f %f %f %d", &x, &y, &z, &phi, &g, &ms);
+        long ms = (long)DEFAULT_MOVE_MS;
+        int n = sscanf(line.c_str() + 3, "%f %f %f %f %f %ld", &x, &y, &z, &phi, &g, &ms);
         if (n >= 4) {
-            moveByIK(x, y, z, phi, g, (uint32_t)max(150, ms), false);
+            moveByIK(x, y, z, phi, g, clampMoveMs(ms), false);
         } else {
             Serial.println(F("[ERR] Uso: IK x y z phi [grip_mm] [ms]"));
         }
@@ -296,15 +344,15 @@ void processCommand(String line) {
         float t[5];
         if (sscanf(line.c_str() + 2, "%f %f %f %f %f", &t[0], &t[1], &t[2], &t[3], &t[4]) == 5) {
             lastOk = setStreamTarget(t);
-            lastMsg = lastOk ? "FK activo" : "Bloqueado por guarda anti-mesa";
+            if (lastOk) lastMsg = "FK activo";
         }
     } else if (up.startsWith("M ")) {
         float t[5];
-        int ms = (int)DEFAULT_MOVE_MS;
-        if (sscanf(line.c_str() + 2, "%f %f %f %f %f %d", &t[0], &t[1], &t[2], &t[3], &t[4], &ms) >= 5) {
+        long ms = (long)DEFAULT_MOVE_MS;
+        if (sscanf(line.c_str() + 2, "%f %f %f %f %f %ld", &t[0], &t[1], &t[2], &t[3], &t[4], &ms) >= 5) {
             demoRunning = false;
-            lastOk = startQuinticMove(t, (uint32_t)max(150, ms));
-            lastMsg = lastOk ? "Movimiento FK quíntico" : "Bloqueado por guarda anti-mesa";
+            lastOk = startQuinticMove(t, clampMoveMs(ms));
+            if (lastOk) lastMsg = "Movimiento FK quintico";
         }
     } else if (up.startsWith("RAW ")) {
         int ch = 0, us = 1500;
@@ -329,13 +377,16 @@ void processCommand(String line) {
 // ----------------------------------------------------------------------------
 String buildStatusJson() {
     float fx = 0, fy = 0, fz = 0, fphi = 0;
+    float gx = 0, gy = 0, gz = 0;
     computeFK(qCurr, fx, fy, fz, fphi);
+    computeGripPointFK(qCurr, gx, gy, gz);
     String j = "{\"q\":[";
     for (int i = 0; i < 5; i++) {
         j += String(qCurr[i], 1);
         if (i < 4) j += ",";
     }
     j += "],\"xyz\":[" + String(fx, 1) + "," + String(fy, 1) + "," + String(fz, 1) + "," + String(fphi, 1) + "]";
+    j += ",\"grip_xyz\":[" + String(gx, 1) + "," + String(gy, 1) + "," + String(gz, 1) + "]";
     j += ",\"relaxed\":" + String(isRelaxed ? "true" : "false");
     j += ",\"ok\":" + String(lastOk ? "true" : "false");
     j += ",\"msg\":\"" + lastMsg + "\"";
@@ -366,7 +417,7 @@ void setupWebServer() {
         float z   = server.hasArg("z")   ? server.arg("z").toFloat()   : fz;
         float phi = server.hasArg("phi") ? server.arg("phi").toFloat() : fphi;
         float g   = server.hasArg("g")   ? server.arg("g").toFloat()   : qCurr[4];
-        uint32_t ms = server.hasArg("ms") ? (uint32_t)max(150, server.arg("ms").toInt()) : (uint32_t)DEFAULT_MOVE_MS;
+        uint32_t ms = server.hasArg("ms") ? clampMoveMs(server.arg("ms").toInt()) : (uint32_t)DEFAULT_MOVE_MS;
         bool stream = server.hasArg("stream") && (server.arg("stream") == "1");
         moveByIK(x, y, z, phi, g, ms, stream);
         server.send(200, "application/json", buildStatusJson());
@@ -481,9 +532,20 @@ void loop() {
     if (trajActive) {
         float u = clampf((float)(now - trajStartMs) / (float)trajDurMs, 0.0f, 1.0f);
         float s = u * u * u * (10.0f - 15.0f * u + 6.0f * u * u);
+        float qNext[5];
         for (uint8_t i = 0; i < 5; i++) {
-            qCurr[i] = qStart[i] + s * (qTarget[i] - qStart[i]);
+            qNext[i] = qStart[i] + s * (qTarget[i] - qStart[i]);
         }
+        String gReason;
+        if (!checkTableGuard(qNext, &gReason)) {
+            trajActive = false;
+            demoRunning = false;
+            lastOk = false;
+            lastMsg = "Detenido en paso interpolado: " + gReason;
+            Serial.printf("[GUARD] Detenido en interpolacion: %s\n", gReason.c_str());
+            return;
+        }
+        for (uint8_t i = 0; i < 5; i++) qCurr[i] = qNext[i];
         applyCurrentPose();
         if (u >= 1.0f) {
             trajActive = false;
@@ -498,9 +560,19 @@ void loop() {
             }
         }
     } else if (streamMode) {
+        float qNext[5];
         for (uint8_t i = 0; i < 5; i++) {
-            qCurr[i] += STREAM_ALPHA * (qTarget[i] - qCurr[i]);
+            qNext[i] = qCurr[i] + STREAM_ALPHA * (qTarget[i] - qCurr[i]);
         }
-        applyCurrentPose();
+        String gReason;
+        if (checkTableGuard(qNext, &gReason)) {
+            for (uint8_t i = 0; i < 5; i++) qCurr[i] = qNext[i];
+            applyCurrentPose();
+        } else {
+            streamMode = false;
+            lastOk = false;
+            lastMsg = "Stream detenido: " + gReason;
+            Serial.printf("[GUARD] Stream detenido en paso intermedio: %s\n", gReason.c_str());
+        }
     }
 }

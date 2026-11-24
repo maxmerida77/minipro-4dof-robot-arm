@@ -2,7 +2,7 @@
 
 ![Tablero de 3 Placas Planas Z=0 v4 para Bambu Lab A1 Combo](renders/placas_impresion_bambu_a1_v4.png)
 
-> **Diseño `v4 Clean-DFA` — 0% Purga AMS y 0 Cautín:** Las **34 piezas estancas y de un solo sólido conectado (`34/34`, `len(split()) == 1`)** están separadas en **3 placas `.3mf` (`256 × 256 mm`, `Z = 0.000 mm`)** listas para **Bambu Studio**. **29 de las 34 piezas (85%) se imprimen SIN soportes** y **no requieren insertos térmicos ni rodamientos `608ZZ`**.
+> **Diseño `v4 Clean-DFA` (Ronda 2 Cerrada) — 0% Purga AMS y 0 Cautín:** Las **42 piezas estancas y de un solo sólido conectado (`42/42`, `len(split()) == 1`, `0.0000 mm³` colisiones B-Rep con tornillería, Nylocs y lastre)** están separadas en **3 placas `.3mf` (`256 × 256 mm`, `Z = 0.000 mm`)** listas para **Bambu Studio**. **37 de las 42 piezas (88%) se imprimen SIN soportes** y **no requieren insertos térmicos ni rodamientos `608ZZ`**.
 
 ---
 
@@ -29,12 +29,12 @@ Siguiendo la recomendación de ingeniería de la auditoría cruzada, valida los 
 
 | Orden | Archivo `.3mf` (Multi-Objeto) | Filamento Recomendado | Piezas | Altura Capa | Paredes / Relleno | Soportes | Masa Est. |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **1** | [`placa_1a_negro_estructura_v4_020mm.3mf`](../cad/exports/v4_clean_dfa/placas_bambu_a1/placa_1a_negro_estructura_v4_020mm.3mf) | **PLA+ / PLA Pro Negro** | **5** | `0.20 mm Standard` | `4 paredes` · `20% Gyroid` | **Árbol (Auto · Solo cama) ON** | `~182.5 g` |
-| **2** | [`placa_1b_negro_precision_v4_012mm.3mf`](../cad/exports/v4_clean_dfa/placas_bambu_a1/placa_1b_negro_precision_v4_012mm.3mf) | **PLA+ / PLA Pro Negro** | **19** | `0.12 mm Fine` | `4 paredes` · `25% Gyroid` | **OFF (`0 / 19`)** | `~33.3 g` |
-| **3** | [`placa_2_blanco_mate_v4_016mm.3mf`](../cad/exports/v4_clean_dfa/placas_bambu_a1/placa_2_blanco_mate_v4_016mm.3mf) | **PLA Blanco Mate** | **10** | `0.16 mm Optimal` | `3 paredes` · `100%` | **OFF (`0 / 10`) · 0% AMS** | `~7.4 g` |
+| **1** | [`placa_1a_negro_estructura_v4_020mm.3mf`](../cad/exports/v4_clean_dfa/placas_bambu_a1/placa_1a_negro_estructura_v4_020mm.3mf) | **PLA+ / PLA Pro Negro** | **5** | `0.20 mm Standard` | `4 paredes` · `20% Gyroid` | **Árbol (Auto · Solo cama) ON** | `~197.3 g` |
+| **2** | [`placa_1b_negro_precision_v4_012mm.3mf`](../cad/exports/v4_clean_dfa/placas_bambu_a1/placa_1b_negro_precision_v4_012mm.3mf) | **PLA+ / PLA Pro Negro** | **27** | `0.12 mm Fine` | `4 paredes` · `25% Gyroid` | **OFF (`0 / 27`)** | `~35.1 g` |
+| **3** | [`placa_2_blanco_mate_v4_016mm.3mf`](../cad/exports/v4_clean_dfa/placas_bambu_a1/placa_2_blanco_mate_v4_016mm.3mf) | **PLA Blanco Mate** | **10** | `0.16 mm Optimal` | `3 paredes` · `100%` | **OFF (`0 / 10`) · 0% AMS** | `~7.9 g` |
 
-* **Total estimado del brazo completo:** **`~223.2 g` PLA** (`215.8 g` PLA+/PLA Pro Negro + `7.4 g` Blanco Mate). *(Si ya tienes PLA Negro Mate en mano, también es 100% compatible siguiendo el Cupón 1 de prueba de 10 aperturas de bayoneta).*
-* **Respaldo individual en `Z = 0`:** Los **34 STLs ya orientados** están en [`stl_orientados_negro/`](../cad/exports/v4_clean_dfa/placas_bambu_a1/stl_orientados_negro/) y [`stl_orientados_blanco/`](../cad/exports/v4_clean_dfa/placas_bambu_a1/stl_orientados_blanco/).
+* **Total estimado del brazo completo:** **`~240.3 g` PLA** (`232.4 g` PLA+/PLA Pro Negro + `7.9 g` Blanco Mate). *(Si ya tienes PLA Negro Mate en mano, también es 100% compatible siguiendo el Cupón 1 de prueba de 10 aperturas de bayoneta).*
+* **Respaldo individual en `Z = 0`:** Los **42 STLs ya orientados** están en [`stl_orientados_negro/`](../cad/exports/v4_clean_dfa/placas_bambu_a1/stl_orientados_negro/) y [`stl_orientados_blanco/`](../cad/exports/v4_clean_dfa/placas_bambu_a1/stl_orientados_blanco/).
 
 ---
 
@@ -45,8 +45,8 @@ Siguiendo la recomendación de ingeniería de la auditoría cruzada, valida los 
 * **Brim recomendado:** Activar **Brim exterior `5 mm`** solo en `04_torreta_j1_hombro_v4` (por objeto).
 * **Distancia Z superior del soporte árbol:** `0.22 mm` para desprendimiento limpio con la mano.
 
-### Placa 1B — Negro Mate · Precisión (`19 piezas`, `0.12 mm Fine`, **0 SOPORTES**)
-* Incluye la tapa inferior (`03_tapa_inferior_v4`, `7,327 mm²` planos en PEI con 6 huecos perimetrales para gomitas), el **retén axial `04b_reten_axial_j1`**, los 2 sectores engranados `12T` módulo `1.5`, los 2 dedos paralelos volteados boca abajo, las 2 bielas, los 3 casquillos separadores `M3`, las 2 tapas deslizables en cola de milano y las **6 tapas Stealth de bayoneta `32°`** con su cara exterior apoyada sobre el PEI texturizado.
+### Placa 1B — Negro Mate · Precisión (`27 piezas`, `0.12 mm Fine`, **0 SOPORTES**)
+* Incluye la tapa inferior con bóveda de lastre (`03_tapa_inferior_v4`, `7,226 mm²` planos en PEI con 6 huecos perimetrales `Ø 10.6 mm` para gomitas), la **bandeja electrónica aislante plana `03b_bandeja_electronica_v4`** (`7,282 mm²` en PEI), el **retén axial `04b_reten_axial_j1`**, los 2 sectores engranados `12T` módulo `1.5` (ambos boca abajo con avellanado `M3×16` arriba), los 2 dedos paralelos volteados boca abajo, las 2 bielas, los **3 separadores `M3` de brazo (`J2..J4`) + 7 casquillos lisos `M3` de la pinza (`11b..11e`)**, las 2 tapas deslizables en cola de milano y las **6 tapas Stealth de bayoneta `32°`** con su cara exterior apoyada sobre el PEI texturizado.
 * **Tip Bambu Studio:** Orden de paredes `Interior/Exterior`, velocidad pared exterior `60 mm/s` para dientes módulo `1.5` y lengüetas de bayoneta impecables.
 
 ### Placa 2 — Blanco Mate · Acentos `B2 Stealth` (`10 piezas`, `0.16 mm`, **0 SOPORTES · 0% PURGA AMS**)

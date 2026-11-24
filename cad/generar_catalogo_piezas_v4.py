@@ -182,10 +182,13 @@ def main():
             (0.945, 0.945, 0.935),
         ),
         (
-            "03 · Tapa Inferior 6 Patas + Lastre",
-            "03_tapa_inferior_v4.stl · 1× Negro",
-            "6 patas perimetrales r=45.5 + aro lastre + PCA9685 (+X) + XIAO",
-            [(os.path.join(BLK_DIR, "03_tapa_inferior_v4.stl"), blk, (0, 0, 0))],
+            "03 · Tapa Bóveda Lastre + Bandeja Aislante",
+            "03_tapa_inferior_v4 + 03b_bandeja · 2× Negro",
+            "6 patas Ø10.6 + bóveda 6 pilas acero (~247 g) + bandeja PCA/XIAO",
+            [
+                (os.path.join(BLK_DIR, "03_tapa_inferior_v4.stl"), blk, (0, 0, 0)),
+                (os.path.join(BLK_DIR, "03b_bandeja_electronica_v4.stl"), (0.30, 0.32, 0.36), (0, 0, 22)),
+            ],
             (-1.0, -1.2, 1.05),
             (0.945, 0.945, 0.935),
         ),
@@ -313,10 +316,13 @@ def main():
     total_blk_g = sum(r["est_mass_g"] for r in metrics if r["color"] == "Negro Mate")
     total_wht_g = sum(r["est_mass_g"] for r in metrics if r["color"] == "Blanco Mate")
 
-    draw.text((pad, 20), "CATÁLOGO VISUAL DE 34 PIEZAS CAD — MINI-PRO 4-DOF (B2 STEALTH v4 Clean-DFA)", fill=(24, 24, 27), font=f_title)
+    n_tot = len(metrics)
+    n_blk = sum(1 for r in metrics if r["color"] == "Negro Mate")
+    n_wht = sum(1 for r in metrics if r["color"] == "Blanco Mate")
+    draw.text((pad, 20), f"CATÁLOGO VISUAL DE {n_tot} PIEZAS CAD — MINI-PRO 4-DOF (B2 STEALTH v4 Clean-DFA)", fill=(24, 24, 27), font=f_title)
     draw.text(
         (pad, 64),
-        f"34 / 34 STLs 100% estancos y de 1 solo sólido conectado · 0.00 mm³ colisiones · 0% purga AMS · ~{total_blk_g:.0f} g Negro Mate (24 pzas) + ~{total_wht_g:.0f} g Blanco Mate (10 pzas)",
+        f"{n_tot} / {n_tot} STLs 100% estancos y de 1 solo sólido conectado · 0.00 mm³ colisiones · 0% purga AMS · ~{total_blk_g:.0f} g PLA+ Negro ({n_blk} pzas) + ~{total_wht_g:.0f} g Blanco Mate ({n_wht} pzas)",
         fill=(92, 92, 98),
         font=f_sub,
     )

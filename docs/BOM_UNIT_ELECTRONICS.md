@@ -39,18 +39,32 @@
 | **Filamento Blanco Mate (Opción A — Mejor precio)** | **ELEGOO PLA Mate 1.75 mm 1 kg Blanco** *(Placa 2: 10 acentos `B2 Stealth`)* | **\$338.99** | Disponible | https://www.amazon.com.mx/dp/B0CFV55FYF |
 | **Filamento Blanco Mate (Opción B — Premium)** | **Polymaker PolyTerra PLA Mate 1.75 mm 1 kg Cotton White** | **\$428.80** | Disponible | https://www.amazon.com.mx/dp/B08QMJB48V |
 | **Patas antideslizantes base (6× requeridas)** | **Vmingo Topes de Silicona Adhesivos Ø10×3 mm (100 pzas)** *(calzan perfecto en el perímetro de la tapa inferior)* | **\$46.50** | Disponible | https://www.amazon.com.mx/dp/B0B9VKV5N9 |
-| **Kit Tornillos M3 Negros (opcional 100% online)** | **EASTPUK Kit Tornillos M3 Cabeza Botón Allen Negros `8/10/12/16/20/25/30 mm` + tuercas** *(nota: usar `M3×16` donde indica `M3×14` bajo la palma)* | **\$300.98** | Disponible | https://www.amazon.com.mx/dp/B0F4XPTBRH |
+| **Kit Tornillos M3 Negros (opcional 100% online)** | **EASTPUK Kit Tornillos M3 Cabeza Botón Allen Negros `8/10/12/16/20/25/30 mm` + tuercas** *(cubre `8/10/12/16` directo; usar `M3×8` + 2 arandelas en lugar de `M3×6`)* | **\$300.98** | Disponible | https://www.amazon.com.mx/dp/B0F4XPTBRH |
 | **Tuercas de Seguridad M3 Nyloc (opcional 100% online)** | **Einundcy Tuercas M3 Nyloc Negras (115 pzas)** *(o Inox 304 100 pzas [B0FLF3GYRD](https://www.amazon.com.mx/dp/B0FLF3GYRD) a \$305)* | **\$240.64** | Disponible | https://www.amazon.com.mx/dp/B0DZ2V6PRF |
 
-### Lista Exacta para Comprar Tornillería Suelta en Ferretería Local (`~$55–$75 MXN` — ahorra ~\$470 MXN!)
-Si prefieres mantener el proyecto holgadamente **debajo de \$1,500 MXN** en lugar de comprar kits grandes de 300+ tornillos, lleva esta lista exacta a cualquier tornillería local:
-* `3× M3×8 mm` cabeza botón/Allen *(retén axial `04b_reten_axial_j1`)*
-* `8× M3×10 mm` + `4×` **tuerca hexagonal `M3` estándar** *(4× tapa base + 4× pinza)*
-* `3× M3×12 mm` + `3×` **tuerca `M3 Nyloc`** *(pivotes pasivos `J2, J3, J4` sobre los casquillos separadores `11_separador_m3_*`)*
-* `3× M3×14 mm` *(o `M3×16 mm`)* + `7×` **tuerca `M3 Nyloc`** *(pivotes de la pinza paralela MeArm módulo `1.5`)*
-* `4× M2.5×6 mm` o `M3×6 mm` *(fijar `PCA9685` a postes de la tapa)*
-* *Lastre interno (`$0 MXN`):* pila de monedas o arandelas `Ø 24 mm` (`~200–300 g`) para la cavidad de lastre en la base.
-* *Opcional pista `J1`:* cinta de teflón/PTFE delgada o una gota de lubricante de silicón seco si sientes fricción seca en la pista `Ø 88 mm`.
+### Tabla Exacta de Tornillería por Unión (Auditoría Ronda 2 P0-3 · 0.00 mm³ colisión B-Rep)
+
+Cada unión fue auditada en 3D con cabeza botón (`Ø 5.7 × 1.65 mm`), tuerca real (`M3 Nyloc 4.0 mm` / `Hex 2.4 mm`) y casquillos lisos `Ø 5.0 mm` para garantizar **giro libre al apretar** y **`≥ 0.70 mm` (`≥ 1.4` pasos) de salida de rosca tras el nylon**:
+
+| Unión del Brazo | Cant. | Pila real + Casquillo | Tornillo exacto | Tuerca / Fijación | Salida tras nylon / agarre |
+| :--- | :---: | :--- | :--- | :--- | :---: |
+| **Pivotes pasivos `J2, J3, J4`** *(horquilla + separador `11_separador_m3_*` + pared hub)* | **3** | `6.70 mm` *(casquillo `Ø 5.0`)* | **`3× M3×12 mm`** cabeza botón | `3× M3 Nyloc` cautiva tras mamparo MG90S (`2.3 mm` libre del servo!) | **`+1.20 mm`** (`2.4` pasos) |
+| **Tapa inferior + Bandeja aislante Base** *(prensa lastre y cierra base)* | **4** | `12.40 mm` *(cabeza avellanada)* | **`4× M3×16 mm`** cabeza botón | `4× Tuerca hex M3` cautiva en jefes base (`Z=14.3..16.7`) | **`+1.10 mm`** tras tuerca |
+| **Retén axial `J1` (`04b_reten_axial_j1`)** | **3** | `3.0 mm` retén + `5.0 mm` piloto | **`3× M3×8 mm`** cabeza botón | Rosca directa en 3 pilotos `Ø 2.6 mm` de torreta J1 | `5.0 mm` en PLA+ |
+| **Montaje `PCA9685` sobre bandeja aislante** *(pilotos `Ø 2.6 mm`)* | **4** | `1.6 mm` PCB + `3.2 mm` poste/bandeja | **`4× M3×6 mm`** cabeza botón *(NO M2.5)* | Rosca directa en 4 postes `Ø 2.6 mm` | `3.2 mm` en PLA+ |
+| **Pinza — Pivotes delanteros dedos** *(engrane avellanado + casquillo `11d` + dedo)* | **2** | `10.40 mm` *(avellanado `1.70 mm` + `11d`)* | **`2× M3×16 mm`** cabeza botón *(desde abajo)* | `2× M3 Nyloc` arriba (`Z=14.1..18.1`, cabeza sobre `Z=+2.05`!) | **`+1.60 mm`** (`3.2` pasos) |
+| **Pinza — Pivotes traseros dedos** *(biela + casquillo `11e` + dedo)* | **2** | `6.40 mm` *(casquillo `11e`)* | **`2× M3×12 mm`** cabeza botón *(desde abajo)* | `2× M3 Nyloc` arriba (`Z=14.1..18.1`) | **`+1.25 mm`** (`2.5` pasos) |
+| **Pinza — Pivotes traseros bielas en palma** *(biela + casquillo `11c` + pilar palma)* | **2** | `5.30 mm` *(casquillo `11c` con brida)* | **`2× M3×10 mm`** cabeza botón *(desde arriba)* | `2× M3 Nyloc` cautiva lateral en pilar palma (`Z=2.15..6.15`, 100% sobre SG90!) | **`+0.70 mm`** (`1.4` pasos) |
+| **Pinza — Pivote engrane pasivo derecho** *(palma + casquillo `11b` + engrane)* | **1** | `7.30 mm` *(casquillo `11b`)* | **`1× M3×12 mm`** cabeza botón *(desde abajo)* | `1× M3 Nyloc` arriba (`Z=7.1..11.1`, `12.4 mm` libre del SG90!) | **`+0.70 mm`** (`1.4` pasos) |
+| **Orejas y *horns* de los 5 servos (`4× MG90S` + `1× SG90`)** | **15** | Orejas `2.2–2.4 mm` en piloto `Ø 1.8 mm` | **`10× M2×6 mm`** + **`5×`** tornillo *horn* | **Incluidos en las bolsitas de los `MG90S` y `SG90`** *(autoterrajantes en PLA+)* | `4.0 mm` en PLA+ |
+
+### Resumen Exacto para Ferretería Local (`~$60–$75 MXN` — ahorra ~\$470 MXN!)
+Lleva exactamente esta lista a cualquier tornillería local *(total: 21 tornillos M3 + 14 tuercas — cero longitudes raras `M3×18`!)*:
+* **`4× M3×6 mm`** · **`3× M3×8 mm`** · **`2× M3×10 mm`** · **`6× M3×12 mm`** · **`6× M3×16 mm`** *(todos cabeza botón Allen)*
+* **`4×` tuerca hexagonal `M3`** + **`10×` tuerca de seguridad `M3 Nyloc`** *(en el kit Amazon `EASTPUK` que trae `8/10/12/16`, solo usa `M3×8` + 2 arandelas en los 4 postes del PCA9685)*
+* **Lastre real modelado y auditado (`0.00 mm³` colisión) en bóveda inferior (`03_tapa_inferior_v4`, `Z = 1.6..10.0 mm`, sellado bajo `03b_bandeja_electronica_v4`):**
+  * **6 pilas cilíndricas guiadas (`4× Ø 28.6 mm` + `2× Ø 26.2 mm` × `8.4 mm` alto):** **`247 g`** en rondanas/discos de acero (`~222 g` en monedas de `\$10/\$5 MXN`), y hasta **`~298 g`** rellenando los huecos de la bóveda en herradura con tuercas/balines de acero (`SF > 2.2×` anti-vuelco sin carga en la peor orientación de `J1`!).
+* *Opcional pista `J1`:* cinta PTFE (teflón) delgada o gota mínima de silicón seco si sientes fricción seca en la pista `Ø 88 mm`.
 
 ---
 

@@ -84,6 +84,7 @@ bool sweepActive = false;
 int  sweepIdx    = 0;
 
 static float clampF(float v, float lo, float hi) { return v < lo ? lo : (v > hi ? hi : v); }
+static float clampDurMs(float ms) { return (!isfinite(ms) || ms < 150.0f) ? 150.0f : ms; }
 
 static float gripMmToThetaRad(float g) {
   float gc = clampF(g, 0.0f, 30.0f);
@@ -100,6 +101,18 @@ static float gripMmToTcpX(float g) {
 }
 
 static bool checkTableGuard(const float q[5], float &zMinOut, String *reasonOut = nullptr) {
+  for (int i = 0; i < 5; i++) {
+    if (!isfinite(q[i])) {
+      if (reasonOut) *reasonOut = "Entrada no finita (NaN/Inf)";
+      zMinOut = -999.0f;
+      return false;
+    }
+  }
+  if (q[4] < -0.05f || q[4] > 30.05f) {
+    if (reasonOut) *reasonOut = "Pinza fuera de rango [0, 30 mm]";
+    zMinOut = 0.0f;
+    return false;
+  }
   const float d2r = 3.14159265f / 180.0f;
   float t2 = q[1] * d2r, t23 = (q[1] + q[2]) * d2r, t234 = (q[1] + q[2] + q[3]) * d2r;
   float c2 = cosf(t2), s2 = sinf(t2), c23 = cosf(t23), s23 = sinf(t23), c234 = cosf(t234), s234 = sinf(t234);
@@ -185,6 +198,12 @@ static void relaxAll() {
 }
 
 static bool startMove(const float qIn[5], float durMs) {
+  for (int i = 0; i < 5; i++) {
+    if (!isfinite(qIn[i])) {
+      Serial.println("[GUARD] Entrada no finita rechazada");
+      return false;
+    }
+  }
   float qSafe[5];
   for (int i = 0; i < 5; i++) qSafe[i] = clampF(qIn[i], AXES[i].q_min, AXES[i].q_max);
   float zMin = 0.0f;
@@ -193,13 +212,24 @@ static bool startMove(const float qIn[5], float durMs) {
     Serial.printf("[GUARD] Pose bloqueada: %s (Z_min=%.1f mm < 4 mm)\n", gReason.c_str(), zMin);
     return false;
   }
+  // Validar trayectoria quíntica completa en 16 muestras
+  float qSample[5];
+  for (int k = 1; k <= 16; k++) {
+    float u = (float)k / 16.0f;
+    float s = u * u * u * (10.0f - 15.0f * u + 6.0f * u * u);
+    for (int i = 0; i < 5; i++) qSample[i] = curQ[i] + s * (qSafe[i] - curQ[i]);
+    if (!checkTableGuard(qSample, zMin, &gReason)) {
+      Serial.printf("[GUARD] Trayectoria bloqueada: %s (Z_min=%.1f mm)\n", gReason.c_str(), zMin);
+      return false;
+    }
+  }
   bool waking = relaxed;
   relaxed = false;
   for (int i = 0; i < 5; i++) {
     startQ[i]  = curQ[i];
     targetQ[i] = qSafe[i];
   }
-  float d = durMs < 50.0f ? 50.0f : durMs;
+  float d = clampDurMs(durMs);
   if (waking && d < MIN_WAKE_MOVE_MS) d = MIN_WAKE_MOVE_MS;
   moveDurMs   = d;
   moveStartMs = millis();
@@ -217,20 +247,20 @@ static void computeFK(const float q[5], float &x, float &y, float &z, float &phi
   phi = q[1] + q[2] + q[3];
 }
 
-static bool computeIK(float x, float y, float z, float phiDeg, float qOut[4], String &err) {
+static bool solveIKPlanar(float q1Rad, float rSigned, float z, float phiDeg, float qOut[4], String &err, bool elbowUp = true) {
   const float d2r = 3.14159265f / 180.0f, r2d = 180.0f / 3.14159265f;
   float phi = phiDeg * d2r;
-  float q1 = atan2f(y, x), r = hypotf(x, y);
-  float rw = r - DH_A4_MM * cosf(phi), zw = (z - DH_D1_MM) - DH_A4_MM * sinf(phi);
+  float rw = rSigned - DH_A4_MM * cosf(phi), zw = (z - DH_D1_MM) - DH_A4_MM * sinf(phi);
   float D = (rw * rw + zw * zw - DH_A2_MM * DH_A2_MM - DH_A3_MM * DH_A3_MM) / (2.0f * DH_A2_MM * DH_A3_MM);
   if (fabsf(D) > 1.0005f) { err = "Fuera de alcance"; return false; }
   D = clampF(D, -1.0f, 1.0f);
-  float q3 = atan2f(-sqrtf(fmaxf(0.0f, 1.0f - D * D)), D);
+  float s3 = sqrtf(fmaxf(0.0f, 1.0f - D * D));
+  float q3 = elbowUp ? atan2f(-s3, D) : atan2f(s3, D);
   float q2 = atan2f(zw, rw) - atan2f(DH_A3_MM * sinf(q3), DH_A2_MM + DH_A3_MM * cosf(q3));
   float q4 = atan2f(sinf(phi - q2 - q3), cosf(phi - q2 - q3));
-  float qd[4] = { q1 * r2d, q2 * r2d, q3 * r2d, q4 * r2d };
+  float qd[4] = { q1Rad * r2d, q2 * r2d, q3 * r2d, q4 * r2d };
   for (int i = 0; i < 4; i++) {
-    if (qd[i] < AXES[i].q_min - 0.15f || qd[i] > AXES[i].q_max + 0.15f) {
+    if (!isfinite(qd[i]) || qd[i] < AXES[i].q_min - 0.15f || qd[i] > AXES[i].q_max + 0.15f) {
       err = "J" + String(i + 1) + " fuera de limite (" + String(qd[i], 1) + " deg)";
       return false;
     }
@@ -238,6 +268,37 @@ static bool computeIK(float x, float y, float z, float phiDeg, float qOut[4], St
   }
   err = "OK";
   return true;
+}
+
+static bool computeIK(float x, float y, float z, float phiDeg, float qOut[4], String &err, float q1RefDeg = 0.0f) {
+  if (!isfinite(x) || !isfinite(y) || !isfinite(z) || !isfinite(phiDeg)) {
+    err = "Entrada no finita (NaN/Inf)";
+    return false;
+  }
+  const float d2r = 3.14159265f / 180.0f;
+  float r = hypotf(x, y);
+  String firstErr;
+  bool branches[2] = { true, false };
+  if (r < 1e-3f) {
+    float q1c = clampF(q1RefDeg, AXES[0].q_min, AXES[0].q_max) * d2r;
+    for (int b = 0; b < 2; b++) {
+      String e;
+      if (solveIKPlanar(q1c, 0.0f, z, phiDeg, qOut, e, branches[b])) { err = "OK"; return true; }
+      if (b == 0) firstErr = e;
+    }
+    err = firstErr;
+    return false;
+  }
+  float q1Fwd = atan2f(y, x);
+  float q1Rev = atan2f(sinf(q1Fwd + 3.14159265f), cosf(q1Fwd + 3.14159265f));
+  for (int b = 0; b < 2; b++) {
+    String eF, eR;
+    if (solveIKPlanar(q1Fwd, +r, z, phiDeg, qOut, eF, branches[b])) { err = "OK"; return true; }
+    if (b == 0) firstErr = eF;
+    if (solveIKPlanar(q1Rev, -r, z, phiDeg, qOut, eR, branches[b])) { err = "OK"; return true; }
+  }
+  err = firstErr;
+  return false;
 }
 
 static void printStatus() {
