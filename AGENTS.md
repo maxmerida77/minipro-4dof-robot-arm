@@ -20,8 +20,8 @@
 1. **Single Source of Truth (`cad/params.py`):**
    * Toda medida cinemática, envolvente, pinza `GRIP_V4`, guarda de mesa y holgura debe provenir exclusivamente de `cad/params.py` y permanecer sincronizada con `python/robot_minipro_rtb.py`, `python/gemelo_digital_esp32.py`, `firmware/minipro_b2_stealth/config.h` y `electronics/simulacion_wokwi/sketch.ino`.
 2. **Cinemática Denavit-Hartenberg Estándar 4R Serial (NO cambiar a cadena cerrada en el brazo):**
-   * `d1 = 82.0 mm`, `a2 = 82.0 mm`, `a3 = 70.0 mm`, `a4 = 53.0 mm` (alcance horizontal teórico `205.0 mm`).
-   * Límites articulares: `J1 ∈ [-90°, +90°]`, `J2 ∈ [+15°, +165°]`, `J3 ∈ [-135°, +45°]`, `J4 ∈ [-90°, +90°]`, `Pinza ∈ [0, 30 mm]`.
+   * `d1 = 82.0 mm`, `a2 = 82.0 mm`, `a3 = 70.0 mm`, `a4 = 53.0 mm` (alcance horizontal teórico `205.0 mm`, útil seguro `199.0 mm`).
+   * Límites articulares seguros (`cad/params.py`): `J1 ∈ [-85°, +85°]`, `J2 ∈ [+22°, +145°]`, `J3 ∈ [-125°, +20°]`, `J4 ∈ [-80°, +80°]`, `Pinza ∈ [0, 30 mm]` + **Guarda Física 3D** (`Z_min ≥ 4 mm` con panza `SG90 -21.8 mm` y puntas `+7.1 mm`, exclusión de base `Ø 106 mm` y auto-colisión `L4 vs L2`).
 3. **Estética `B2 Stealth` Sagrada (NO comprometer el acabado exterior):**
    * Silueta monocromática limpia en **PLA Negro Mate (~95%)** con **10 piezas separadas en PLA Blanco Mate (~5%, 0% purga AMS)**: `w01` aro base, `6×` aros laterales `J2/J3/J4`, `w02` collar muñeca y `2×` almohadillas `w04`.
 4. **Pinza Seleccionada:**

@@ -41,10 +41,10 @@ struct ServoAxisConfig {
 };
 
 static const ServoAxisConfig AXES[5] = {
-  { 0,  -90.0f,  90.0f,   0.0f,   0.0f,   90.0f, 550, 2450 }, // J1 Base
-  { 1,   15.0f, 165.0f,  90.0f,  68.0f,    0.0f, 550, 2450 }, // J2 Hombro
-  { 2, -135.0f,  45.0f, -90.0f, -96.0f,  135.0f, 550, 2450 }, // J3 Codo
-  { 3,  -90.0f,  90.0f,   0.0f,  28.0f,   90.0f, 550, 2450 }, // J4 Muñeca
+  { 0,  -85.0f,  85.0f,   0.0f,   0.0f,   90.0f, 550, 2450 }, // J1 Base (170° útiles)
+  { 1,   22.0f, 145.0f,  90.0f,  68.0f,    0.0f, 550, 2450 }, // J2 Hombro (123° útiles)
+  { 2, -125.0f,  20.0f, -90.0f, -96.0f,  135.0f, 550, 2450 }, // J3 Codo (145° útiles)
+  { 3,  -80.0f,  80.0f,   0.0f,  28.0f,   90.0f, 550, 2450 }, // J4 Muñeca (160° útiles)
   { 4,    0.0f,  30.0f,  15.0f,  15.0f,   40.0f, 600, 2400 }, // Pinza SG90 (trigonométrica)
 };
 
@@ -99,14 +99,59 @@ static float gripMmToTcpX(float g) {
   return DH_A4_MM + GRIP_LINK_L_MM * (cosf(gripMmToThetaRad(g)) - cosf(gripMmToThetaRad(GRIP_NOMINAL_OPEN_MM)));
 }
 
-static bool checkTableGuard(const float q[5], float &zTcpOut) {
-  float a2 = q[1] * (3.14159265f / 180.0f);
-  float a3 = (q[1] + q[2]) * (3.14159265f / 180.0f);
-  float a4 = (q[1] + q[2] + q[3]) * (3.14159265f / 180.0f);
-  float z_j3 = DH_D1_MM + DH_A2_MM * sinf(a2);
-  float z_j4 = z_j3 + DH_A3_MM * sinf(a3);
-  zTcpOut    = z_j4 + gripMmToTcpX(q[4]) * sinf(a4);
-  return (z_j3 >= TABLE_SAFE_Z_JOINT_MM) && (z_j4 >= TABLE_SAFE_Z_JOINT_MM) && (zTcpOut >= TABLE_SAFE_Z_TCP_MM);
+static bool checkTableGuard(const float q[5], float &zMinOut, String *reasonOut = nullptr) {
+  const float d2r = 3.14159265f / 180.0f;
+  float t2 = q[1] * d2r, t23 = (q[1] + q[2]) * d2r, t234 = (q[1] + q[2] + q[3]) * d2r;
+  float c2 = cosf(t2), s2 = sinf(t2), c23 = cosf(t23), s23 = sinf(t23), c234 = cosf(t234), s234 = sinf(t234);
+  float r3 = DH_A2_MM * c2, z3 = DH_D1_MM + DH_A2_MM * s2;
+  float r4 = r3 + DH_A3_MM * c23, z4 = z3 + DH_A3_MM * s23;
+
+  static const float L3_PTS[6][2] = {
+    {15.0f, -14.0f}, {35.0f, -14.0f}, {55.0f, -14.0f}, {70.0f, -18.2f},
+    {35.0f, +14.0f}, {70.0f, +18.2f}
+  };
+  zMinOut = 9999.0f;
+  for (int i = 0; i < 6; i++) {
+    float rr = r3 + L3_PTS[i][0] * c23 - L3_PTS[i][1] * s23;
+    float zz = z3 + L3_PTS[i][0] * s23 + L3_PTS[i][1] * c23;
+    if (zz < zMinOut) zMinOut = zz;
+    if ((zz < 54.0f && fabsf(rr) < 56.0f) || (zz < 64.0f && fabsf(rr) < 46.0f)) {
+      if (reasonOut) *reasonOut = "Antebrazo L3 chocaria con base";
+      return false;
+    }
+  }
+  if (zMinOut < 4.0f) {
+    if (reasonOut) *reasonOut = "Antebrazo/Muneca chocaria con mesa";
+    return false;
+  }
+
+  float tcpX = gripMmToTcpX(q[4]);
+  float tipX = tcpX + 7.1f;
+  const float L4_PTS[7][2] = {
+    {0.0f, -16.2f}, {21.6f, -21.8f}, {34.5f, -21.8f}, {35.9f, +16.2f},
+    {tcpX, -1.5f}, {tipX, -1.5f}, {tipX, +13.8f}
+  };
+  for (int i = 0; i < 7; i++) {
+    float rr = r4 + L4_PTS[i][0] * c234 - L4_PTS[i][1] * s234;
+    float zz = z4 + L4_PTS[i][0] * s234 + L4_PTS[i][1] * c234;
+    if (zz < zMinOut) zMinOut = zz;
+    if ((zz < 54.0f && fabsf(rr) < 56.0f) || (zz < 64.0f && fabsf(rr) < 46.0f)) {
+      if (reasonOut) *reasonOut = "Pinza/SG90 chocaria con base";
+      return false;
+    }
+    float dz = zz - DH_D1_MM;
+    float xL2 = rr * c2 + dz * s2;
+    float zL2 = -rr * s2 + dz * c2;
+    if (xL2 > 8.0f && xL2 < 72.0f && fabsf(zL2) < 14.0f) {
+      if (reasonOut) *reasonOut = "Pinza/SG90 chocaria con brazo L2";
+      return false;
+    }
+  }
+  if (zMinOut < 4.0f) {
+    if (reasonOut) *reasonOut = "Pinza/SG90 chocaria con mesa";
+    return false;
+  }
+  return true;
 }
 
 static uint16_t logicalToUs(int i, float q) {
@@ -142,9 +187,10 @@ static void relaxAll() {
 static bool startMove(const float qIn[5], float durMs) {
   float qSafe[5];
   for (int i = 0; i < 5; i++) qSafe[i] = clampF(qIn[i], AXES[i].q_min, AXES[i].q_max);
-  float zTcp = 0.0f;
-  if (!checkTableGuard(qSafe, zTcp)) {
-    Serial.printf("[GUARD] Pose bloqueada por guarda anti-mesa (Z_tcp=%.1f mm < %.0f mm)\n", zTcp, TABLE_SAFE_Z_TCP_MM);
+  float zMin = 0.0f;
+  String gReason;
+  if (!checkTableGuard(qSafe, zMin, &gReason)) {
+    Serial.printf("[GUARD] Pose bloqueada: %s (Z_min=%.1f mm < 4 mm)\n", gReason.c_str(), zMin);
     return false;
   }
   bool waking = relaxed;

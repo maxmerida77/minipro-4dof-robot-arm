@@ -65,22 +65,8 @@ static inline float clampf(float v, float lo, float hi) {
     return (v < lo) ? lo : ((v > hi) ? hi : v);
 }
 
-static bool checkTableGuard(const float q[5], float* zTcpOut = nullptr, float* zJ3Out = nullptr, float* zJ4Out = nullptr) {
-    const float d2r = 3.14159265f / 180.0f;
-    float t2   = q[AX_J2_SHOULDER] * d2r;
-    float t23  = (q[AX_J2_SHOULDER] + q[AX_J3_ELBOW]) * d2r;
-    float t234 = (q[AX_J2_SHOULDER] + q[AX_J3_ELBOW] + q[AX_J4_WRIST]) * d2r;
-    float a4_eff = gripMmToTcpX(q[AX_GRIPPER]);
-
-    float z_j3  = DH_D1_MM + DH_A2_MM * sinf(t2);
-    float z_j4  = z_j3 + DH_A3_MM * sinf(t23);
-    float z_tcp = z_j4 + a4_eff * sinf(t234);
-
-    if (zTcpOut) *zTcpOut = z_tcp;
-    if (zJ3Out)  *zJ3Out  = z_j3;
-    if (zJ4Out)  *zJ4Out  = z_j4;
-
-    return (z_j3 >= TABLE_SAFE_Z_JOINT_MM) && (z_j4 >= TABLE_SAFE_Z_JOINT_MM) && (z_tcp >= TABLE_SAFE_Z_TCP_MM);
+static bool checkTableGuard(const float q[5], String* reasonOut = nullptr, float* zMinOut = nullptr) {
+    return checkPhysicalGuard(q, reasonOut, zMinOut);
 }
 
 void writeMicros(uint8_t ch, uint16_t us) {
@@ -162,9 +148,12 @@ bool startQuinticMove(const float tgt[5], uint32_t durationMs) {
     for (uint8_t i = 0; i < 5; i++) {
         clamped[i] = clampf(tgt[i], AXES[i].q_min, AXES[i].q_max);
     }
-    float zt = 0, z3 = 0, z4 = 0;
-    if (!checkTableGuard(clamped, &zt, &z3, &z4)) {
-        Serial.printf("[GUARD] Movimiento bloqueado (riesgo choque mesa): Z_j3=%.1f Z_j4=%.1f Z_tcp=%.1f mm\n", z3, z4, zt);
+    String gReason;
+    float zMin = 0.0f;
+    if (!checkTableGuard(clamped, &gReason, &zMin)) {
+        lastOk = false;
+        lastMsg = gReason;
+        Serial.printf("[GUARD] Movimiento bloqueado: %s (Z_min=%.1f mm)\n", gReason.c_str(), zMin);
         return false;
     }
 
@@ -191,9 +180,12 @@ bool setStreamTarget(const float tgt[5]) {
     for (uint8_t i = 0; i < 5; i++) {
         clamped[i] = clampf(tgt[i], AXES[i].q_min, AXES[i].q_max);
     }
-    float zt = 0, z3 = 0, z4 = 0;
-    if (!checkTableGuard(clamped, &zt, &z3, &z4)) {
-        Serial.printf("[GUARD] Streaming bloqueado (choque mesa): Z_tcp=%.1f mm\n", zt);
+    String gReason;
+    float zMin = 0.0f;
+    if (!checkTableGuard(clamped, &gReason, &zMin)) {
+        lastOk = false;
+        lastMsg = gReason;
+        Serial.printf("[GUARD] Streaming bloqueado: %s (Z_min=%.1f mm)\n", gReason.c_str(), zMin);
         return false;
     }
     demoRunning = false;
@@ -240,8 +232,6 @@ bool moveByIK(float x_mm, float y_mm, float z_mm, float phi_deg, float grip_mm, 
     float tgt[5] = { qSol[0], qSol[1], qSol[2], qSol[3], clampf(grip_mm, AXES[4].q_min, AXES[4].q_max) };
     bool ok = streaming ? setStreamTarget(tgt) : startQuinticMove(tgt, durationMs);
     if (!ok) {
-        lastOk  = false;
-        lastMsg = "Bloqueado por guarda anti-mesa (Z muy bajo)";
         return false;
     }
     demoRunning = false;
@@ -365,7 +355,7 @@ void setupWebServer() {
             server.hasArg("g")  ? server.arg("g").toFloat()  : qTarget[4]
         };
         lastOk = setStreamTarget(t);
-        lastMsg = lastOk ? "FK OK" : "Bloqueado por guarda anti-mesa";
+        if (lastOk) lastMsg = "FK OK";
         server.send(200, "application/json", buildStatusJson());
     });
     server.on("/api/ik", HTTP_GET, []() {

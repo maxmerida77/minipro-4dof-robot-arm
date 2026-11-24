@@ -36,6 +36,7 @@ from params import (
     Q_LIMITS_DEG,
     HERO_POSE_DEG,
     gripper_kinematics_v4,
+    check_physical_guard_v4,
 )
 
 QLIM_DEG = np.array([
@@ -135,11 +136,15 @@ class MiniPro4DOF(rtb.DHRobot):
         """Relación trigonométrica exacta de la Pinza Paralela MeArm Mod 1.5 (`cad/params.py`)."""
         return gripper_kinematics_v4(grip_open_mm)
 
+    def check_physical_guard(self, q_rad: np.ndarray, grip_open_mm: float = 15.0):
+        """Guarda física 3D completa desde `cad/params.py` (límites + mesa/SG90 + base + auto-colisión)."""
+        return check_physical_guard_v4(np.rad2deg(q_rad), grip_open_mm)
+
     def check_table_guard(self, q_rad: np.ndarray, grip_open_mm: float = 15.0):
         """
-        Guarda cinemática anti-mesa sincronizada con el firmware (`config.h`):
-        verifica que ni J3, ni J4 (< 22 mm), ni el TCP real compensado por apertura de pinza (< 8 mm)
-        choquen con la superficie del escritorio (Z = 0).
+        Guarda física completa sincronizada con `cad/params.py` y el firmware (`config.h`):
+        verifica límites seguros, altura libre real (incluyendo panza SG90 `-21.8 mm` y puntas
+        de dedos `+7.1 mm`), despeje contra la base cilíndrica Ø106 mm y auto-colisión L4 vs L2.
         Retorna: (ok, z_j3, z_j4, z_tcp, msg)
         """
         q2, q3, q4 = float(q_rad[1]), float(q_rad[2]), float(q_rad[3])
@@ -147,12 +152,9 @@ class MiniPro4DOF(rtb.DHRobot):
         z_j3 = D1_MM + A2_MM * math.sin(q2)
         z_j4 = z_j3 + A3_MM * math.sin(q2 + q3)
         z_tcp = z_j4 + tcp_x_eff * math.sin(q2 + q3 + q4)
-        if z_j3 < TABLE_SAFE_Z_JOINT_MM:
-            return False, z_j3, z_j4, z_tcp, f"Codo J3 muy bajo (Z={z_j3:.1f} < {TABLE_SAFE_Z_JOINT_MM:.0f} mm)"
-        if z_j4 < TABLE_SAFE_Z_JOINT_MM:
-            return False, z_j3, z_j4, z_tcp, f"Muñeca J4 muy baja (Z={z_j4:.1f} < {TABLE_SAFE_Z_JOINT_MM:.0f} mm)"
-        if z_tcp < TABLE_SAFE_Z_TCP_MM:
-            return False, z_j3, z_j4, z_tcp, f"TCP/Pinza chocaría con mesa (Z={z_tcp:.1f} < {TABLE_SAFE_Z_TCP_MM:.0f} mm)"
+        ok_phys, msg_phys = check_physical_guard_v4(np.rad2deg(q_rad), grip_open_mm)
+        if not ok_phys:
+            return False, z_j3, z_j4, z_tcp, msg_phys
         return True, z_j3, z_j4, z_tcp, "OK"
 
 

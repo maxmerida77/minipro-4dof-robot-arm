@@ -26,13 +26,20 @@ static const uint16_t UDP_PORT = 4210;
 static const uint8_t  PCA9685_ADDR  = 0x40;
 static const float    SERVO_FREQ_HZ = 50.0f;  // Período 20,000 µs
 
-// --- Parámetros Cinemáticos DH (mm) y Guarda Anti-Mesa ---
-static const float DH_D1_MM              = 82.0f;
-static const float DH_A2_MM              = 82.0f;
-static const float DH_A3_MM              = 70.0f;
-static const float DH_A4_MM              = 53.0f;
-static const float TABLE_SAFE_Z_TCP_MM   = 8.0f;
-static const float TABLE_SAFE_Z_JOINT_MM = 22.0f;
+// --- Parámetros Cinemáticos DH (mm) y Guarda Física 3D Real (idéntica a `cad/params.py`) ---
+static const float DH_D1_MM                  = 82.0f;
+static const float DH_A2_MM                  = 82.0f;
+static const float DH_A3_MM                  = 70.0f;
+static const float DH_A4_MM                  = 53.0f;
+static const float TABLE_SAFE_Z_TCP_MM       = 8.0f;
+static const float TABLE_SAFE_Z_JOINT_MM     = 22.0f;
+static const float GUARD_FLOOR_Z_MIN_MM      = 4.0f;    // Z libre mínimo real (incluyendo panza SG90 y dedos)
+static const float GUARD_BASE_DRUM_R_MM      = 56.0f;   // Carcasa base fija Ø106 mm (Z < 54 mm)
+static const float GUARD_BASE_DRUM_Z_MM      = 54.0f;
+static const float GUARD_BASE_NECK_R_MM      = 46.0f;   // Cuello torreta J1 (Z < 64 mm)
+static const float GUARD_BASE_NECK_Z_MM      = 64.0f;
+static const float GUARD_L4_SG90_Z_MM        = -21.8f;  // Fondo real de palma + SG90 bajo el eje J4
+static const float GUARD_FINGER_TIP_EXTRA_MM = 7.1f;    // Saliente físico de las puntas de dedo tras TCP
 
 // --- Geometría Exacta Pinza Paralela Abierta MeArm Módulo 1.5 (idéntica a `cad/params.py`) ---
 static const float GRIP_LINK_L_MM         = 16.5f;  // Longitud centro-a-centro brazos/bielas
@@ -67,12 +74,13 @@ enum AxisIndex : uint8_t {
 };
 
 // Calibración segura para 4× MG90S (`AR1240`) + 1× SG90 (Pinza MeArm Mod 1.5):
+// Límites sincronizados con `cad/params.py` (margen real contra topes internos MG90S y cables!)
 static ServoAxisConfig AXES[5] = {
     // ch,  q_min,  q_max, q_home, q_hero, zero_deg, offset, invert, us_min, us_max
-    {   0,  -90.0f,  90.0f,   0.0f,   0.0f,   90.0f,   0.0f,  false,   550,   2450 }, // J1 Base
-    {   1,   15.0f, 165.0f,  90.0f,  68.0f,    0.0f,   0.0f,  false,   550,   2450 }, // J2 Hombro
-    {   2, -135.0f,  45.0f, -90.0f, -96.0f,  135.0f,   0.0f,  false,   550,   2450 }, // J3 Codo
-    {   3,  -90.0f,  90.0f,   0.0f,  28.0f,   90.0f,   0.0f,  false,   550,   2450 }, // J4 Muñeca
+    {   0,  -85.0f,  85.0f,   0.0f,   0.0f,   90.0f,   0.0f,  false,   550,   2450 }, // J1 Base (170° útiles)
+    {   1,   22.0f, 145.0f,  90.0f,  68.0f,    0.0f,   0.0f,  false,   550,   2450 }, // J2 Hombro (123° útiles)
+    {   2, -125.0f,  20.0f, -90.0f, -96.0f,  135.0f,   0.0f,  false,   550,   2450 }, // J3 Codo (145° útiles)
+    {   3,  -80.0f,  80.0f,   0.0f,  28.0f,   90.0f,   0.0f,  false,   550,   2450 }, // J4 Muñeca (160° útiles)
     {   4,    0.0f,  30.0f,  15.0f,  15.0f,   40.0f,   0.0f,  false,   600,   2400 }, // Pinza SG90 (trigonométrica)
 };
 
@@ -159,5 +167,91 @@ static inline bool computeIK(
         qOutDeg[i] = qd[i];
     }
     if (errMsg) *errMsg = "OK";
+    return true;
+}
+
+// --- Guarda Física 3D Envolvente Real (idéntica a `check_physical_guard_v4` en `cad/params.py`) ---
+static inline bool checkPhysicalGuard(const float q[5], String* reasonOut = nullptr, float* zMinOut = nullptr) {
+    static const char* NAMES[4] = { "J1", "J2", "J3", "J4" };
+    for (int i = 0; i < 4; i++) {
+        if (q[i] < AXES[i].q_min - 0.05f || q[i] > AXES[i].q_max + 0.05f) {
+            if (reasonOut) *reasonOut = String(NAMES[i]) + " fuera de limite seguro";
+            return false;
+        }
+    }
+
+    const float d2r = 3.14159265f / 180.0f;
+    float t2   = q[AX_J2_SHOULDER] * d2r;
+    float t23  = (q[AX_J2_SHOULDER] + q[AX_J3_ELBOW]) * d2r;
+    float t234 = (q[AX_J2_SHOULDER] + q[AX_J3_ELBOW] + q[AX_J4_WRIST]) * d2r;
+    float c2 = cosf(t2), s2 = sinf(t2);
+    float c23 = cosf(t23), s23 = sinf(t23);
+    float c234 = cosf(t234), s234 = sinf(t234);
+
+    float r3 = DH_A2_MM * c2;
+    float z3 = DH_D1_MM + DH_A2_MM * s2;
+    float r4 = r3 + DH_A3_MM * c23;
+    float z4 = z3 + DH_A3_MM * s23;
+
+    static const float L3_PTS[6][2] = {
+        {15.0f, -14.0f}, {35.0f, -14.0f}, {55.0f, -14.0f}, {70.0f, -18.2f},
+        {35.0f, +14.0f}, {70.0f, +18.2f}
+    };
+    float zMin = 9999.0f;
+    for (int i = 0; i < 6; i++) {
+        float rr = r3 + L3_PTS[i][0] * c23 - L3_PTS[i][1] * s23;
+        float zz = z3 + L3_PTS[i][0] * s23 + L3_PTS[i][1] * c23;
+        if (zz < zMin) zMin = zz;
+        if ((zz < GUARD_BASE_DRUM_Z_MM && fabsf(rr) < GUARD_BASE_DRUM_R_MM) ||
+            (zz < GUARD_BASE_NECK_Z_MM && fabsf(rr) < GUARD_BASE_NECK_R_MM)) {
+            if (zMinOut) *zMinOut = zMin;
+            if (reasonOut) *reasonOut = "Antebrazo L3 chocaria con la base";
+            return false;
+        }
+    }
+    if (zMin < GUARD_FLOOR_Z_MIN_MM) {
+        if (zMinOut) *zMinOut = zMin;
+        if (reasonOut) *reasonOut = "Antebrazo/Muneca chocaria con mesa";
+        return false;
+    }
+
+    float tcpX = gripMmToTcpX(q[AX_GRIPPER]);
+    float tipX = tcpX + GUARD_FINGER_TIP_EXTRA_MM;
+    const float L4_PTS[7][2] = {
+        { 0.0f, -16.2f },
+        { 21.6f, GUARD_L4_SG90_Z_MM },
+        { 34.5f, GUARD_L4_SG90_Z_MM },
+        { 35.9f, +16.2f },
+        { tcpX,  -1.5f },
+        { tipX,  -1.5f },
+        { tipX, +13.8f }
+    };
+    float zMin4 = 9999.0f;
+    for (int i = 0; i < 7; i++) {
+        float rr = r4 + L4_PTS[i][0] * c234 - L4_PTS[i][1] * s234;
+        float zz = z4 + L4_PTS[i][0] * s234 + L4_PTS[i][1] * c234;
+        if (zz < zMin4) zMin4 = zz;
+        if (zz < zMin)  zMin  = zz;
+        if ((zz < GUARD_BASE_DRUM_Z_MM && fabsf(rr) < GUARD_BASE_DRUM_R_MM) ||
+            (zz < GUARD_BASE_NECK_Z_MM && fabsf(rr) < GUARD_BASE_NECK_R_MM)) {
+            if (zMinOut) *zMinOut = zMin;
+            if (reasonOut) *reasonOut = "Pinza/SG90 chocaria con la base";
+            return false;
+        }
+        float dz = zz - DH_D1_MM;
+        float xL2 = rr * c2 + dz * s2;
+        float zL2 = -rr * s2 + dz * c2;
+        if (xL2 > 8.0f && xL2 < 72.0f && fabsf(zL2) < 14.0f) {
+            if (zMinOut) *zMinOut = zMin;
+            if (reasonOut) *reasonOut = "Pinza/SG90 chocaria con brazo L2";
+            return false;
+        }
+    }
+    if (zMinOut) *zMinOut = zMin;
+    if (zMin4 < GUARD_FLOOR_Z_MIN_MM) {
+        if (reasonOut) *reasonOut = "Pinza/SG90 chocaria con mesa";
+        return false;
+    }
+    if (reasonOut) *reasonOut = "OK";
     return true;
 }

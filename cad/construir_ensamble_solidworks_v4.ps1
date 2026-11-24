@@ -637,27 +637,27 @@ public class MiniProSwBuilder
         string frXY   = FindPlaneNameInComp(comps["11_Dedo_Der"], 2);
         string frXZ   = FindPlaneNameInComp(comps["11_Dedo_Der"], 1);
 
-        // J1: Base <-> Torreta (Yaw [-90°, +90°])
+        // J1: Base <-> Torreta (Yaw [-85°, +85°] -> 5° margen contra topes MG90S)
         AddCoincidentMate(asmDoc, assy, asmName, comps["01_Base_Fija"], "Axis_J1", "AXIS", comps["02_Torreta_J1"], "Axis_J1", "AXIS", "J1_Eje_Coaxial", ALN);
         AddCoincidentMate(asmDoc, assy, asmName, comps["01_Base_Fija"], baseXY, "PLANE", comps["02_Torreta_J1"], turXY, "PLANE", "J1_Plano_Z0", ALN);
-        AddLimitAngleMate(asmDoc, assy, asmName, comps["01_Base_Fija"], baseYZ, comps["02_Torreta_J1"], turXZ, 90.0, 0.0, 180.0, "J1_Limite_pm90");
+        AddLimitAngleMate(asmDoc, assy, asmName, comps["01_Base_Fija"], baseYZ, comps["02_Torreta_J1"], turXZ, 90.0, 5.0, 175.0, "J1_Limite_pm85");
 
-        // J2: Torreta <-> Brazo L2 (Pitch [+15°, +165°])
+        // J2: Torreta <-> Brazo L2 (Pitch [+22°, +145°])
         AddCoincidentMate(asmDoc, assy, asmName, comps["02_Torreta_J1"], "Axis_J2", "AXIS", comps["03_Brazo_L2"], "Axis_Prox", "AXIS", "J2_Eje_Hombro", ALN);
         AddCoincidentMate(asmDoc, assy, asmName, comps["02_Torreta_J1"], turXZ, "PLANE", comps["03_Brazo_L2"], l2XZ, "PLANE", "J2_Plano_Centrado", ALN);
-        AddLimitAngleMate(asmDoc, assy, asmName, comps["02_Torreta_J1"], turXY, comps["03_Brazo_L2"], l2XY, q2Deg, 15.0, 165.0, "J2_Limite_15_165",
+        AddLimitAngleMate(asmDoc, assy, asmName, comps["02_Torreta_J1"], turXY, comps["03_Brazo_L2"], l2XY, q2Deg, 22.0, 145.0, "J2_Limite_22_145",
             new double[] { Math.Cos(a2r), 0.0, Math.Sin(a2r) });
 
-        // J3: Brazo L2 <-> Antebrazo L3 (Pitch [-135°, +45°] respecto a Plane_J3_Ref45 -> [0°, 180°])
+        // J3: Brazo L2 <-> Antebrazo L3 (Pitch [-125°, +20°] respecto a Plane_J3_Ref45 -> [25°, 170°])
         AddCoincidentMate(asmDoc, assy, asmName, comps["03_Brazo_L2"], "Axis_Dist", "AXIS", comps["04_Antebrazo_L3"], "Axis_Prox", "AXIS", "J3_Eje_Codo", ALN);
         AddCoincidentMate(asmDoc, assy, asmName, comps["03_Brazo_L2"], l2XZ, "PLANE", comps["04_Antebrazo_L3"], l3XZ, "PLANE", "J3_Plano_Centrado", ALN);
-        AddLimitAngleMate(asmDoc, assy, asmName, comps["03_Brazo_L2"], "Plane_J3_Ref45", comps["04_Antebrazo_L3"], l3XY, 45.0 - q3Deg, 0.0, 180.0, "J3_Limite_m135_p45",
+        AddLimitAngleMate(asmDoc, assy, asmName, comps["03_Brazo_L2"], "Plane_J3_Ref45", comps["04_Antebrazo_L3"], l3XY, 45.0 - q3Deg, 25.0, 170.0, "J3_Limite_m125_p20",
             new double[] { Math.Cos(a3r), 0.0, Math.Sin(a3r) });
 
-        // J4: Antebrazo L3 <-> Palma Muñeca (Pitch [-90°, +90°])
+        // J4: Antebrazo L3 <-> Palma Muñeca (Pitch [-80°, +80°] -> [10°, 170°])
         AddCoincidentMate(asmDoc, assy, asmName, comps["04_Antebrazo_L3"], "Axis_Dist", "AXIS", comps["05_Palma_Muneca"], "Axis_Prox", "AXIS", "J4_Eje_Muneca", ALN);
         AddCoincidentMate(asmDoc, assy, asmName, comps["04_Antebrazo_L3"], l3XZ, "PLANE", comps["05_Palma_Muneca"], plmXZ, "PLANE", "J4_Plano_Centrado", ALN);
-        AddLimitAngleMate(asmDoc, assy, asmName, comps["04_Antebrazo_L3"], l3YZ, comps["05_Palma_Muneca"], plmXY, 90.0 + q4Deg, 0.0, 180.0, "J4_Limite_pm90",
+        AddLimitAngleMate(asmDoc, assy, asmName, comps["04_Antebrazo_L3"], l3YZ, comps["05_Palma_Muneca"], plmXY, 90.0 + q4Deg, 10.0, 170.0, "J4_Limite_pm80",
             new double[] { Math.Cos(a4r), 0.0, Math.Sin(a4r) });
 
         // Pinza Paralela Abierta MeArm Mod 1.5 (Paralelogramo 4 barras + Simetría 1:1!)

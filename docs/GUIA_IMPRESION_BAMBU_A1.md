@@ -23,15 +23,17 @@ Siguiendo la recomendación de ingeniería de la auditoría cruzada, valida los 
 
 ---
 
+> **Material Recomendado (`COMPARATIVA_MATERIALES_BAMBU_A1.md`):** Usa **PLA+ / PLA Pro Negro** (p. ej. Polymaker PolyLite PLA Pro o eSUN PLA+, acabado satinado sobrio) para las **Placas 1A y 1B** (`2×–5×` mayor resistencia al impacto en bayonetas, horquillas y dientes módulo `1.5` vs PLA Mate puro) y **PLA Blanco Mate** para los 10 acentos estéticos de la **Placa 2**.
+
 ## Resumen de las 3 Placas Definitivas (Bambu Studio · Boquilla `0.4 mm` · PEI `65 °C`)
 
-| Orden | Archivo `.3mf` (Multi-Objeto) | Filamento | Piezas | Altura Capa | Paredes / Relleno | Soportes | Masa Est. |
+| Orden | Archivo `.3mf` (Multi-Objeto) | Filamento Recomendado | Piezas | Altura Capa | Paredes / Relleno | Soportes | Masa Est. |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **1** | [`placa_1a_negro_estructura_v4_020mm.3mf`](../cad/exports/v4_clean_dfa/placas_bambu_a1/placa_1a_negro_estructura_v4_020mm.3mf) | **PLA Negro Mate** | **5** | `0.20 mm Standard` | `4 paredes` · `20% Gyroid` | **Árbol (Auto · Solo cama) ON** | `~182.5 g` |
-| **2** | [`placa_1b_negro_precision_v4_012mm.3mf`](../cad/exports/v4_clean_dfa/placas_bambu_a1/placa_1b_negro_precision_v4_012mm.3mf) | **PLA Negro Mate** | **19** | `0.12 mm Fine` | `4 paredes` · `25% Gyroid` | **OFF (`0 / 19`)** | `~33.3 g` |
+| **1** | [`placa_1a_negro_estructura_v4_020mm.3mf`](../cad/exports/v4_clean_dfa/placas_bambu_a1/placa_1a_negro_estructura_v4_020mm.3mf) | **PLA+ / PLA Pro Negro** | **5** | `0.20 mm Standard` | `4 paredes` · `20% Gyroid` | **Árbol (Auto · Solo cama) ON** | `~182.5 g` |
+| **2** | [`placa_1b_negro_precision_v4_012mm.3mf`](../cad/exports/v4_clean_dfa/placas_bambu_a1/placa_1b_negro_precision_v4_012mm.3mf) | **PLA+ / PLA Pro Negro** | **19** | `0.12 mm Fine` | `4 paredes` · `25% Gyroid` | **OFF (`0 / 19`)** | `~33.3 g` |
 | **3** | [`placa_2_blanco_mate_v4_016mm.3mf`](../cad/exports/v4_clean_dfa/placas_bambu_a1/placa_2_blanco_mate_v4_016mm.3mf) | **PLA Blanco Mate** | **10** | `0.16 mm Optimal` | `3 paredes` · `100%` | **OFF (`0 / 10`) · 0% AMS** | `~7.4 g` |
 
-* **Total estimado del brazo completo:** **`~223.2 g` PLA** (`215.8 g` Negro Mate + `7.4 g` Blanco Mate).
+* **Total estimado del brazo completo:** **`~223.2 g` PLA** (`215.8 g` PLA+/PLA Pro Negro + `7.4 g` Blanco Mate). *(Si ya tienes PLA Negro Mate en mano, también es 100% compatible siguiendo el Cupón 1 de prueba de 10 aperturas de bayoneta).*
 * **Respaldo individual en `Z = 0`:** Los **34 STLs ya orientados** están en [`stl_orientados_negro/`](../cad/exports/v4_clean_dfa/placas_bambu_a1/stl_orientados_negro/) y [`stl_orientados_blanco/`](../cad/exports/v4_clean_dfa/placas_bambu_a1/stl_orientados_blanco/).
 
 ---

@@ -43,7 +43,7 @@ from robot_minipro_rtb import (
     Q_HOME_RAD,
 )
 sys.path.insert(0, os.path.join(ROOT, "cad"))
-from params import GRIP_V4, HERO_POSE_DEG, gripper_kinematics_v4
+from params import GRIP_V4, HERO_POSE_DEG, gripper_kinematics_v4, check_physical_guard_v4
 
 try:
     import serial
@@ -140,6 +140,10 @@ IDLER_LOCAL_X = float(GRIP_V4["idler_x"])
 IDLER_LOCAL_Y = float(GRIP_V4["idler_y"])
 GRIP_LINK_L = float(GRIP_V4["link_l"])
 HERO_GRIP_TH_DEG = gripper_kinematics_v4(HERO_GRIP)[0]
+
+# Sincronizado 100% con el Single Source of Truth (`cad/params.py` -> `robot_minipro_rtb.py`)
+SIM_QLIM_DEG = QLIM_DEG
+check_physical_guard_sim = check_physical_guard_v4
 
 # Mapeo de cada STL a su grupo cinemático rígido (CAD v4 Clean-DFA — 34 STLs + 22 hardware)
 GROUP_MAP = {
@@ -368,6 +372,7 @@ class DigitalTwinApp:
         self.active_slider = None
         self.orbiting = False
         self._dirty_render = False
+        self._dialog_open = False
         self._timer_tick = 0
 
         # Cola de animación no bloqueante (lista de tuplas (q_deg[4], grip_mm, cube_pos_or_None))
@@ -663,6 +668,21 @@ class DigitalTwinApp:
         self.demo_cube.SetVisibility(False)
         self.ren3d.AddActor(self.demo_cube)
 
+        # Marcador 3D objetivo cian para "Ir a Posición Exacta [G]"
+        tgt_sph = vtk.vtkSphereSource()
+        tgt_sph.SetRadius(6.0)
+        tgt_sph.SetThetaResolution(20)
+        tgt_sph.SetPhiResolution(20)
+        mp_tgt = vtk.vtkPolyDataMapper()
+        mp_tgt.SetInputConnection(tgt_sph.GetOutputPort())
+        self.target_marker = vtk.vtkActor()
+        self.target_marker.SetMapper(mp_tgt)
+        self.target_marker.GetProperty().SetColor(0.14, 0.72, 0.98)
+        self.target_marker.GetProperty().SetOpacity(0.72)
+        self.target_marker.GetProperty().SetSpecular(0.35)
+        self.target_marker.SetVisibility(False)
+        self.ren3d.AddActor(self.target_marker)
+
     def _setup_lights(self):
         self.ren3d.AutomaticLightCreationOff()
         for pos, inten in [((380, -340, 440), 0.94), ((-300, -240, 260), 0.48), ((0, 360, 240), 0.38)]:
@@ -697,54 +717,55 @@ class DigitalTwinApp:
         self.buttons.append(("mode_ik", 0.51, 0.758, 0.95, 0.800))
 
         # Divisor + Encabezado Sección 2: Efector Final
-        _add_2d_rect(self.ren_ui, 0.06, 0.378, 0.94, 0.381, (0.24, 0.24, 0.28))
-        _add_2d_text(self.ren_ui, "EFECTOR FINAL (PINZA PARALELA · 1× SG90)", 0.06, 0.348, 11, (0.94, 0.48, 0.22), bold=True)
+        _add_2d_rect(self.ren_ui, 0.06, 0.382, 0.94, 0.385, (0.24, 0.24, 0.28))
+        _add_2d_text(self.ren_ui, "EFECTOR FINAL (PINZA PARALELA · 1× SG90)", 0.06, 0.354, 11, (0.94, 0.48, 0.22), bold=True)
 
-        # Botones clickeables en la parte inferior del panel derecho (coordenadas normalizadas del viewport derecho)
-        _add_2d_rect(self.ren_ui, 0.06, 0.238, 0.94, 0.241, (0.24, 0.24, 0.28))
+        # Divisor + Botón destacado "Ir a Posición Exacta [G]" + Botones de acción
+        _add_2d_rect(self.ren_ui, 0.06, 0.258, 0.94, 0.261, (0.24, 0.24, 0.28))
         btn_defs = [
-            ("hero",  "Pose Héroe [1]",      0.05, 0.175, 0.48, 0.225, (0.96, 0.96, 0.97), (0.08, 0.08, 0.10)),
-            ("home",  "Home Vertical [2]",   0.52, 0.175, 0.95, 0.225, (0.16, 0.16, 0.20), (0.95, 0.95, 0.97)),
-            ("jtraj", "Pick & Place [3]",    0.05, 0.115, 0.48, 0.165, (0.84, 0.32, 0.09), (1.00, 1.00, 1.00)),
-            ("ctraj", "Rectángulo ctraj [4]",0.52, 0.115, 0.95, 0.165, (0.16, 0.36, 0.78), (1.00, 1.00, 1.00)),
-            ("xray",  "Rayos-X [X]",         0.05, 0.058, 0.33, 0.104, (0.14, 0.14, 0.17), (0.92, 0.92, 0.95)),
-            ("kin",   "Ejes DH [K]",         0.36, 0.058, 0.64, 0.104, (0.14, 0.14, 0.17), (0.92, 0.92, 0.95)),
-            ("relax", "Relajar [Esp]",       0.67, 0.058, 0.95, 0.104, (0.26, 0.14, 0.14), (0.98, 0.84, 0.84)),
+            ("goto",  "Ir a Posición Exacta (X,Y,Z,Phi) [G]", 0.05, 0.201, 0.95, 0.247, (0.14, 0.56, 0.88), (1.00, 1.00, 1.00)),
+            ("hero",  "Pose Héroe [1]",      0.05, 0.148, 0.48, 0.192, (0.96, 0.96, 0.97), (0.08, 0.08, 0.10)),
+            ("home",  "Home Vertical [2]",   0.52, 0.148, 0.95, 0.192, (0.16, 0.16, 0.20), (0.95, 0.95, 0.97)),
+            ("jtraj", "Pick & Place [3]",    0.05, 0.095, 0.48, 0.139, (0.84, 0.32, 0.09), (1.00, 1.00, 1.00)),
+            ("ctraj", "Rectángulo ctraj [4]",0.52, 0.095, 0.95, 0.139, (0.16, 0.36, 0.78), (1.00, 1.00, 1.00)),
+            ("xray",  "Rayos-X [X]",         0.05, 0.044, 0.33, 0.086, (0.14, 0.14, 0.17), (0.92, 0.92, 0.95)),
+            ("kin",   "Ejes DH [K]",         0.36, 0.044, 0.64, 0.086, (0.14, 0.14, 0.17), (0.92, 0.92, 0.95)),
+            ("relax", "Relajar [Esp]",       0.67, 0.044, 0.95, 0.086, (0.26, 0.14, 0.14), (0.98, 0.84, 0.84)),
         ]
         for bid, label, x0, y0, x1, y1, bg, fg in btn_defs:
             _add_2d_rect(self.ren_ui, x0, y0, x1, y1, bg, edge_rgb=(0.32, 0.32, 0.38))
             _add_2d_text(self.ren_ui, label, 0.5 * (x0 + x1), 0.5 * (y0 + y1), 12, fg, bold=True, center=True)
             self.buttons.append((bid, x0, y0, x1, y1))
 
-        _add_2d_text(self.ren_ui, "[F] FK · [I] IK · Mouse Izq: rotar · [R] centrar · [Esc] salir", 0.50, 0.025, 11, (0.52, 0.52, 0.58), center=True)
+        _add_2d_text(self.ren_ui, "[F] FK · [I] IK · [G] Ir a Pos · [R] centrar · [Esc]", 0.50, 0.018, 11, (0.52, 0.52, 0.58), center=True)
 
         # Pie informativo sutil en la esquina inferior izquierda de la escena 3D
         _add_2d_text(
             self.ren3d,
-            "Modelo 3D CAD v4 Clean-DFA real (34 STLs 1 sólido + 22 internos · pinza MeArm Mod 1.5) · Peter Corke (82/82/70/53 mm)",
+            "Modelo 3D CAD v4 Clean-DFA real · Límites seguros v4: J1[-85,85] J2[22,145] J3[-125,20] J4[-80,80] · Guarda 3D activa",
             0.02, 0.022, 12, (0.28, 0.28, 0.32),
         )
 
     def _build_sliders(self):
         """Sliders vectoriales minimalistas B2 Stealth (modo dual FK articular / IK cartesiano!)."""
         self.fk_slider_specs = [
-            ("J1 · Base Yaw",       QLIM_DEG[0, 0], QLIM_DEG[0, 1], (0.96, 0.96, 0.98), "deg"),
-            ("J2 · Hombro Pitch",   QLIM_DEG[1, 0], QLIM_DEG[1, 1], (0.96, 0.96, 0.98), "deg"),
-            ("J3 · Codo Pitch",     QLIM_DEG[2, 0], QLIM_DEG[2, 1], (0.96, 0.96, 0.98), "deg"),
-            ("J4 · Muñeca Pitch",   QLIM_DEG[3, 0], QLIM_DEG[3, 1], (0.96, 0.96, 0.98), "deg"),
+            ("J1 · Base Yaw",       SIM_QLIM_DEG[0, 0], SIM_QLIM_DEG[0, 1], (0.96, 0.96, 0.98), "deg"),
+            ("J2 · Hombro Pitch",   SIM_QLIM_DEG[1, 0], SIM_QLIM_DEG[1, 1], (0.96, 0.96, 0.98), "deg"),
+            ("J3 · Codo Pitch",     SIM_QLIM_DEG[2, 0], SIM_QLIM_DEG[2, 1], (0.96, 0.96, 0.98), "deg"),
+            ("J4 · Muñeca Pitch",   SIM_QLIM_DEG[3, 0], SIM_QLIM_DEG[3, 1], (0.96, 0.96, 0.98), "deg"),
         ]
         self.ik_slider_specs = [
-            ("X · Alcance Frontal",   30.0, 205.0, (0.24, 0.68, 0.98), "mm"),
+            ("X · Alcance Frontal",   35.0, 199.0, (0.24, 0.68, 0.98), "mm"),
             ("Y · Lateral Izq/Der", -170.0, 170.0, (0.24, 0.68, 0.98), "mm"),
-            ("Z · Altura Escritorio", 15.0, 240.0, (0.24, 0.68, 0.98), "mm"),
+            ("Z · Altura Escritorio", 12.0, 260.0, (0.24, 0.68, 0.98), "mm"),
             ("Phi · Inclinación Pinza", -90.0,  90.0, (0.24, 0.68, 0.98), "deg"),
         ]
         self.slider_defs = [
-            ("J1 · Base Yaw",       QLIM_DEG[0, 0], QLIM_DEG[0, 1], 0.706, (0.96, 0.96, 0.98), "deg"),
-            ("J2 · Hombro Pitch",   QLIM_DEG[1, 0], QLIM_DEG[1, 1], 0.622, (0.96, 0.96, 0.98), "deg"),
-            ("J3 · Codo Pitch",     QLIM_DEG[2, 0], QLIM_DEG[2, 1], 0.538, (0.96, 0.96, 0.98), "deg"),
-            ("J4 · Muñeca Pitch",   QLIM_DEG[3, 0], QLIM_DEG[3, 1], 0.454, (0.96, 0.96, 0.98), "deg"),
-            ("Pinza Paralela SG90", 0.0,            30.0,           0.296, (0.94, 0.42, 0.14), "mm"),
+            ("J1 · Base Yaw",       SIM_QLIM_DEG[0, 0], SIM_QLIM_DEG[0, 1], 0.708, (0.96, 0.96, 0.98), "deg"),
+            ("J2 · Hombro Pitch",   SIM_QLIM_DEG[1, 0], SIM_QLIM_DEG[1, 1], 0.625, (0.96, 0.96, 0.98), "deg"),
+            ("J3 · Codo Pitch",     SIM_QLIM_DEG[2, 0], SIM_QLIM_DEG[2, 1], 0.542, (0.96, 0.96, 0.98), "deg"),
+            ("J4 · Muñeca Pitch",   SIM_QLIM_DEG[3, 0], SIM_QLIM_DEG[3, 1], 0.459, (0.96, 0.96, 0.98), "deg"),
+            ("Pinza Paralela SG90", 0.0,                30.0,               0.304, (0.94, 0.42, 0.14), "mm"),
         ]
         self.slider_x0 = 0.07
         self.slider_x1 = 0.93
@@ -959,11 +980,11 @@ class DigitalTwinApp:
         self.tfs["finger_r"].Concatenate(self.tfs["j4"])
         self.tfs["finger_r"].Translate(dx, -dy, 0.0)
 
-        # 3. Cinemática oficial Peter Corke (`fkine_all` + `jacob0` manipulabilidad + guarda anti-mesa)
+        # 3. Cinemática oficial Peter Corke (`fkine_all` + `jacob0` manipulabilidad + guarda 3D real)
         q_rad = np.deg2rad(self.q_deg)
         pts = self.robot.joint_positions_mm(q_rad)  # [Base, J2, J3, J4, TCP]
         tcp = pts[-1]
-        safe_z, _zj3, _zj4, z_tcp_eff, _gmsg = self.robot.check_table_guard(q_rad, g)
+        safe_sim, gmsg_sim = check_physical_guard_sim(self.q_deg, g)
         phi = q2 + q3 + q4
         Jv = self.robot.jacob0(q_rad)[:3, :]
         manip = math.sqrt(max(0.0, float(np.linalg.det(Jv @ Jv.T))))
@@ -1004,14 +1025,16 @@ class DigitalTwinApp:
         if self.relaxed:
             self.txt_phi.SetInput("SERVOS RELAJADOS (FULL_OFF 4096)")
         elif self.ik_status_msg:
-            self.txt_phi.SetInput(f"[IK!] {self.ik_status_msg}")
-        elif not safe_z:
-            self.txt_phi.SetInput(f"[!] GUARDA MESA: Z_eff={z_tcp_eff:.1f} mm (< 8 mm)")
+            msg_short = self.ik_status_msg if len(self.ik_status_msg) <= 44 else self.ik_status_msg[:43] + "…"
+            self.txt_phi.SetInput(f"[!] {msg_short}")
+        elif not safe_sim:
+            msg_short = gmsg_sim if len(gmsg_sim) <= 44 else gmsg_sim[:43] + "…"
+            self.txt_phi.SetInput(f"[!] {msg_short}")
         else:
             self.txt_phi.SetInput(f"φ={phi_clean:+.1f}° | g={g:.0f}mm (Δx={dx:+.1f}) | w={manip:.3f}")
 
-        # Transmisión en vivo hacia XIAO ESP32-S3 (solo si pasa guarda anti-mesa!)
-        if transmit and not self.relaxed and safe_z:
+        # Transmisión en vivo hacia XIAO ESP32-S3 (solo si pasa guarda física 3D!)
+        if transmit and not self.relaxed and safe_sim:
             self.link.send_pose(self.q_deg, g, throttle_s=throttle_s)
 
         self.win.Render()
@@ -1041,6 +1064,7 @@ class DigitalTwinApp:
     def _queue_move(self, target_q_deg, target_grip, steps=24):
         self.anim_queue.clear()
         self.demo_cube.SetVisibility(False)
+        self.target_marker.SetVisibility(False)
         self.cube_held = False
         self.trail_pts.clear()
         self._update_trail_poly()
@@ -1054,6 +1078,7 @@ class DigitalTwinApp:
         self.anim_queue.clear()
         self.trail_pts.clear()
         self._update_trail_poly()
+        self.target_marker.SetVisibility(False)
         self.relaxed = False
         self.cube_held = False
         self.cube_pos = np.array([135.0, -65.0, 68.0])
@@ -1090,6 +1115,7 @@ class DigitalTwinApp:
         self.trail_pts.clear()
         self._update_trail_poly()
         self.demo_cube.SetVisibility(False)
+        self.target_marker.SetVisibility(False)
         self.cube_held = False
         self.relaxed = False
 
@@ -1120,27 +1146,375 @@ class DigitalTwinApp:
                 if okk:
                     self.anim_queue.append((np.rad2deg(qk), 10.0, None, True))
 
-    def _apply_ik_target(self, new_ik):
-        """Resuelve Cinemática Inversa analítica + guarda anti-mesa y actualiza `q_deg` si es válida."""
-        x, y, z, phi = [float(v) for v in new_ik]
+    def _apply_fk_target(self, new_q, slide_clamp: bool = True):
+        """Aplica pose FK respetando límites seguros y guarda 3D real (con tope suave en slider)."""
+        cand = np.array(new_q, dtype=float)
+        ok, msg = check_physical_guard_sim(cand, self.grip_mm)
+        if ok:
+            self.q_deg = cand
+            tcp = self.robot.fkine_mm(np.deg2rad(self.q_deg))
+            self.ik_target = np.array([tcp[0], tcp[1], tcp[2], float(cand[1] + cand[2] + cand[3])], dtype=float)
+            self.ik_status_msg = ""
+            return True
+        if slide_clamp:
+            # Búsqueda binaria de 7 pasos para deslizar hasta el tope seguro exacto sin quedarse lejos
+            lo = self.q_deg.copy()
+            hi = cand.copy()
+            best = None
+            for _ in range(7):
+                mid = 0.5 * (lo + hi)
+                ok_m, _ = check_physical_guard_sim(mid, self.grip_mm)
+                if ok_m:
+                    best = mid
+                    lo = mid
+                else:
+                    hi = mid
+            if best is not None:
+                self.q_deg = best
+                tcp = self.robot.fkine_mm(np.deg2rad(self.q_deg))
+                self.ik_target = np.array([tcp[0], tcp[1], tcp[2], float(best[1] + best[2] + best[3])], dtype=float)
+        self.ik_status_msg = msg
+        return False
+
+    def _solve_ik_safe(self, x: float, y: float, z: float, phi: float, grip_mm: float):
+        """Resuelve IK analítica + verifica límites seguros SIM_QLIM_DEG + guarda 3D física real."""
         q_rad, ok, msg = self.robot.ikine_analytic_mm(x, y, z, phi, elbow_up=True)
         if not ok:
+            return None, False, msg
+        qd = np.rad2deg(q_rad)
+        safe, gmsg = check_physical_guard_sim(qd, grip_mm)
+        if not safe:
+            return None, False, gmsg
+        return qd, True, "OK"
+
+    def _apply_ik_target(self, new_ik, slide_clamp: bool = True):
+        """Resuelve Cinemática Inversa analítica + guarda física 3D real y actualiza `q_deg`."""
+        cand = np.array(new_ik, dtype=float)
+        qd, ok, msg = self._solve_ik_safe(cand[0], cand[1], cand[2], cand[3], self.grip_mm)
+        if ok:
+            self.ik_target = cand
+            self.q_deg = qd
+            self.ik_status_msg = ""
+            return True
+        if slide_clamp:
+            lo = self.ik_target.copy()
+            hi = cand.copy()
+            best_ik, best_q = None, None
+            for _ in range(7):
+                mid = 0.5 * (lo + hi)
+                qm, ok_m, _ = self._solve_ik_safe(mid[0], mid[1], mid[2], mid[3], self.grip_mm)
+                if ok_m:
+                    best_ik, best_q = mid, qm
+                    lo = mid
+                else:
+                    hi = mid
+            if best_q is not None:
+                self.ik_target = best_ik
+                self.q_deg = best_q
+        self.ik_status_msg = msg
+        return False
+
+    def go_to_ik(self, x: float, y: float, z: float, phi: float, grip_mm: float = None, linear: bool = False, steps: int = 34):
+        """
+        Lleva el brazo suavemente hasta la posición cartesiana exacta (X, Y, Z, Phi) por IK!
+        Valida tanto el destino como la trayectoria completa contra piso, base y auto-colisión.
+        """
+        g_tgt = float(np.clip(self.grip_mm if grip_mm is None else grip_mm, 0.0, 30.0))
+        q_tgt, ok, msg = self._solve_ik_safe(x, y, z, phi, g_tgt)
+        if not ok:
             self.ik_status_msg = msg
-            return False
-        safe_z, _z3, _z4, _zt, gmsg = self.robot.check_table_guard(q_rad, self.grip_mm)
-        if not safe_z:
-            self.ik_status_msg = gmsg
-            return False
-        self.ik_target = np.array([x, y, z, phi], dtype=float)
-        self.q_deg = np.rad2deg(q_rad)
+            self.update_pose(transmit=False)
+            return False, msg
+
+        frames = []
+        if linear:
+            # Trayectoria rectilínea cartesiana exacta vía Peter Corke `rtb.ctraj`
+            p0 = self.robot.fkine_mm(np.deg2rad(self.q_deg))
+            phi0 = float(self.q_deg[1] + self.q_deg[2] + self.q_deg[3])
+            T0 = SE3(p0[0] / 1000.0, p0[1] / 1000.0, p0[2] / 1000.0)
+            T1 = SE3(x / 1000.0, y / 1000.0, z / 1000.0)
+            Ts = rtb.ctraj(T0, T1, steps)
+            phis = np.linspace(phi0, phi, steps)
+            gs = np.linspace(self.grip_mm, g_tgt, steps)
+            for T, ph_i, g_i in zip(Ts, phis, gs):
+                p = T.t * 1000.0
+                qi, oki, msgi = self._solve_ik_safe(float(p[0]), float(p[1]), float(p[2]), float(ph_i), float(g_i))
+                if not oki:
+                    err = f"Línea recta bloqueada en el camino ({msgi}). Usa trayectoria articular suave (jtraj)."
+                    self.ik_status_msg = err
+                    return False, err
+                frames.append((qi, float(g_i), None, True))
+        else:
+            # Trayectoria articular quíntica suave `rtb.jtraj` con validación paso a paso
+            tr = rtb.jtraj(np.deg2rad(self.q_deg), np.deg2rad(q_tgt), steps)
+            gs = np.linspace(self.grip_mm, g_tgt, steps)
+            direct_ok = True
+            for qi, g_i in zip(tr.q, gs):
+                qd_i = np.rad2deg(qi)
+                s_ok, _ = check_physical_guard_sim(qd_i, float(g_i))
+                if not s_ok:
+                    direct_ok = False
+                    break
+                frames.append((qd_i, float(g_i), None, True))
+
+            # Si el camino directo rosa piso/base, inserta automáticamente un punto intermedio elevado seguro!
+            if not direct_ok:
+                frames.clear()
+                q_mid = 0.5 * (self.q_deg + q_tgt)
+                q_mid[1] = float(np.clip(max(self.q_deg[1], q_tgt[1], 72.0), SIM_QLIM_DEG[1, 0], SIM_QLIM_DEG[1, 1]))
+                q_mid[2] = float(np.clip(-85.0, SIM_QLIM_DEG[2, 0], SIM_QLIM_DEG[2, 1]))
+                q_mid[3] = float(np.clip(0.0, SIM_QLIM_DEG[3, 0], SIM_QLIM_DEG[3, 1]))
+                half = max(14, steps // 2)
+                tr1 = rtb.jtraj(np.deg2rad(self.q_deg), np.deg2rad(q_mid), half)
+                tr2 = rtb.jtraj(np.deg2rad(q_mid), np.deg2rad(q_tgt), half)
+                g_mid = 0.5 * (self.grip_mm + g_tgt)
+                for seg_q, seg_g in ((tr1.q, np.linspace(self.grip_mm, g_mid, half)),
+                                     (tr2.q, np.linspace(g_mid, g_tgt, half))):
+                    for qi, g_i in zip(seg_q, seg_g):
+                        qd_i = np.rad2deg(qi)
+                        s_ok, s_msg = check_physical_guard_sim(qd_i, float(g_i))
+                        if not s_ok:
+                            return False, f"Trayectoria bloqueada: {s_msg}"
+                        frames.append((qd_i, float(g_i), None, True))
+
+        self.anim_queue = frames
+        self.demo_cube.SetVisibility(False)
+        self.target_marker.SetVisibility(False)
+        self.cube_held = False
+        self.relaxed = False
         self.ik_status_msg = ""
-        return True
+        self.trail_pts.clear()
+        self._update_trail_poly()
+        self.target_marker.SetPosition(float(x), float(y), float(z))
+        self.target_marker.SetVisibility(True)
+        self.win.Render()
+        return True, f"Moviendo a ({x:.1f}, {y:.1f}, {z:.1f}) mm · q=[{q_tgt[0]:+.1f}, {q_tgt[1]:.1f}, {q_tgt[2]:+.1f}, {q_tgt[3]:+.1f}]°"
+
+    def go_to_fk(self, q_deg_tgt, grip_mm: float = None, steps: int = 30):
+        """Lleva el brazo suavemente hasta ángulos articulares exactos (J1..J4) validados."""
+        q_tgt = np.array(q_deg_tgt, dtype=float)
+        g_tgt = float(np.clip(self.grip_mm if grip_mm is None else grip_mm, 0.0, 30.0))
+        safe, msg = check_physical_guard_sim(q_tgt, g_tgt)
+        if not safe:
+            self.ik_status_msg = msg
+            self.update_pose(transmit=False)
+            return False, msg
+        tr = rtb.jtraj(np.deg2rad(self.q_deg), np.deg2rad(q_tgt), steps)
+        gs = np.linspace(self.grip_mm, g_tgt, steps)
+        frames = []
+        for qi, g_i in zip(tr.q, gs):
+            qd_i = np.rad2deg(qi)
+            s_ok, s_msg = check_physical_guard_sim(qd_i, float(g_i))
+            if not s_ok:
+                return False, f"Trayectoria FK bloqueada: {s_msg}"
+            frames.append((qd_i, float(g_i), None, True))
+        tcp_tgt = self.robot.fkine_mm(np.deg2rad(q_tgt))
+        self.anim_queue = frames
+        self.demo_cube.SetVisibility(False)
+        self.target_marker.SetVisibility(False)
+        self.cube_held = False
+        self.relaxed = False
+        self.ik_status_msg = ""
+        self.trail_pts.clear()
+        self._update_trail_poly()
+        self.target_marker.SetPosition(float(tcp_tgt[0]), float(tcp_tgt[1]), float(tcp_tgt[2]))
+        self.target_marker.SetVisibility(True)
+        self.win.Render()
+        return True, f"Moviendo a q=[{q_tgt[0]:+.1f}, {q_tgt[1]:.1f}, {q_tgt[2]:+.1f}, {q_tgt[3]:+.1f}]°"
+
+    def _open_goto_dialog(self):
+        """Diálogo B2 Stealth para escribir una posición exacta (IK o FK) y mover el brazo hasta ella."""
+        if self.offscreen or self._dialog_open:
+            return
+        try:
+            import tkinter as tk
+        except Exception as exc:
+            self.ik_status_msg = f"Tkinter no disponible: {exc}"
+            self.update_pose(transmit=False)
+            return
+
+        self._dialog_open = True
+        try:
+            tcp = self.robot.fkine_mm(np.deg2rad(self.q_deg))
+            phi_now = float(self.q_deg[1] + self.q_deg[2] + self.q_deg[3])
+
+            root = tk.Tk()
+            root.title("Ir a Posición Exacta — Mini-Pro 4-DOF B2 Stealth")
+            root.configure(bg="#0D0D0F")
+            root.resizable(False, False)
+            root.attributes("-topmost", True)
+
+            mode_var = tk.StringVar(value="IK")
+            traj_var = tk.StringVar(value="jtraj")
+
+            # Encabezado
+            tk.Label(
+                root, text="IR A POSICIÓN EXACTA (IK / FK)", bg="#0D0D0F", fg="#F4F4F5",
+                font=("Segoe UI", 12, "bold"),
+            ).pack(pady=(14, 2), padx=18, anchor="w")
+            tk.Label(
+                root, text="Escribe las coordenadas objetivo y el brazo se moverá suavemente validando colisiones.",
+                bg="#0D0D0F", fg="#9A9AA3", font=("Segoe UI", 9),
+            ).pack(pady=(0, 10), padx=18, anchor="w")
+
+            # Selector de pestaña IK / FK
+            tab_fr = tk.Frame(root, bg="#0D0D0F")
+            tab_fr.pack(fill="x", padx=18, pady=(0, 10))
+            btn_ik = tk.Button(tab_fr, text="Cinemática Inversa · IK (X, Y, Z, Phi)", relief="flat", bd=0, pady=6,
+                               font=("Segoe UI", 9, "bold"), cursor="hand2")
+            btn_fk = tk.Button(tab_fr, text="Cinemática Directa · FK (J1..J4)", relief="flat", bd=0, pady=6,
+                               font=("Segoe UI", 9, "bold"), cursor="hand2")
+            btn_ik.pack(side="left", expand=True, fill="x", padx=(0, 4))
+            btn_fk.pack(side="left", expand=True, fill="x", padx=(4, 0))
+
+            # Tarjeta de entradas numéricas
+            card = tk.Frame(root, bg="#161619", highlightbackground="#2B2B30", highlightthickness=1, padx=14, pady=12)
+            card.pack(fill="x", padx=18)
+
+            labels_w = []
+            entries_w = []
+            hints_w = []
+            for r in range(5):
+                lbl = tk.Label(card, text="", bg="#161619", fg="#E4E4E7", font=("Segoe UI", 10, "bold"), width=18, anchor="w")
+                ent = tk.Entry(card, bg="#0D0D0F", fg="#FFFFFF", insertbackground="#2294E6",
+                               relief="flat", highlightbackground="#3A3A44", highlightthickness=1,
+                               font=("Consolas", 11, "bold"), width=11, justify="right")
+                hnt = tk.Label(card, text="", bg="#161619", fg="#7E7E8A", font=("Segoe UI", 8), anchor="w")
+                lbl.grid(row=r, column=0, sticky="w", pady=4)
+                ent.grid(row=r, column=1, padx=(8, 10), pady=4)
+                hnt.grid(row=r, column=2, sticky="w", pady=4)
+                labels_w.append(lbl)
+                entries_w.append(ent)
+                hints_w.append(hnt)
+
+            # Presets rápidos (para modo IK)
+            pre_fr = tk.Frame(root, bg="#0D0D0F")
+            pre_fr.pack(fill="x", padx=18, pady=(10, 0))
+            tk.Label(pre_fr, text="Ejemplos rápidos IK:", bg="#0D0D0F", fg="#9A9AA3", font=("Segoe UI", 8)).pack(anchor="w")
+            pbtn_fr = tk.Frame(pre_fr, bg="#0D0D0F")
+            pbtn_fr.pack(fill="x", pady=(4, 0))
+
+            def fill_vals(vals):
+                for e, v in zip(entries_w, vals):
+                    e.delete(0, tk.END)
+                    e.insert(0, f"{v:.1f}")
+
+            def set_preset(vals):
+                mode_var.set("IK")
+                refresh_mode(keep_vals=False)
+                fill_vals(vals)
+
+            for title, pvals in [
+                ("Frente", (145.0, 0.0, 125.0, 0.0, 15.0)),
+                ("Izquierda", (125.0, 65.0, 95.0, -20.0, 15.0)),
+                ("Derecha", (125.0, -65.0, 95.0, -20.0, 15.0)),
+                ("Bajo Mesa", (135.0, 0.0, 50.0, -25.0, 22.0)),
+            ]:
+                tk.Button(
+                    pbtn_fr, text=title, bg="#1F1F25", fg="#E4E4E7", activebackground="#2E2E38", activeforeground="#FFF",
+                    relief="flat", bd=0, padx=8, pady=4, font=("Segoe UI", 8, "bold"), cursor="hand2",
+                    command=lambda v=pvals: set_preset(v),
+                ).pack(side="left", expand=True, fill="x", padx=2)
+
+            # Tipo de trayectoria (solo relevante en IK)
+            tr_fr = tk.Frame(root, bg="#0D0D0F")
+            tr_fr.pack(fill="x", padx=18, pady=(10, 4))
+            tk.Radiobutton(
+                tr_fr, text="Trayectoria suave (jtraj · recomendada)", variable=traj_var, value="jtraj",
+                bg="#0D0D0F", fg="#E4E4E7", selectcolor="#161619", activebackground="#0D0D0F",
+                activeforeground="#FFF", font=("Segoe UI", 9),
+            ).pack(anchor="w")
+            tk.Radiobutton(
+                tr_fr, text="Línea recta cartesiana exacta (ctraj)", variable=traj_var, value="ctraj",
+                bg="#0D0D0F", fg="#E4E4E7", selectcolor="#161619", activebackground="#0D0D0F",
+                activeforeground="#FFF", font=("Segoe UI", 9),
+            ).pack(anchor="w")
+
+            status_lbl = tk.Label(root, text="", bg="#0D0D0F", fg="#F97316", font=("Segoe UI", 9, "bold"), wraplength=390, justify="left")
+            status_lbl.pack(fill="x", padx=18, pady=(4, 6))
+
+            def refresh_mode(keep_vals: bool = False):
+                is_ik = (mode_var.get() == "IK")
+                btn_ik.configure(bg="#2294E6" if is_ik else "#1B1B20", fg="#FFFFFF" if is_ik else "#A1A1AA")
+                btn_fk.configure(bg="#F4F4F5" if not is_ik else "#1B1B20", fg="#0D0D0F" if not is_ik else "#A1A1AA")
+                if is_ik:
+                    meta = [
+                        ("X · Alcance (mm)", "35 .. 199 mm", tcp[0]),
+                        ("Y · Lateral (mm)", "-170 .. +170 mm", tcp[1]),
+                        ("Z · Altura (mm)",  "12 .. 260 mm", tcp[2]),
+                        ("Phi · Pinza (°)",  "-90 .. +90°", phi_now),
+                        ("Pinza · Apertura", "0 .. 30 mm", self.grip_mm),
+                    ]
+                else:
+                    meta = [
+                        ("J1 · Base (°)",   f"{SIM_QLIM_DEG[0,0]:+.0f} .. {SIM_QLIM_DEG[0,1]:+.0f}°", self.q_deg[0]),
+                        ("J2 · Hombro (°)", f"{SIM_QLIM_DEG[1,0]:+.0f} .. {SIM_QLIM_DEG[1,1]:+.0f}°", self.q_deg[1]),
+                        ("J3 · Codo (°)",   f"{SIM_QLIM_DEG[2,0]:+.0f} .. {SIM_QLIM_DEG[2,1]:+.0f}°", self.q_deg[2]),
+                        ("J4 · Muñeca (°)", f"{SIM_QLIM_DEG[3,0]:+.0f} .. {SIM_QLIM_DEG[3,1]:+.0f}°", self.q_deg[3]),
+                        ("Pinza · Apertura", "0 .. 30 mm", self.grip_mm),
+                    ]
+                for idx, (t, h, v) in enumerate(meta):
+                    labels_w[idx].configure(text=t)
+                    hints_w[idx].configure(text=h)
+                    if not keep_vals:
+                        entries_w[idx].delete(0, tk.END)
+                        entries_w[idx].insert(0, f"{v:.1f}")
+                status_lbl.configure(text="")
+
+            btn_ik.configure(command=lambda: (mode_var.set("IK"), refresh_mode()))
+            btn_fk.configure(command=lambda: (mode_var.set("FK"), refresh_mode()))
+            refresh_mode()
+
+            def on_submit(_evt=None):
+                try:
+                    vals = [float(e.get().strip().replace(",", ".")) for e in entries_w]
+                except ValueError:
+                    status_lbl.configure(text="Ingresa solo números válidos (ej. 130.0, -25.0).")
+                    return
+                if mode_var.get() == "IK":
+                    ok, msg = self.go_to_ik(vals[0], vals[1], vals[2], vals[3], grip_mm=vals[4],
+                                            linear=(traj_var.get() == "ctraj"))
+                    if ok:
+                        self._set_control_mode("IK")
+                        self.ik_target = np.array(vals[:4], dtype=float)
+                        root.destroy()
+                    else:
+                        status_lbl.configure(text=f"⚠ {msg}")
+                else:
+                    ok, msg = self.go_to_fk(vals[:4], grip_mm=vals[4])
+                    if ok:
+                        self._set_control_mode("FK")
+                        root.destroy()
+                    else:
+                        status_lbl.configure(text=f"⚠ {msg}")
+
+            act_fr = tk.Frame(root, bg="#0D0D0F")
+            act_fr.pack(fill="x", padx=18, pady=(6, 16))
+            tk.Button(
+                act_fr, text="Cancelar (Esc)", command=root.destroy, bg="#1F1F25", fg="#D4D4D8",
+                relief="flat", bd=0, padx=14, pady=8, font=("Segoe UI", 9, "bold"), cursor="hand2",
+            ).pack(side="left")
+            tk.Button(
+                act_fr, text="Mover brazo a esta posición (Enter)", command=on_submit, bg="#2294E6", fg="#FFFFFF",
+                activebackground="#1978BD", activeforeground="#FFFFFF",
+                relief="flat", bd=0, padx=16, pady=8, font=("Segoe UI", 10, "bold"), cursor="hand2",
+            ).pack(side="right", fill="x", expand=True, padx=(8, 0))
+
+            root.bind("<Return>", on_submit)
+            root.bind("<Escape>", lambda _e: root.destroy())
+            entries_w[0].focus_set()
+            entries_w[0].select_range(0, tk.END)
+            root.mainloop()
+        finally:
+            self._dialog_open = False
 
     def _trigger_action(self, bid: str):
         if bid == "mode_fk":
             self._set_control_mode("FK")
         elif bid == "mode_ik":
             self._set_control_mode("IK")
+        elif bid == "goto":
+            self._open_goto_dialog()
         elif bid == "hero":
             self.ik_status_msg = ""
             self._queue_move(np.rad2deg(Q_HERO_RAD), HERO_GRIP)
@@ -1161,6 +1535,7 @@ class DigitalTwinApp:
             self._apply_visual_toggles()
         elif bid == "relax":
             self.anim_queue.clear()
+            self.target_marker.SetVisibility(False)
             self.relaxed = True
             self.link.send_raw("RELAX")
             self.update_pose(transmit=False)
@@ -1189,18 +1564,25 @@ class DigitalTwinApp:
         val = ui["vmin"] + t * (ui["vmax"] - ui["vmin"])
         self.anim_queue.clear()
         self.demo_cube.SetVisibility(False)
+        self.target_marker.SetVisibility(False)
         self.cube_held = False
         self.relaxed = False
         if idx < 4:
             if self.control_mode == "IK":
                 cand = self.ik_target.copy()
                 cand[idx] = val
-                self._apply_ik_target(cand)
+                self._apply_ik_target(cand, slide_clamp=True)
             else:
-                self.ik_status_msg = ""
-                self.q_deg[idx] = val
+                cand_q = self.q_deg.copy()
+                cand_q[idx] = val
+                self._apply_fk_target(cand_q, slide_clamp=True)
         else:
-            self.grip_mm = val
+            ok_g, msg_g = check_physical_guard_sim(self.q_deg, val)
+            if ok_g:
+                self.grip_mm = val
+                self.ik_status_msg = ""
+            else:
+                self.ik_status_msg = msg_g
         if render_now:
             self._dirty_render = False
             self.update_pose(transmit=True, throttle_s=0.025)
@@ -1292,17 +1674,25 @@ class DigitalTwinApp:
                 ui = self.slider_ui[s_idx]
                 step = (5.0 if s_idx < 3 else 3.0) if (self.control_mode == "IK" and s_idx < 4) else (2.0 if s_idx < 4 else 1.0)
                 self.anim_queue.clear()
+                self.target_marker.SetVisibility(False)
                 self.relaxed = False
                 if s_idx < 4:
                     if self.control_mode == "IK":
                         cand = self.ik_target.copy()
                         cand[s_idx] = float(np.clip(cand[s_idx] + direction * step, ui["vmin"], ui["vmax"]))
-                        self._apply_ik_target(cand)
+                        self._apply_ik_target(cand, slide_clamp=True)
                     else:
-                        self.ik_status_msg = ""
-                        self.q_deg[s_idx] = float(np.clip(self.q_deg[s_idx] + direction * step, ui["vmin"], ui["vmax"]))
+                        cand_q = self.q_deg.copy()
+                        cand_q[s_idx] = float(np.clip(cand_q[s_idx] + direction * step, ui["vmin"], ui["vmax"]))
+                        self._apply_fk_target(cand_q, slide_clamp=True)
                 else:
-                    self.grip_mm = float(np.clip(self.grip_mm + direction * step, ui["vmin"], ui["vmax"]))
+                    cand_g = float(np.clip(self.grip_mm + direction * step, ui["vmin"], ui["vmax"]))
+                    ok_g, msg_g = check_physical_guard_sim(self.q_deg, cand_g)
+                    if ok_g:
+                        self.grip_mm = cand_g
+                        self.ik_status_msg = ""
+                    else:
+                        self.ik_status_msg = msg_g
                 self.update_pose(transmit=True, throttle_s=0.0)
             return
         if direction > 0:
@@ -1317,6 +1707,8 @@ class DigitalTwinApp:
         self._handle_wheel(obj, -1)
 
     def _on_key(self, obj, _evt):
+        if self._dialog_open:
+            return
         key = (obj.GetKeySym() or "").lower()
         if key == "escape":
             self.iren.TerminateApp()
@@ -1332,6 +1724,8 @@ class DigitalTwinApp:
             self._set_control_mode("FK")
         elif key == "i":
             self._set_control_mode("IK")
+        elif key == "g":
+            self._trigger_action("goto")
         elif key == "x":
             self._trigger_action("xray")
         elif key == "h":
@@ -1345,6 +1739,8 @@ class DigitalTwinApp:
             self._reset_camera()
 
     def _on_timer(self, _obj, _evt):
+        if self._dialog_open:
+            return
         self._timer_tick += 1
 
         # Red de seguridad 60 Hz: si el botón físico ya se soltó, liberar slider inmediatamente
@@ -1385,10 +1781,16 @@ def main():
     parser.add_argument("--baud", type=int, default=115200, help="Baudrate serial (default 115200)")
     parser.add_argument("--wifi", type=str, default="", help="IP Wi-Fi de la XIAO ESP32 (ej. 192.168.4.1)")
     parser.add_argument("--udp-port", type=int, default=4210, help="Puerto UDP del firmware (default 4210)")
+    parser.add_argument("--goto", nargs=4, type=float, metavar=("X", "Y", "Z", "PHI"),
+                        help="Inicia moviendo el brazo suavemente a la posición IK (mm, mm, mm, deg)")
     args = parser.parse_args()
 
     link = ArmLink(port=args.port, baud=args.baud, wifi_ip=args.wifi, udp_port=args.udp_port)
     app = DigitalTwinApp(link=link, offscreen=False)
+    if args.goto:
+        app._set_control_mode("IK")
+        ok, msg = app.go_to_ik(*args.goto)
+        print(f"[GOTO] {msg}")
     app.run()
 
 

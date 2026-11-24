@@ -11,7 +11,11 @@
 1. Verifica primero **5.0 V** en el `AR5515` con multímetro (`PCA9685 VCC` siempre a `XIAO 3V3`).
 2. Enchufa los `4× MG90S` sueltos en `CH0..CH3` del `PCA9685` y tu `SG90` en `CH4`.
 3. Abre el Monitor Serial (`115200 baud`) y envía `CENTER` → `CH0..CH3` se colocan en `1500 µs` (`90°` exactos) y se resincroniza el estado interno; atornilla los *horns* alineados y ensambla.
-4. Si algún eje queda desviado ±3°–5° tras armar, ajusta su `offset_deg` en `config.h` y vuelve a subir.
+4. Verifica el sentido de giro enviando movimientos pequeños (`M 10 90 -90 0 15 800`, etc.); si un eje se mueve al revés cambia `invert = true`, o si queda desviado `±3°–5°` ajusta `offset_deg` en `config.h` y vuelve a subir.
+
+### Límites Seguros y Guarda Física 3D Activa (Sincronizados con `cad/params.py`)
+* **Límites articulares:** `J1 ∈ [-85°, +85°]`, `J2 ∈ [+22°, +145°]`, `J3 ∈ [-125°, +20°]`, `J4 ∈ [-80°, +80°]`, `Pinza ∈ [0, 30 mm]` (conservan `5°–25°` de margen contra los topes internos de los `MG90S` y protegen los bucles de cableado).
+* **Guarda 3D real en cada movimiento (FK e IK):** Bloquea cualquier pose donde la panza del `SG90` (`-21.8 mm` bajo `J4`), las puntas de los dedos (`+7.1 mm` tras el TCP) o el antebrazo bajen de `Z < 4 mm`, choquen contra la base cilíndrica (`Ø 106 mm`) o produzcan auto-colisión `L4 vs L2`.
 
 ---
 
@@ -33,7 +37,8 @@
 * **Web UI desde tu celular (`http://192.168.4.1/`):** Incluye pestañas **`Directa · FK (J1..J4)`** e **`Inversa · IK (X, Y, Z, φ)`** con sliders + cajas numéricas exactas + telemetría bidireccional en vivo y aviso instantáneo si un punto sale de alcance o activa la guarda anti-mesa.
 * **Gemelo Digital 3D (Peter Corke Python):**
   ```powershell
-  python python/gemelo_digital_esp32.py                     # Simulación 3D (teclas [F] FK / [I] IK)
+  python python/gemelo_digital_esp32.py                     # Simulación 3D ([F] FK / [I] IK / [G] Ir a Posición Exacta)
+  python python/gemelo_digital_esp32.py --goto 125 65 95 -20  # Arranca yendo suavemente a (X,Y,Z,Phi)
   python python/gemelo_digital_esp32.py --wifi 192.168.4.1  # Vivo por Wi-Fi UDP (1 solo cable)
   python python/gemelo_digital_esp32.py --port COM5         # Vivo por USB Serial
   ```

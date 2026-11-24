@@ -80,19 +80,19 @@ static const char WEB_UI_HTML[] PROGMEM = R"rawliteral(
   <div class="card" id="panel-fk">
     <div class="row">
       <div class="lbl"><span>J1 · Base Yaw</span><span class="val" id="v0">0.0°</span></div>
-      <input type="range" id="s0" min="-90" max="90" step="1" value="0">
+      <input type="range" id="s0" min="-85" max="85" step="1" value="0">
     </div>
     <div class="row">
       <div class="lbl"><span>J2 · Hombro Pitch</span><span class="val" id="v1">68.0°</span></div>
-      <input type="range" id="s1" min="15" max="165" step="1" value="68">
+      <input type="range" id="s1" min="22" max="145" step="1" value="68">
     </div>
     <div class="row">
       <div class="lbl"><span>J3 · Codo Pitch</span><span class="val" id="v2">-96.0°</span></div>
-      <input type="range" id="s2" min="-135" max="45" step="1" value="-96">
+      <input type="range" id="s2" min="-125" max="20" step="1" value="-96">
     </div>
     <div class="row">
       <div class="lbl"><span>J4 · Muñeca Pitch</span><span class="val" id="v3">28.0°</span></div>
-      <input type="range" id="s3" min="-90" max="90" step="1" value="28">
+      <input type="range" id="s3" min="-80" max="80" step="1" value="28">
     </div>
   </div>
 
@@ -100,7 +100,7 @@ static const char WEB_UI_HTML[] PROGMEM = R"rawliteral(
   <div class="card hidden" id="panel-ik">
     <div class="row">
       <div class="lbl"><span>X · Alcance Frontal (mm)</span><span class="val" id="vx">145.5 mm</span></div>
-      <input type="range" id="sx" min="30" max="205" step="1" value="146">
+      <input type="range" id="sx" min="35" max="199" step="1" value="146">
     </div>
     <div class="row">
       <div class="lbl"><span>Y · Desplazamiento Lateral (mm)</span><span class="val" id="vy">0.0 mm</span></div>
@@ -108,7 +108,7 @@ static const char WEB_UI_HTML[] PROGMEM = R"rawliteral(
     </div>
     <div class="row">
       <div class="lbl"><span>Z · Altura sobre Escritorio (mm)</span><span class="val" id="vz">125.2 mm</span></div>
-      <input type="range" id="sz" min="15" max="240" step="1" value="125">
+      <input type="range" id="sz" min="12" max="260" step="1" value="125">
     </div>
     <div class="row">
       <div class="lbl"><span>φ · Inclinación Pinza (°)</span><span class="val" id="vp">0.0°</span></div>

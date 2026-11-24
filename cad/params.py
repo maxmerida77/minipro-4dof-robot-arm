@@ -33,18 +33,29 @@ A2_LOWER_ARM = 82.0          # Longitud centro-a-centro Hombro (J2) -> Codo (J3)
 A3_FOREARM = 70.0            # Longitud centro-a-centro Codo (J3) -> Muñeca (J4)
 A4_WRIST_TO_TCP = 53.0       # Distancia eje Muñeca (J4) -> centro de almohadillas pinza en apertura nominal (15 mm)
 
-# --- Límites Articulares Reales (grados / mm — INNEGOCIABLES) ---
+# --- Límites Articulares Reales Seguros (grados / mm — Single Source of Truth) ---
+# Calibrados contra las mallas STL v4 + márgenes de protección contra topes internos MG90S
+# y bucles de cableado (conservan 199 mm alcance frontal, Pick & Place y Rectángulo ctraj).
 Q_LIMITS_DEG = {
-    "q1_base": (-90.0, 90.0),      # 180° útiles centrados en +X
-    "q2_shoulder": (15.0, 165.0),  # 90° vertical hacia arriba
-    "q3_elbow": (-135.0, 45.0),    # 0° alineado con L2; negativo dobla hacia adelante/abajo
-    "q4_wrist": (-90.0, 90.0),     # 0° alineado con L3
+    "q1_base": (-85.0, 85.0),      # 170° útiles (5° margen por lado contra topes internos MG90S)
+    "q2_shoulder": (22.0, 145.0),  # 123° útiles (evita zona alto par/piso <22° y vuelco atrás >145°)
+    "q3_elbow": (-125.0, 20.0),    # 145° útiles (evita pellizco cables <-125° e hiperextensión >+20°)
+    "q4_wrist": (-80.0, 80.0),     # 160° útiles (10° margen por lado contra topes MG90S/cable SG90)
     "gripper": (0.0, 30.0),        # Apertura paralela de pinza en mm
 }
 
-# --- Guarda Cinemática Anti-Mesa (mm) — Previene choques con escritorio (Z < 0) ---
-TABLE_SAFE_Z_TCP_MM = 8.0      # Z mínimo permitido para TCP sobre la mesa
-TABLE_SAFE_Z_JOINT_MM = 22.0   # Z mínimo permitido para centros J3 y J4
+# --- Guarda Física 3D Envolvente Real (mm) — Sincronizada CAD / Python / Firmware / Wokwi ---
+# Incluye la envolvente real medida de los STLs v4: panza inferior del SG90 (-21.8 mm bajo J4),
+# punta física de los dedos (+7.1 mm tras TCP), carcasa cilíndrica de base Ø106 mm y viga L2.
+TABLE_SAFE_Z_TCP_MM = 8.0      # Z mínimo de referencia del TCP sobre la mesa
+TABLE_SAFE_Z_JOINT_MM = 22.0   # Z mínimo de referencia para centros J3 y J4
+GUARD_FLOOR_Z_MIN_MM = 4.0     # Altura libre mínima real de cualquier punto físico (SG90/dedos/L3) sobre Z=0
+GUARD_BASE_DRUM_R_MM = 56.0    # Radio de exclusión de la base fija Ø106 mm (Z < 54 mm)
+GUARD_BASE_DRUM_Z_MM = 54.0
+GUARD_BASE_NECK_R_MM = 46.0    # Radio de exclusión del cuello/torreta J1 (Z < 64 mm)
+GUARD_BASE_NECK_Z_MM = 64.0
+GUARD_L4_SG90_Z_MM = -21.8     # Cota Z más baja real de palma+SG90 en frame local J4
+GUARD_FINGER_TIP_EXTRA_MM = 7.1  # Saliente físico de las puntas de dedos más allá del centro almohadilla TCP
 
 # --- Dimensiones Reales Verificadas (UNIT Electronics) ---
 # MG90S y MG92B comparten huella 22.8×12.2 mm; alojamiento compatible con ambos en J2!
@@ -194,6 +205,91 @@ def gripper_kinematics_v4(grip_open_mm: float):
     tcp_x = A4_WRIST_TO_TCP + dx
     servo_deg = GRIP_V4["servo_closed_deg"] + th_deg
     return th_deg, tcp_x, dx, servo_deg
+
+
+# Puntos de envolvente físico real en frame local (x, z) medidos de los STL v4 Clean-DFA
+_ENV_L3_LOCAL = (
+    (15.0, -14.0), (35.0, -14.0), (55.0, -14.0), (70.0, -18.2),
+    (35.0, +14.0), (70.0, +18.2),
+)
+_ENV_L4_LOCAL_BASE = (
+    ( 0.0, -16.2),              # fondo tapa muñeca J4
+    (21.6, GUARD_L4_SG90_Z_MM), # esquina trasera inferior SG90 / palma
+    (34.5, GUARD_L4_SG90_Z_MM), # esquina frontal inferior SG90 / palma
+    (35.9, +16.2),              # tope superior palma abierta
+)
+
+
+def check_physical_guard_v4(q_deg, grip_open_mm: float = 15.0, z_floor_min: float = GUARD_FLOOR_Z_MIN_MM):
+    """
+    Guarda física 3D compartida (Single Source of Truth para Python, Gemelo 3D y Firmware):
+      1. Verifica límites articulares seguros `Q_LIMITS_DEG`.
+      2. Verifica altura libre real sobre el escritorio (`Z >= 4 mm`) incluyendo la panza
+         inferior del servo SG90 (`-21.8 mm` bajo J4) y puntas de los dedos (`+7.1 mm` tras TCP).
+      3. Verifica despeje respecto a la base fija Ø106 mm + cuello torreta J1.
+      4. Verifica no auto-colisión entre L4/SG90 y la viga superior del hombro L2.
+    Retorna: (ok: bool, msg: str)
+    """
+    q1, q2, q3, q4 = [float(x) for x in q_deg]
+    lims = (
+        ("J1", Q_LIMITS_DEG["q1_base"]),
+        ("J2", Q_LIMITS_DEG["q2_shoulder"]),
+        ("J3", Q_LIMITS_DEG["q3_elbow"]),
+        ("J4", Q_LIMITS_DEG["q4_wrist"]),
+    )
+    for (nm, (lo, hi)), val in zip(lims, (q1, q2, q3, q4)):
+        if val < lo - 1e-2 or val > hi + 1e-2:
+            return False, f"{nm}={val:+.1f}° fuera de límite seguro [{lo:+.0f}°, {hi:+.0f}°]"
+
+    t2 = math.radians(q2)
+    t23 = math.radians(q2 + q3)
+    t234 = math.radians(q2 + q3 + q4)
+    c2, s2 = math.cos(t2), math.sin(t2)
+    c23, s23 = math.cos(t23), math.sin(t23)
+    c234, s234 = math.cos(t234), math.sin(t234)
+
+    r3 = A2_LOWER_ARM * c2
+    z3 = D1_BASE_TO_SHOULDER + A2_LOWER_ARM * s2
+    r4 = r3 + A3_FOREARM * c23
+    z4 = z3 + A3_FOREARM * s23
+
+    # 1) Puntos de L3
+    z_min_l3 = 1e9
+    for lx, lz in _ENV_L3_LOCAL:
+        rr = r3 + lx * c23 - lz * s23
+        zz = z3 + lx * s23 + lz * c23
+        if zz < z_min_l3:
+            z_min_l3 = zz
+        if (zz < GUARD_BASE_DRUM_Z_MM and abs(rr) < GUARD_BASE_DRUM_R_MM) or (
+            zz < GUARD_BASE_NECK_Z_MM and abs(rr) < GUARD_BASE_NECK_R_MM
+        ):
+            return False, "Antebrazo L3 chocaría con la base cilíndrica"
+    if z_min_l3 < z_floor_min:
+        return False, f"Antebrazo/Muñeca chocaría con mesa (Z={z_min_l3:.1f} < {z_floor_min:.0f} mm)"
+
+    # 2) Puntos de L4 + SG90 + dedos
+    _th, tcp_x, _dx, _sdeg = gripper_kinematics_v4(grip_open_mm)
+    tip_x = tcp_x + GUARD_FINGER_TIP_EXTRA_MM
+    l4_pts = _ENV_L4_LOCAL_BASE + ((tcp_x, -1.5), (tip_x, -1.5), (tip_x, +13.8))
+    z_min_l4 = 1e9
+    for lx, lz in l4_pts:
+        rr = r4 + lx * c234 - lz * s234
+        zz = z4 + lx * s234 + lz * c234
+        if zz < z_min_l4:
+            z_min_l4 = zz
+        if (zz < GUARD_BASE_DRUM_Z_MM and abs(rr) < GUARD_BASE_DRUM_R_MM) or (
+            zz < GUARD_BASE_NECK_Z_MM and abs(rr) < GUARD_BASE_NECK_R_MM
+        ):
+            return False, "Pinza/SG90 chocaría con la base cilíndrica"
+        dz = zz - D1_BASE_TO_SHOULDER
+        x_in_l2 = rr * c2 + dz * s2
+        z_in_l2 = -rr * s2 + dz * c2
+        if 8.0 < x_in_l2 < 72.0 and abs(z_in_l2) < 14.0:
+            return False, "Pinza/SG90 chocaría con el brazo L2"
+    if z_min_l4 < z_floor_min:
+        return False, f"Pinza/SG90 chocaría con mesa (Z={z_min_l4:.1f} < {z_floor_min:.0f} mm)"
+
+    return True, "OK"
 
 
 # --- Pose Héroe por Defecto (Pinza perfectamente horizontal φ = 0°, apertura nominal 15 mm = TCP exacto en 53 mm) ---

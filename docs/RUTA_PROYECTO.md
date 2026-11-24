@@ -8,7 +8,8 @@
 * **4 DOF + Pinza:** `4× MG90S` 180° metálicos (`AR1240`, huella compatible `drop-in` con futuro `MG92B` en `J2`) + `1× SG90` (ya disponible).
 * **Control y energía (1 solo cable USB-C negro):** `XIAO ESP32-S3` + `PCA9685` (`AR0389`, `VCC` estrictamente a `3V3`) + Cargador **UGREEN 50W** → Módulo USB-C PD **`AR5515` (DIP 5V)** + botón ON/OFF **`KCD11-2P`** (`AR0243`) + diodo Schottky **`1N5819`** (`AR0195`) + capacitor **`1000 µF 16V`** (`AR1127`).
 * **Geometría DH (Innegociable):** `d₁ = 82 mm`, `a₂ = 82 mm`, `a₃ = 70 mm`, `a₄ = 53 mm` (alcance horizontal `205 mm`; base coaxial `Ø 106 mm` con 6 patas perimetrales `r = 45.5 mm`, 0 rodamientos `608ZZ`, 0 insertos con cautín).
-* **Acabado:** **`B2 Stealth`** en PLA Negro Mate (~95%) + **10 piezas Blanco Mate separadas** (`0%` purga AMS).
+* **Acabado:** **`B2 Stealth`** en **PLA+ / PLA Pro Negro** (~95%, Placas 1A y 1B) + **10 piezas PLA Blanco Mate separadas** (`0%` purga AMS, Placa 2).
+* **Límites seguros + Guarda 3D sincronizados (`cad/params.py`):** `J1[-85,+85]`, `J2[+22,+145]`, `J3[-125,+20]`, `J4[-80,+80]` + guarda 3D real (mesa `Z ≥ 4 mm` con panza `SG90 -21.8 mm`, base `Ø 106 mm` y auto-colisión `L4 vs L2`), más control dual **FK + IK en vivo** y **`Ir a Posición Exacta [G]`**.
 
 ---
 
