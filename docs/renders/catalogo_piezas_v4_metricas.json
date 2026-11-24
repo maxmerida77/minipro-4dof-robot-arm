@@ -1,0 +1,444 @@
+[
+  {
+    "file": "01_base_fija_v4.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      105.9,
+      105.9,
+      44.0
+    ],
+    "vol_cm3": 75.6,
+    "est_mass_g": 46.9,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "03_tapa_inferior_v4.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      99.2,
+      98.8,
+      8.8
+    ],
+    "vol_cm3": 29.37,
+    "est_mass_g": 18.2,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "04_torreta_j1_hombro_v4.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      105.8,
+      105.8,
+      66.6
+    ],
+    "vol_cm3": 140.27,
+    "est_mass_g": 87.0,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "04b_reten_axial_j1.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      44.0,
+      44.0,
+      3.4
+    ],
+    "vol_cm3": 3.66,
+    "est_mass_g": 4.1,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "05_eslabon_l2_v4.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      124.3,
+      77.6,
+      39.6
+    ],
+    "vol_cm3": 38.86,
+    "est_mass_g": 24.1,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "06_antebrazo_l3_v4.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      107.5,
+      83.7,
+      39.6
+    ],
+    "vol_cm3": 29.11,
+    "est_mass_g": 18.0,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "07_palma_pinza_v4.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      52.1,
+      42.5,
+      38.0
+    ],
+    "vol_cm3": 10.49,
+    "est_mass_g": 6.5,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "08_engrane_brazo_izq_m15.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      27.1,
+      20.8,
+      5.0
+    ],
+    "vol_cm3": 0.9,
+    "est_mass_g": 0.6,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "09_engrane_brazo_der_m15.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      25.7,
+      20.6,
+      5.0
+    ],
+    "vol_cm3": 1.07,
+    "est_mass_g": 0.7,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "10_dedo_pinza_der_v4.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      32.3,
+      25.6,
+      15.0
+    ],
+    "vol_cm3": 1.87,
+    "est_mass_g": 1.2,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "10_dedo_pinza_izq_v4.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      32.3,
+      25.6,
+      15.0
+    ],
+    "vol_cm3": 1.87,
+    "est_mass_g": 1.2,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "11_separador_m3_j2.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      8.3,
+      8.3,
+      4.8
+    ],
+    "vol_cm3": 0.09,
+    "est_mass_g": 0.1,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "11_separador_m3_j3.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      8.3,
+      8.3,
+      4.8
+    ],
+    "vol_cm3": 0.09,
+    "est_mass_g": 0.1,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "11_separador_m3_j4.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      8.3,
+      8.3,
+      4.8
+    ],
+    "vol_cm3": 0.09,
+    "est_mass_g": 0.1,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "12_biela_pinza_der_v4.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      20.5,
+      13.3,
+      3.0
+    ],
+    "vol_cm3": 0.28,
+    "est_mass_g": 0.3,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "12_biela_pinza_izq_v4.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      20.5,
+      13.3,
+      3.0
+    ],
+    "vol_cm3": 0.28,
+    "est_mass_g": 0.3,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "13_tapa_cable_l2.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      29.7,
+      13.1,
+      7.5
+    ],
+    "vol_cm3": 0.31,
+    "est_mass_g": 0.2,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "13_tapa_cable_l3.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      18.7,
+      10.9,
+      7.5
+    ],
+    "vol_cm3": 0.2,
+    "est_mass_g": 0.1,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "tapa_j2_der.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      27.5,
+      27.5,
+      4.8
+    ],
+    "vol_cm3": 2.07,
+    "est_mass_g": 1.3,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "tapa_j2_izq.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      27.5,
+      27.5,
+      4.8
+    ],
+    "vol_cm3": 2.07,
+    "est_mass_g": 1.3,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "tapa_j3_der.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      25.5,
+      25.5,
+      4.8
+    ],
+    "vol_cm3": 1.71,
+    "est_mass_g": 1.1,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "tapa_j3_izq.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      25.5,
+      25.5,
+      4.8
+    ],
+    "vol_cm3": 1.71,
+    "est_mass_g": 1.1,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "tapa_j4_der.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      21.5,
+      21.5,
+      4.8
+    ],
+    "vol_cm3": 1.07,
+    "est_mass_g": 0.7,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "tapa_j4_izq.stl",
+    "color": "Negro Mate",
+    "dims_mm": [
+      21.5,
+      21.5,
+      4.8
+    ],
+    "vol_cm3": 1.07,
+    "est_mass_g": 0.7,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "w01_aro_base_blanco.stl",
+    "color": "Blanco Mate",
+    "dims_mm": [
+      106.2,
+      106.2,
+      3.0
+    ],
+    "vol_cm3": 3.33,
+    "est_mass_g": 3.7,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "w02_collar_muneca_blanco.stl",
+    "color": "Blanco Mate",
+    "dims_mm": [
+      42.2,
+      5.6,
+      1.4
+    ],
+    "vol_cm3": 0.13,
+    "est_mass_g": 0.1,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "w04_almohadilla_der.stl",
+    "color": "Blanco Mate",
+    "dims_mm": [
+      13.0,
+      10.4,
+      1.6
+    ],
+    "vol_cm3": 0.22,
+    "est_mass_g": 0.2,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "w04_almohadilla_izq.stl",
+    "color": "Blanco Mate",
+    "dims_mm": [
+      13.0,
+      10.4,
+      1.6
+    ],
+    "vol_cm3": 0.22,
+    "est_mass_g": 0.2,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "w_aro_j2_der.stl",
+    "color": "Blanco Mate",
+    "dims_mm": [
+      31.0,
+      31.0,
+      3.6
+    ],
+    "vol_cm3": 0.5,
+    "est_mass_g": 0.6,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "w_aro_j2_izq.stl",
+    "color": "Blanco Mate",
+    "dims_mm": [
+      31.0,
+      31.0,
+      3.6
+    ],
+    "vol_cm3": 0.5,
+    "est_mass_g": 0.6,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "w_aro_j3_der.stl",
+    "color": "Blanco Mate",
+    "dims_mm": [
+      29.0,
+      29.0,
+      3.6
+    ],
+    "vol_cm3": 0.47,
+    "est_mass_g": 0.5,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "w_aro_j3_izq.stl",
+    "color": "Blanco Mate",
+    "dims_mm": [
+      29.0,
+      29.0,
+      3.6
+    ],
+    "vol_cm3": 0.47,
+    "est_mass_g": 0.5,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "w_aro_j4_der.stl",
+    "color": "Blanco Mate",
+    "dims_mm": [
+      25.0,
+      25.0,
+      3.6
+    ],
+    "vol_cm3": 0.4,
+    "est_mass_g": 0.4,
+    "watertight": true,
+    "bodies": 1
+  },
+  {
+    "file": "w_aro_j4_izq.stl",
+    "color": "Blanco Mate",
+    "dims_mm": [
+      25.0,
+      25.0,
+      3.6
+    ],
+    "vol_cm3": 0.4,
+    "est_mass_g": 0.4,
+    "watertight": true,
+    "bodies": 1
+  }
+]
