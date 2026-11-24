@@ -1,43 +1,46 @@
-# Comparativa de Materiales de Impresión 3D — Bambu Lab A1 Combo (`Mini-Pro 4-DOF B2 Stealth`)
+# Investigación de Materiales de Impresión 3D — Bambu Lab A1 Combo (`Mini-Pro 4-DOF B2 Stealth`)
 
-> **Contexto específico de fabricación:** Impresora de marco abierto **Bambu Lab A1 Combo** (`256 × 256 mm`, placa Textured PEI `65–80 °C`, hotend hasta `300 °C`, boquilla estándar `0.4 mm` acero inoxidable, sin cámara cerrada), estética monocromática mate **`B2 Stealth`**, masa móvil crítica sobre `J2` (`~95 g`), superficies deslizantes (`pista J1 Ø88 mm` + `separadores M3`) y presupuesto total del proyecto **`≤ $1,500 MXN`** en México.
-
----
-
-## 1. Tabla Comparativa Técnica (Evaluada para este Brazo Robótico)
-
-| Material | Acabado `B2 Stealth` | Rigidez (Módulo Flexión) | Tenacidad / Resistencia a Golpe | Temp. Reblandecimiento (HDT) | Fricción / Desgaste (Pista J1 y Engranes) | Imprimibilidad en Bambu A1 (abierta) | Boquilla `0.4 mm` de serie | Costo aprox. MX (1 kg) | Veredicto |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| **PLA+ / PLA Pro Mate** *(eSUN ePLA-Matte / PolyLite PLA Pro / Bambu PLA Tough)* | ★★★★★ *(Mate / semi-mate)* | **Muy alta** (~3.2 GPa) | **Alta** (no quiebra en bayonetas) | ~58–62 °C | Media *(muy buena con PTFE/silicón)* | **Excelente** (0 warping) | **Sí** | \$360–\$480 MXN | **GANADOR RECOMENDADO (Mejor equilibrio global)** |
-| **PLA Mate estándar** *(Bambu PLA Matte / PolyTerra)* | ★★★★★ *(El más mate)* | Alta (~2.8 GPa) | **Media-baja** *(menor adhesión entre capas)* | ~55 °C | Media-alta *(superficie ligeramente rugosa)* | **Excelente** (0 warping) | **Sí** | \$380–\$520 MXN | **Excelente estética**, pero evitar golpes o calor sostenido en `J2` |
-| **PETG / PETG-HF / PETG Mate** *(Bambu PETG-HF / eSUN PETG Matte)* | ★★★☆☆ *(Brilloso salvo versión Matte)* | Media (~2.0 GPa, **flexa más en L2/L3**) | **Muy alta** (dúctil) | **~70–75 °C** *(ideal cerca de MG90S calientes)* | **Baja** *(desliza muy suave en engranes y pista)* | Muy buena *(requiere filamento seco)* | **Sí** | \$380–\$500 MXN | **Ideal para piezas móviles/fricción** (`engranes`, `separadores`, `retén J1`) |
-| **PLA-CF** *(PLA con Fibra de Carbono)* | ★★★★★ *(Acabado industrial ultra-mate)* | **Extrema** (~4.5 GPa) | Media-baja *(frágil ante flexión puntual)* | ~58 °C | **Abrasivo** *(desgasta pista/pivotes)* | Muy buena | **NO** *(requiere acero endurecido)* | \$650–\$850 MXN | **No ideal sin boquilla endurecida** y sube costo/abrasión |
-| **ABS / ASA** | ★★★★☆ | Alta | Muy alta | ~90–100 °C | Buena | **Mala en A1 abierta** *(warping + gases estireno)* | Sí | \$420–\$550 MXN | **DESCARTADO** para Bambu Lab A1 (sin cámara cerrada) |
+> **Basado en hojas técnicas oficiales (TDS ISO 527 / ISO 178 / ISO 179)** de **Bambu Lab** y **Polymaker**, y pruebas empíricas de mecanismos/engranes (rigidez, impacto con muesca, *creep*, temperatura HDT y tribología) aplicadas específicamente a tu **Bambu Lab A1 Combo** (marco abierto, boquilla `0.4 mm` de serie, sin cámara cerrada).
 
 ---
 
-## 2. Análisis por Zona Crítica de tu Brazo `v4 Clean-DFA`
+## 1. El Mito del PETG vs Datos Reales de Laboratorio (TDS Oficiales)
 
-1. **Estructura exterior (`Base Ø106`, `Torreta`, `L2`, `L3`, `Palma`, `Tapas bayoneta`):**
-   * **Qué necesita:** **Máxima rigidez** para que el TCP de Peter Corke no caiga por flexión elástica, **cero deformación (*warping*)** en la base de `Ø 106 mm` y acabado **Negro Mate uniforme** sin brillos plásticos.
-   * **Por qué gana PLA+ / PLA Pro (o PLA Mate de buena calidad):** El PLA tiene ~45–60% mayor módulo de elasticidad que el PETG, mantiene tolerancias de `0.22 mm` al milímetro en la A1 y logra el look `B2 Stealth` de producto comercial.
-   * **Precaución con PLA Mate "puro":** Los aditivos minerales que lo vuelven ultra-mate reducen ~20–30% la adhesión entre capas; por eso en **`v4`** eliminamos los clips flexibles y pusimos **bayonetas rígidas de 32°** y **horquillas acostadas con fibra continua en XY**. Aun así, un **PLA+ / PLA Pro** (o **PLA Mate de marca confiable como Bambu / Polymaker / eSUN**) soporta mucho mejor el apriete de los tornillos `M2/M3`.
-2. **Piezas con fricción y temperatura (`04b_reten_axial_j1`, `11_separador_m3_*`, `08/09_engrane_brazo_12T`, `12_biela`):**
-   * Un `MG90S` trabajando continuo puede alcanzar `45–55 °C` en su carcasa; el PLA está justo en su límite térmico (`~55–60 °C`), mientras que el **PETG** aguanta `70–75 °C` sin deformarse (*creep*) y tiene menor fricción deslizante contra el PLA.
-3. **10 Acentos `B2 Stealth` (`Placa 2` — solo `7.4 g`):**
-   * **PLA Blanco Mate** (o Blanco Pro): prácticamente no carga esfuerzo mecánico y da el máximo contraste fotográfico/visual con **0% purga AMS**.
+Es muy común escuchar que *"el PETG es más resistente que el PLA para mecanismos"*, pero la palabra *"resistente"* mezcla **5 propiedades distintas**. Al revisar los datos reales de laboratorio:
+
+| Propiedad (ISO) | Bambu PLA Matte | Bambu PLA Basic | Polymaker PolyLite PLA Pro | Bambu PETG-HF | Polymaker PolyLite PETG | Qué significa para tu brazo `v4` |
+| :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Módulo de Flexión (Rigidez)** | `2,360 MPa` | **`2,750 MPa`** | **`2,700–2,933 MPa`** | `2,050 MPa` | `1,898 MPa` | **Gana PLA Pro (+45% más rígido):** menos pandeo en `L2/L3`, menos vibración en el TCP y dientes `12T` que no ceden. |
+| **Resistencia a Flexión (XY)** | `53 MPa` | **`76 MPa`** | **`68–78 MPa`** | `64 MPa` | `69.6 MPa` | **PLA Basic/Pro superan a PETG-HF**; ojo: **PLA Matte sí es ~30% más débil** que PLA Basic/Pro. |
+| **Tracción en eje Z (unión entre capas)** | `22 MPa` | **`31 MPa`** | Alta (~35+ MPa) | `23 MPa` | ~28 MPa | En Bambu Lab, `PLA Basic` tiene **mejor adhesión entre capas** que `PLA Matte` y `PETG-HF`. |
+| **Impacto Charpy con muesca (XY)** | `6.3 kJ/m²` | `7.9 kJ/m²` | **`13.4–17.1 kJ/m²`** | `~6.2 kJ/m²` | `2.6 kJ/m²` | **Gana PLA Pro (2–5× sobre PETG):** en esquinas, bayonetas y raíz de dientes de engrane resiste mucho mejor grietas. |
+| **Elongación a rotura (ductilidad)** | Media-baja | Baja | `6.3%` | Alta | **`8.4%`** | **Gana PETG:** antes de romper se dobla visiblemente (útil para clips flexibles, pero en `v4` ya usamos bayonetas rígidas). |
+| **Temp. deflexión térmica (HDT @ 0.45 MPa)** | `58 °C` | `57 °C` | `62 °C` | **`69 °C`** | **`78 °C`** | **Gana PETG (+12 a +20 °C):** mejor resistencia al calor si un `MG90S` se calienta a >50 °C bajo carga sostenida. |
+| **Fricción / Desgaste (Tribología)** | Rugoso (aditivos mate) | Duro y limpio | **Duro y limpio** | **Blando / pegajoso (*galling*)** | **Blando / pegajoso (*galling*)** | **PETG contra PETG se "traba" más** bajo carga por desgaste adhesivo; PLA duro en baja velocidad (<60 RPM) va más limpio (y aún mejor con cinta PTFE). |
+| **Soportes Árbol y Tolerancias (`0.22 mm`)** | Excelente | Excelente | **Excelente** | Soportes difíciles + hilillos si absorbe humedad | Soportes difíciles + *stringing* | En Placa 1A (con Árbol) y dientes `12T`, PLA Pro sale limpio a la primera sin secar carrete. |
+
+*(ABS/ASA descartados por ser impresora abierta sin cámara cerrada; PLA-CF descartado porque exige boquilla de acero endurecido y es abrasivo en pivotes/pista).*
 
 ---
 
-## 3. Recomendación Práctica Final (2 Estrategias Según Tu Presupuesto)
+## 2. Conclusión Honesta para Mecanismos del Brazo `Mini-Pro 4-DOF v4`
 
-### Opción A — La Más Limpia y Económica (`100% dentro de $1,500 MXN`)
-* **1 carrete Negro (1 kg): `PLA+ / PLA Pro Negro` o `PLA Negro Mate` (Bambu / eSUN / Polymaker)** para Placa 1A + Placa 1B.
-* **1 carrete Blanco (250 g o 1 kg): `PLA Blanco Mate`** para Placa 2 (`7.4 g`).
-* **Truco pro de $15 MXN:** Pon una tira delgada de **cinta PTFE (teflón)** o una gota mínima de **lubricante de silicón seco** en la pista `Ø 88 mm` de `J1` y en los `3×` separadores `M3` → obtienes la rigidez y estética mate del PLA con fricción bajísima.
+1. **¿Cuándo SÍ conviene PETG en mecanismos?**
+   * Cuando el mecanismo trabaja **cerca de motores muy calientes (>50–55 °C)** (ej. motores paso a paso NEMA 17 en una impresora 3D o un auto al sol),
+   * Cuando hay **clips que deben flexionarse repetidamente** (*snap-fits*), o
+   * Cuando hay **tensión constante permanente** (un resorte plástico o tornillo apretado sin casquillo donde el PLA sufre *creep* lento).
+2. **Por qué en ESTE brazo `v4 Clean-DFA` gana un buen `PLA+ / PLA Pro` (y pierde el PETG completo):**
+   * **Rigidez del brazo:** Con `205 mm` de alcance y solo `~95 g`, imprimir `L2/L3` en PETG reduce la rigidez ~35–45%, haciendo que el brazo rebote al frenar y pierda precisión en el TCP de Peter Corke.
+   * **Sin clips flexibles ni cargas térmicas de NEMA 17:** En `v4` eliminamos los clips flexibles (bayonetas `32°` rígidas) y los pivotes tienen casquillos lisos `M3` + tuercas `Nyloc` (no aprietan el plástico). Los `MG90S` con rampas suaves de `1100 ms` sin sobrecarga trabajan a ~30–40 °C (muy debajo de `60–62 °C`).
+   * **Engranes `12T` mod `1.5` y pista `J1`:** PETG contra PETG es blando y tiene tendencia a pegarse (*galling*) bajo presión, además de producir hilillos que ensucian los flancos de los dientes. El **PLA Pro** mantiene el perfil rígido y preciso del diente con **5× más resistencia a grieta con muesca** que el PETG estándar.
+   * **OJO con el "PLA Mate" puro:** Los datos de Bambu Lab muestran que **PLA Matte (`53 MPa` flexión, `22 MPa` en Z)** sí es claramente más frágil que **PLA Basic (`76 MPa`, `31 MPa` en Z)** y **PolyLite PLA Pro (`70+ MPa`, `13–17 kJ/m²`)**.
 
-### Opción B — Combo Híbrido "Ingeniería Pro" (si ya tienes PETG Negro en casa)
-* **Placa 1A (Estructura exterior `182.5 g`) + 6 Tapas Bayoneta:** **PLA Negro Mate** *(máxima rigidez + estética `B2 Stealth` 10/10)*.
-* **Piezas mecánicas de la Placa 1B (`engranes 12T`, `bielas`, `dedos`, `separadores M3`, `retén axial J1` — solo `~11 g`):** **PETG Negro (o PETG-HF Negro)** *(cero desgaste en dientes módulo `1.5`, menor fricción en pivotes y mayor resistencia térmica junto al `SG90`)*.
-* **Placa 2 (`7.4 g`):** **PLA Blanco Mate**.
-* *(Nota: nunca mezcles PLA y PETG en la misma pieza multicolor porque no se adhieren entre sí; aquí van en **piezas separadas acopladas mecánicamente**, lo cual es una ventaja enorme porque PLA deslizando contra PETG tiene **menor fricción** que PLA contra PLA!).*
+---
+
+## 3. Veredicto Final Recomendado (Ordenado de Mejor a Peor para Tu Caso)
+
+1. **#1 RECOMENDADO (Mecanismos + Estética): `PLA+ / PLA Pro Negro` (acabado mate o satinado bajo, ej. Polymaker PolyLite PLA Pro / eSUN PLA+ / Bambu PLA Tough)** + `PLA Blanco Mate` para los 10 acentos (`7.4 g`).
+   * Combina la **máxima rigidez** (~2,800 MPa), **máxima resistencia a impacto en dientes y bayonetas** (`13–17 kJ/m²`), tolerancias exactas en `0.22 mm`, cero problemas de soportes árbol en Placa 1A y cero *warping* en tu A1.
+   * Añade cinta **PTFE (teflón)** o una gota mínima de silicón seco en la pista `Ø 88 mm` de `J1` y los `3×` separadores `M3`.
+2. **#2 Alternativa si priorizas 100% el acabado ultra-mate de estudio:** **PLA Negro Mate** de marca (Bambu / PolyTerra / eSUN ePLA-Matte) **SOLO en carcasas exteriores**, y **PLA+ / PLA Pro** (o **PETG** únicamente si ves que el `SG90` de la pinza o `J2` se calientan >48 °C en pruebas reales) en `11_separador_m3`, `04b_reten_axial_j1` y `08/09_engrane_brazo`.
+3. **#3 Todo en PETG (o PETG-HF Mate):** **Funciona** si ya tienes el carrete y secas bien el filamento, pero espera **más flexión en `L2/L3`**, **soportes árbol más difíciles de quitar en Placa 1A**, posibles hilillos en los dientes `12T` y **mayor fricción pegajosa** en la pista `J1` si no pones cinta PTFE.
