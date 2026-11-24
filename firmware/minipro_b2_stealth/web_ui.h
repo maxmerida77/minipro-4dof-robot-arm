@@ -60,10 +60,14 @@ static const char WEB_UI_HTML[] PROGMEM = R"rawliteral(
   <div class="card">
     <div class="tel">
       <div class="tel-box">
-        <div class="tel-k">TCP Cartesiano (FK)</div>
+        <div class="tel-k">TCP DH (a₄ = 53 mm)</div>
         <div class="tel-v" id="tel-xyz">145.5, 0.0, 125.2</div>
       </div>
       <div class="tel-box">
+        <div class="tel-k">Agarre w04 (+5.8 mm)</div>
+        <div class="tel-v" id="tel-grip">145.5, 0.0, 131.0</div>
+      </div>
+      <div class="tel-box" style="grid-column:span 2">
         <div class="tel-k">Articulaciones (J1..J4)</div>
         <div class="tel-v" id="tel-q">0°, 68°, -96°, 28°</div>
       </div>
@@ -98,6 +102,10 @@ static const char WEB_UI_HTML[] PROGMEM = R"rawliteral(
 
   <!-- PANEL CINEMÁTICA INVERSA (IK) -->
   <div class="card hidden" id="panel-ik">
+    <div class="tabs" style="margin-bottom:10px">
+      <button class="tab active" id="ik-ref-tcp" onclick="setIkRef('tcp')">Objetivo: TCP DH (a₄=53)</button>
+      <button class="tab" id="ik-ref-grip" onclick="setIkRef('grip')">Objetivo: Agarre w04 (+5.8)</button>
+    </div>
     <div class="row">
       <div class="lbl"><span>X · Alcance Frontal (mm)</span><span class="val" id="vx">145.5 mm</span></div>
       <input type="range" id="sx" min="35" max="199" step="1" value="146">
@@ -147,8 +155,26 @@ static const char WEB_UI_HTML[] PROGMEM = R"rawliteral(
 const fkIds = ['s0','s1','s2','s3','s4'];
 const ikIds = ['sx','sy','sz','sp'];
 let mode = 'fk';
+let ikRef = 'tcp';
+let lastStatus = null;
 let timer = null;
 let dragging = false;
+
+function setIkRef(ref) {
+  ikRef = ref;
+  document.getElementById('ik-ref-tcp').classList.toggle('active', ref === 'tcp');
+  document.getElementById('ik-ref-grip').classList.toggle('active', ref === 'grip');
+  if (lastStatus) {
+    const src = (ref === 'grip' && lastStatus.grip_xyz) ? lastStatus.grip_xyz : lastStatus.xyz;
+    if (src) {
+      document.getElementById('sx').value = Math.round(src[0]);
+      document.getElementById('sy').value = Math.round(src[1]);
+      document.getElementById('sz').value = Math.round(src[2]);
+      if (lastStatus.xyz) document.getElementById('sp').value = Math.round(lastStatus.xyz[3]);
+      updateIkLabels(true);
+    }
+  }
+}
 
 function setMode(m) {
   mode = m;
@@ -193,7 +219,7 @@ function sendIKStream() {
   const z = document.getElementById('sz').value;
   const p = document.getElementById('sp').value;
   const g = document.getElementById('s4').value;
-  fetch(`/api/ik?x=${x}&y=${y}&z=${z}&phi=${p}&g=${g}&stream=1`).then(r => r.json()).then(sync).catch(()=>{});
+  fetch(`/api/ik?x=${x}&y=${y}&z=${z}&phi=${p}&g=${g}&mode=${ikRef}&stream=1`).then(r => r.json()).then(sync).catch(()=>{});
 }
 
 function sendIKExact() {
@@ -202,7 +228,7 @@ function sendIKExact() {
   const z = document.getElementById('nz').value;
   const p = document.getElementById('np').value;
   const g = document.getElementById('s4').value;
-  fetch(`/api/ik?x=${x}&y=${y}&z=${z}&phi=${p}&g=${g}&ms=1100`).then(r => r.json()).then(sync).catch(()=>{});
+  fetch(`/api/ik?x=${x}&y=${y}&z=${z}&phi=${p}&g=${g}&mode=${ikRef}&ms=1100`).then(r => r.json()).then(sync).catch(()=>{});
 }
 
 fkIds.forEach(id => {
@@ -236,27 +262,32 @@ function cmd(name) {
 
 function sync(d) {
   if (!d || !d.q) return;
+  lastStatus = d;
   const mEl = document.getElementById('msg');
   if (d.msg) { mEl.textContent = d.msg; mEl.classList.toggle('err', d.ok === false); }
   const stEl = document.getElementById('st');
-  stEl.textContent = d.relaxed ? 'RELAJADO' : (d.ok === false ? 'FUERA LIM' : 'ACTIVO');
+  stEl.textContent = d.relaxed ? 'RELAJADO' : (d.waking ? 'REACTIVANDO' : (d.ok === false ? 'FUERA LIM' : 'ACTIVO'));
   stEl.classList.toggle('err', d.ok === false);
   document.getElementById('tel-q').textContent = `${d.q[0].toFixed(0)}°, ${d.q[1].toFixed(0)}°, ${d.q[2].toFixed(0)}°, ${d.q[3].toFixed(0)}°`;
   if (d.xyz) {
     document.getElementById('tel-xyz').textContent = `${d.xyz[0].toFixed(1)}, ${d.xyz[1].toFixed(1)}, ${d.xyz[2].toFixed(1)} · φ=${d.xyz[3].toFixed(0)}°`;
   }
+  if (d.grip_xyz) {
+    document.getElementById('tel-grip').textContent = `${d.grip_xyz[0].toFixed(1)}, ${d.grip_xyz[1].toFixed(1)}, ${d.grip_xyz[2].toFixed(1)} mm`;
+  }
   if (!dragging) {
     d.q.forEach((val, i) => { document.getElementById('s'+i).value = Math.round(val); });
     updateFkLabels();
-    if (d.xyz && mode === 'fk') {
-      document.getElementById('sx').value = Math.round(d.xyz[0]);
-      document.getElementById('sy').value = Math.round(d.xyz[1]);
-      document.getElementById('sz').value = Math.round(d.xyz[2]);
-      document.getElementById('sp').value = Math.round(d.xyz[3]);
+    const src = (ikRef === 'grip' && d.grip_xyz) ? d.grip_xyz : d.xyz;
+    if (src && mode === 'fk') {
+      document.getElementById('sx').value = Math.round(src[0]);
+      document.getElementById('sy').value = Math.round(src[1]);
+      document.getElementById('sz').value = Math.round(src[2]);
+      if (d.xyz) document.getElementById('sp').value = Math.round(d.xyz[3]);
       updateIkLabels(true);
     }
   }
-  if (d.ip) document.getElementById('info').textContent = `IP: ${d.ip} · Serial/UDP: FK, G, M, IK x y z phi`;
+  if (d.ip) document.getElementById('info').textContent = `IP: ${d.ip} · Serial/UDP: FK, G, M, IK, IKGRIP`;
 }
 fetch('/api/status').then(r => r.json()).then(sync).catch(()=>{});
 setInterval(() => fetch('/api/status').then(r => r.json()).then(sync).catch(()=>{}), 2500);

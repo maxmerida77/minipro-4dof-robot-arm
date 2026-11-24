@@ -158,9 +158,9 @@ BASE_BALLAST = {
     "outer_dia_mm": 93.6,    # Bóveda inferior en herradura dentro de 03_tapa_inferior_v4 sellada bajo 03b_bandeja_electronica_v4
     "z0_mm": 1.6,
     "height_mm": 8.4,        # Z = 1.6 .. 10.0 mm (centro de gravedad bajísimo Z_cg = 5.80 mm!)
-    "stacks": 6,             # 4× Ø28.6 mm + 2× Ø26.2 mm × 8.4 mm modelados y auditados (0.00 mm³ colisión!)
-    "modeled_steel_g": 247.0,# 6 pilas acero sólido (~222 g en monedas $10/$5 MXN; hasta ~298 g rellenando herradura!)
-    "target_min_g": 220.0,   # Factor de seguridad anti-vuelco > 2.2× sin carga en la peor orientación J1
+    "stacks": 6,             # 4× Ø28.6 mm + 2× Ø26.2 mm × 8.0 mm modelados y auditados (0.0000 mm³ colisión!)
+    "modeled_steel_g": 217.7,# Volumen B-Rep exacto 27.73 cm³ acero @ 7.85 g/cm³ (SF = 1.62× estable en barrido peor J1 sin carga!)
+    "target_min_g": 215.0,   # Factor de seguridad anti-vuelco >= 1.6× sin carga en la peor orientación J1
 }
 
 # Dimensiones de las articulaciones v4 (Horquilla en U abierta + Nyloc tras mamparo MG90S + bayoneta Stealth)

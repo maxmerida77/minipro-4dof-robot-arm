@@ -40,11 +40,11 @@ El proyecto eléctrico editable y portátil está en [`kicad/`](kicad/):
 
 | Canal | Articulación | Servo | Rango lógico | Extensión |
 | :---: | :--- | :--- | :---: | :--- |
-| **`CH0`** | **J1 · Base Yaw** | `MG90S` (`AR1240`) | `[-90°, +90°]` | Directo |
-| **`CH1`** | **J2 · Hombro Pitch** | `MG90S` (`AR1240`) | `[+15°, +165°]` | Directo |
-| **`CH2`** | **J3 · Codo Pitch** | `MG90S` (`AR1240`) | `[-135°, +45°]` | Directo |
-| **`CH3`** | **J4 · Muñeca 4.º Eje** | `MG90S` (`AR1240`) | `[-90°, +90°]` | 3 hilos Dupont M–H 20 cm (`AR0003`) |
-| **`CH4`** | **Pinza Paralela 2 Dedos** | `SG90` *(ya disponible)* | `0 – 30 mm` | 3 hilos Dupont M–H 20 cm (`AR0003`) |
+| **`CH0`** | **J1 · Base Yaw** | `MG90S` (`AR1240`) | `[-85°, +85°]` | Directo |
+| **`CH1`** | **J2 · Hombro Pitch** | `MG90S` (`AR1240`) | `[+22°, +145°]` | Directo |
+| **`CH2`** | **J3 · Codo Pitch** | `MG90S` (`AR1240`) | `[-125°, +20°]` | 3 hilos Dupont M–H 20 cm (`AR0003`) |
+| **`CH3`** | **J4 · Muñeca 4.º Eje** | `MG90S` (`AR1240`) | `[-80°, +80°]` | Doble extensión Dupont M–H (`AR0003`) |
+| **`CH4`** | **Pinza Paralela 2 Dedos** | `SG90` *(ya disponible)* | `0 – 30 mm` | Doble extensión Dupont M–H (`AR0003`) |
 
 ---
 

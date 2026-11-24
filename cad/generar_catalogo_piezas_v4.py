@@ -182,9 +182,9 @@ def main():
             (0.945, 0.945, 0.935),
         ),
         (
-            "03 · Tapa Bóveda Lastre + Bandeja Aislante",
+            "03 · Tapa Bóveda Lastre + Bandeja Ciega",
             "03_tapa_inferior_v4 + 03b_bandeja · 2× Negro",
-            "6 patas Ø10.6 + bóveda 6 pilas acero (~247 g) + bandeja PCA/XIAO",
+            "6 patas Ø10.6 + 6 discos acero (218 g B-Rep) + postes ciegos PCA M3×4",
             [
                 (os.path.join(BLK_DIR, "03_tapa_inferior_v4.stl"), blk, (0, 0, 0)),
                 (os.path.join(BLK_DIR, "03b_bandeja_electronica_v4.stl"), (0.30, 0.32, 0.36), (0, 0, 22)),

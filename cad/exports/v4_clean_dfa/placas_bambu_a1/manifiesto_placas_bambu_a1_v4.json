@@ -10,7 +10,7 @@
     "stats": {
       "layer_mm": 0.2,
       "count": 5,
-      "total_g": 197.3,
+      "total_g": 194.6,
       "max_z_mm": 66.6,
       "min_gap_mm": 10.0,
       "n_supports": 5
@@ -30,7 +30,7 @@
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 5973.5,
-        "grams_est": 45.87,
+        "grams_est": 43.37,
         "support": "Árbol (solo cama)",
         "note": "Boca abajo sobre techo plano Ø106 mm (pista anular Ø88 mm en PEI); jefes tuercas cautivas arriba"
       },
@@ -48,7 +48,7 @@
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 267.3,
-        "grams_est": 92.79,
+        "grams_est": 92.57,
         "support": "Árbol (solo cama) + Brim 5 mm",
         "note": "Vertical: cuello coaxial y labio pista Ø88 mm concéntricos; árbol solo bajo corona y hub J2"
       },
@@ -112,7 +112,7 @@
     "stats": {
       "layer_mm": 0.12,
       "count": 27,
-      "total_g": 35.1,
+      "total_g": 37.0,
       "max_z_mm": 15.0,
       "min_gap_mm": 8.0,
       "n_supports": 0
@@ -142,15 +142,15 @@
         "ext_mm": [
           98.68,
           98.95,
-          5.4
+          5.8
         ],
         "bed_xy_mm": [
           57.8,
           164.8
         ],
         "z_min_mm": 0.0,
-        "contact_area_mm2": 7282.3,
-        "grams_est": 7.93,
+        "contact_area_mm2": 7303.6,
+        "grams_est": 9.76,
         "support": "Ninguno",
         "note": "Placa aislante plana en PEI (Z=0): separa lastre metálico de PCA9685/XIAO; 0 soportes"
       },
@@ -160,17 +160,17 @@
         "ext_mm": [
           39.99,
           40.0,
-          3.0
+          3.2
         ],
         "bed_xy_mm": [
           135.1,
           135.4
         ],
         "z_min_mm": 0.0,
-        "contact_area_mm2": 761.6,
-        "grams_est": 2.73,
+        "contact_area_mm2": 771.5,
+        "grams_est": 2.8,
         "support": "Ninguno",
-        "note": "Anillo plano Z=0 (3 barrenos M3 circulares; 0 soportes)"
+        "note": "Boca abajo: cara plana Z=40.5 en PEI y 3 avellanados M3×8 hacia arriba (0 overhang)"
       },
       {
         "id": 4,
@@ -484,7 +484,7 @@
         "ext_mm": [
           6.5,
           6.5,
-          4.1
+          4.55
         ],
         "bed_xy_mm": [
           118.4,
@@ -492,7 +492,7 @@
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 24.6,
-        "grams_est": 0.06,
+        "grams_est": 0.04,
         "support": "Ninguno",
         "note": "Sobre brida Ø6.5 mm en PEI (camisa Ø5.0 mm arriba; 0 overhang)"
       },
@@ -502,7 +502,7 @@
         "ext_mm": [
           6.5,
           6.5,
-          4.1
+          4.55
         ],
         "bed_xy_mm": [
           132.9,
@@ -510,7 +510,7 @@
         ],
         "z_min_mm": 0.0,
         "contact_area_mm2": 24.6,
-        "grams_est": 0.06,
+        "grams_est": 0.04,
         "support": "Ninguno",
         "note": "Sobre brida Ø6.5 mm en PEI (camisa Ø5.0 mm arriba; 0 overhang)"
       },

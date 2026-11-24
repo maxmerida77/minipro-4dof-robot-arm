@@ -54,8 +54,9 @@ float curQ[5]    = { 0.0f, 68.0f, -96.0f, 28.0f, 15.0f };
 float startQ[5]  = { 0.0f, 68.0f, -96.0f, 28.0f, 15.0f };
 float targetQ[5] = { 0.0f, 68.0f, -96.0f, 28.0f, 15.0f };
 
-bool     relaxed     = true;
-bool     moving      = false;
+bool     relaxed        = true;
+bool     wakeRampActive = false;
+bool     moving         = false;
 uint32_t moveStartMs = 0;
 float    moveDurMs   = 1100.0f;
 uint32_t lastCtrlMs  = 0;
@@ -191,6 +192,7 @@ static void disableAllOutputs() {
 
 static void relaxAll() {
   relaxed = true;
+  wakeRampActive = false;
   moving = false;
   sweepActive = false;
   disableAllOutputs();
@@ -198,6 +200,10 @@ static void relaxAll() {
 }
 
 static bool startMove(const float qIn[5], float durMs) {
+  if (wakeRampActive) {
+    Serial.println("[GUARD] Reactivando desde RELAX (espera fin de rampa 1200 ms)");
+    return false;
+  }
   for (int i = 0; i < 5; i++) {
     if (!isfinite(qIn[i])) {
       Serial.println("[GUARD] Entrada no finita rechazada");
@@ -225,6 +231,7 @@ static bool startMove(const float qIn[5], float durMs) {
   }
   bool waking = relaxed;
   relaxed = false;
+  wakeRampActive = waking;
   for (int i = 0; i < 5; i++) {
     startQ[i]  = curQ[i];
     targetQ[i] = qSafe[i];
@@ -247,10 +254,21 @@ static void computeFK(const float q[5], float &x, float &y, float &z, float &phi
   phi = q[1] + q[2] + q[3];
 }
 
-static bool solveIKPlanar(float q1Rad, float rSigned, float z, float phiDeg, float qOut[4], String &err, bool elbowUp = true) {
+static void computeGripPointFK(const float q[5], float &x, float &y, float &z) {
+  const float d2r = 3.14159265f / 180.0f;
+  float t1 = q[0] * d2r, t2 = q[1] * d2r, t23 = (q[1] + q[2]) * d2r, t234 = (q[1] + q[2] + q[3]) * d2r;
+  float gx = gripMmToTcpX(q[4]), gz = 5.80f;
+  float r = DH_A2_MM * cosf(t2) + DH_A3_MM * cosf(t23) + gx * cosf(t234) - gz * sinf(t234);
+  x = r * cosf(t1);
+  y = r * sinf(t1);
+  z = DH_D1_MM + DH_A2_MM * sinf(t2) + DH_A3_MM * sinf(t23) + gx * sinf(t234) + gz * cosf(t234);
+}
+
+static bool solveIKPlanar(float q1Rad, float rSigned, float z, float phiDeg, float qOut[4], String &err, bool elbowUp = true, float effX = DH_A4_MM, float effZ = 0.0f) {
   const float d2r = 3.14159265f / 180.0f, r2d = 180.0f / 3.14159265f;
   float phi = phiDeg * d2r;
-  float rw = rSigned - DH_A4_MM * cosf(phi), zw = (z - DH_D1_MM) - DH_A4_MM * sinf(phi);
+  float c_p = cosf(phi), s_p = sinf(phi);
+  float rw = rSigned - (effX * c_p - effZ * s_p), zw = (z - DH_D1_MM) - (effX * s_p + effZ * c_p);
   float D = (rw * rw + zw * zw - DH_A2_MM * DH_A2_MM - DH_A3_MM * DH_A3_MM) / (2.0f * DH_A2_MM * DH_A3_MM);
   if (fabsf(D) > 1.0005f) { err = "Fuera de alcance"; return false; }
   D = clampF(D, -1.0f, 1.0f);
@@ -270,8 +288,8 @@ static bool solveIKPlanar(float q1Rad, float rSigned, float z, float phiDeg, flo
   return true;
 }
 
-static bool computeIK(float x, float y, float z, float phiDeg, float qOut[4], String &err, float q1RefDeg = 0.0f) {
-  if (!isfinite(x) || !isfinite(y) || !isfinite(z) || !isfinite(phiDeg)) {
+static bool computeIK(float x, float y, float z, float phiDeg, float qOut[4], String &err, float q1RefDeg = 0.0f, float effX = DH_A4_MM, float effZ = 0.0f) {
+  if (!isfinite(x) || !isfinite(y) || !isfinite(z) || !isfinite(phiDeg) || !isfinite(q1RefDeg) || !isfinite(effX) || !isfinite(effZ)) {
     err = "Entrada no finita (NaN/Inf)";
     return false;
   }
@@ -283,7 +301,7 @@ static bool computeIK(float x, float y, float z, float phiDeg, float qOut[4], St
     float q1c = clampF(q1RefDeg, AXES[0].q_min, AXES[0].q_max) * d2r;
     for (int b = 0; b < 2; b++) {
       String e;
-      if (solveIKPlanar(q1c, 0.0f, z, phiDeg, qOut, e, branches[b])) { err = "OK"; return true; }
+      if (solveIKPlanar(q1c, 0.0f, z, phiDeg, qOut, e, branches[b], effX, effZ)) { err = "OK"; return true; }
       if (b == 0) firstErr = e;
     }
     err = firstErr;
@@ -293,20 +311,21 @@ static bool computeIK(float x, float y, float z, float phiDeg, float qOut[4], St
   float q1Rev = atan2f(sinf(q1Fwd + 3.14159265f), cosf(q1Fwd + 3.14159265f));
   for (int b = 0; b < 2; b++) {
     String eF, eR;
-    if (solveIKPlanar(q1Fwd, +r, z, phiDeg, qOut, eF, branches[b])) { err = "OK"; return true; }
+    if (solveIKPlanar(q1Fwd, +r, z, phiDeg, qOut, eF, branches[b], effX, effZ)) { err = "OK"; return true; }
     if (b == 0) firstErr = eF;
-    if (solveIKPlanar(q1Rev, -r, z, phiDeg, qOut, eR, branches[b])) { err = "OK"; return true; }
+    if (solveIKPlanar(q1Rev, -r, z, phiDeg, qOut, eR, branches[b], effX, effZ)) { err = "OK"; return true; }
   }
   err = firstErr;
   return false;
 }
 
 static void printStatus() {
-  float x, y, z, phi;
+  float x, y, z, phi, gx, gy, gz;
   computeFK(curQ, x, y, z, phi);
-  Serial.printf("[STATUS] q=(%.1f, %.1f, %.1f, %.1f) deg | TCP=(%.1f, %.1f, %.1f) mm phi=%.1f | pinza=%.1f mm | %s\n",
-                curQ[0], curQ[1], curQ[2], curQ[3], x, y, z, phi, curQ[4],
-                relaxed ? "RELAX" : "ACTIVO");
+  computeGripPointFK(curQ, gx, gy, gz);
+  Serial.printf("[STATUS] q=(%.1f, %.1f, %.1f, %.1f) deg | TCP=(%.1f, %.1f, %.1f) mm phi=%.1f | Agarre=(%.1f, %.1f, %.1f) mm | pinza=%.1f mm | %s\n",
+                curQ[0], curQ[1], curQ[2], curQ[3], x, y, z, phi, gx, gy, gz, curQ[4],
+                relaxed ? "RELAX" : (wakeRampActive ? "WAKING" : "ACTIVO"));
 }
 
 static void handleCmd(String line) {
@@ -333,6 +352,7 @@ static void handleCmd(String line) {
   } else if (up == "CENTER") {
     sweepActive = false;
     relaxed = false;
+    wakeRampActive = false;
     moving = false;
     for (int i = 0; i < 4; i++) {
       writeUs(i, 1500);
@@ -345,12 +365,29 @@ static void handleCmd(String line) {
     relaxAll();
   } else if (up == "STATUS" || up == "FK") {
     printStatus();
+  } else if (up.startsWith("IKGRIP ")) {
+    sweepActive = false;
+    float x, y, z, phi, g = curQ[4], dur = 1100.0f;
+    if (sscanf(line.c_str() + 7, "%f %f %f %f %f %f", &x, &y, &z, &phi, &g, &dur) >= 4) {
+      float qs[4]; String err;
+      if (computeIK(x, y, z, phi, qs, err, curQ[0], gripMmToTcpX(g), 5.80f)) {
+        float q[5] = { qs[0], qs[1], qs[2], qs[3], g };
+        if (startMove(q, dur)) {
+          Serial.printf("[IKGRIP OK] (%.1f, %.1f, %.1f, phi=%.1f, g=%.1f) -> q=(%.1f, %.1f, %.1f, %.1f) en %.0f ms\n",
+                        x, y, z, phi, g, qs[0], qs[1], qs[2], qs[3], dur);
+        }
+      } else {
+        Serial.printf("[IKGRIP ERR] %s\n", err.c_str());
+      }
+    } else {
+      Serial.println("[ERR] Uso: IKGRIP x y z phi [grip_mm] [ms]");
+    }
   } else if (up.startsWith("IK ")) {
     sweepActive = false;
     float x, y, z, phi, g = curQ[4], dur = 1100.0f;
     if (sscanf(line.c_str() + 3, "%f %f %f %f %f %f", &x, &y, &z, &phi, &g, &dur) >= 4) {
       float qs[4]; String err;
-      if (computeIK(x, y, z, phi, qs, err)) {
+      if (computeIK(x, y, z, phi, qs, err, curQ[0])) {
         float q[5] = { qs[0], qs[1], qs[2], qs[3], g };
         if (startMove(q, dur)) {
           Serial.printf("[IK OK] (%.1f, %.1f, %.1f, phi=%.1f) -> q=(%.1f, %.1f, %.1f, %.1f) en %.0f ms\n",
@@ -415,10 +452,21 @@ void loop() {
     if (moving && !relaxed) {
       float u = clampF((float)(now - moveStartMs) / moveDurMs, 0.0f, 1.0f);
       float s = u * u * u * (10.0f - 15.0f * u + 6.0f * u * u); // Quíntico mínimo-jerk
-      for (int i = 0; i < 5; i++) curQ[i] = startQ[i] + s * (targetQ[i] - startQ[i]);
+      float qNext[5];
+      for (int i = 0; i < 5; i++) qNext[i] = startQ[i] + s * (targetQ[i] - startQ[i]);
+      float zMinTick = 0.0f; String gTick;
+      if (!checkTableGuard(qNext, zMinTick, &gTick)) {
+        moving = false;
+        wakeRampActive = false;
+        sweepActive = false;
+        Serial.printf("[GUARD] Detenido en paso interpolado: %s\n", gTick.c_str());
+        return;
+      }
+      for (int i = 0; i < 5; i++) curQ[i] = qNext[i];
       applyAll();
       if (u >= 1.0f) {
         moving = false;
+        wakeRampActive = false;
         if (sweepActive) {
           sweepIdx++;
           if (sweepIdx < SWEEP_LEN) {

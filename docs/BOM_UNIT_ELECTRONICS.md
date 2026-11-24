@@ -39,7 +39,7 @@
 | **Filamento Blanco Mate (Opción A — Mejor precio)** | **ELEGOO PLA Mate 1.75 mm 1 kg Blanco** *(Placa 2: 10 acentos `B2 Stealth`)* | **\$338.99** | Disponible | https://www.amazon.com.mx/dp/B0CFV55FYF |
 | **Filamento Blanco Mate (Opción B — Premium)** | **Polymaker PolyTerra PLA Mate 1.75 mm 1 kg Cotton White** | **\$428.80** | Disponible | https://www.amazon.com.mx/dp/B08QMJB48V |
 | **Patas antideslizantes base (6× requeridas)** | **Vmingo Topes de Silicona Adhesivos Ø10×3 mm (100 pzas)** *(calzan perfecto en el perímetro de la tapa inferior)* | **\$46.50** | Disponible | https://www.amazon.com.mx/dp/B0B9VKV5N9 |
-| **Kit Tornillos M3 Negros (opcional 100% online)** | **EASTPUK Kit Tornillos M3 Cabeza Botón Allen Negros `8/10/12/16/20/25/30 mm` + tuercas** *(cubre `8/10/12/16` directo; usar `M3×8` + 2 arandelas en lugar de `M3×6`)* | **\$300.98** | Disponible | https://www.amazon.com.mx/dp/B0F4XPTBRH |
+| **Kit Tornillos M3 Negros (opcional 100% online)** | **EASTPUK Kit Tornillos M3 Cabeza Botón Allen Negros `8/10/12/16/20/25/30 mm` + tuercas** *(cubre `8/10/12/16` directo; comprar solo `4× M3×4 mm` sueltos [~\$4 MXN] para los postes ciegos del `PCA9685`)* | **\$300.98** | Disponible | https://www.amazon.com.mx/dp/B0F4XPTBRH |
 | **Tuercas de Seguridad M3 Nyloc (opcional 100% online)** | **Einundcy Tuercas M3 Nyloc Negras (115 pzas)** *(o Inox 304 100 pzas [B0FLF3GYRD](https://www.amazon.com.mx/dp/B0FLF3GYRD) a \$305)* | **\$240.64** | Disponible | https://www.amazon.com.mx/dp/B0DZ2V6PRF |
 
 ### Tabla Exacta de Tornillería por Unión (Auditoría Ronda 2 P0-3 · 0.00 mm³ colisión B-Rep)
@@ -50,31 +50,31 @@ Cada unión fue auditada en 3D con cabeza botón (`Ø 5.7 × 1.65 mm`), tuerca r
 | :--- | :---: | :--- | :--- | :--- | :---: |
 | **Pivotes pasivos `J2, J3, J4`** *(horquilla + separador `11_separador_m3_*` + pared hub)* | **3** | `6.70 mm` *(casquillo `Ø 5.0`)* | **`3× M3×12 mm`** cabeza botón | `3× M3 Nyloc` cautiva tras mamparo MG90S (`2.3 mm` libre del servo!) | **`+1.20 mm`** (`2.4` pasos) |
 | **Tapa inferior + Bandeja aislante Base** *(prensa lastre y cierra base)* | **4** | `12.40 mm` *(cabeza avellanada)* | **`4× M3×16 mm`** cabeza botón | `4× Tuerca hex M3` cautiva en jefes base (`Z=14.3..16.7`) | **`+1.10 mm`** tras tuerca |
-| **Retén axial `J1` (`04b_reten_axial_j1`)** | **3** | `3.0 mm` retén + `5.0 mm` piloto | **`3× M3×8 mm`** cabeza botón | Rosca directa en 3 pilotos `Ø 2.6 mm` de torreta J1 | `5.0 mm` en PLA+ |
-| **Montaje `PCA9685` sobre bandeja aislante** *(pilotos `Ø 2.6 mm`)* | **4** | `1.6 mm` PCB + `3.2 mm` poste/bandeja | **`4× M3×6 mm`** cabeza botón *(NO M2.5)* | Rosca directa en 4 postes `Ø 2.6 mm` | `3.2 mm` en PLA+ |
+| **Retén axial `J1` (`04b_reten_axial_j1` avellanado)** | **3** | `1.45 mm` brida avellanada + `6.55 mm` piloto | **`3× M3×8 mm`** cabeza botón | Rosca directa en 3 pilotos ciegos `Ø 2.6 mm` de torreta (`+0.65 mm` libre sobre Duponts `23 mm`!) | `6.55 mm` en PLA+ |
+| **Montaje `PCA9685` sobre postes ciegos bandeja aislante** | **4** | `1.6 mm` PCB + `2.35 mm` piloto ciego `Ø 2.6 mm` | **`4× M3×4 mm`** cabeza botón *(ciego!)* | Rosca directa en 4 postes ciegos (`+1.25 mm` piso macizo PLA+ sobre lastre; 0 perforación!) | `2.35 mm` (`4.7` hilos) |
 | **Pinza — Pivotes delanteros dedos** *(engrane avellanado + casquillo `11d` + dedo)* | **2** | `10.40 mm` *(avellanado `1.70 mm` + `11d`)* | **`2× M3×16 mm`** cabeza botón *(desde abajo)* | `2× M3 Nyloc` arriba (`Z=14.1..18.1`, cabeza sobre `Z=+2.05`!) | **`+1.60 mm`** (`3.2` pasos) |
 | **Pinza — Pivotes traseros dedos** *(biela + casquillo `11e` + dedo)* | **2** | `6.40 mm` *(casquillo `11e`)* | **`2× M3×12 mm`** cabeza botón *(desde abajo)* | `2× M3 Nyloc` arriba (`Z=14.1..18.1`) | **`+1.25 mm`** (`2.5` pasos) |
-| **Pinza — Pivotes traseros bielas en palma** *(biela + casquillo `11c` + pilar palma)* | **2** | `5.30 mm` *(casquillo `11c` con brida)* | **`2× M3×10 mm`** cabeza botón *(desde arriba)* | `2× M3 Nyloc` cautiva lateral en pilar palma (`Z=2.15..6.15`, 100% sobre SG90!) | **`+0.70 mm`** (`1.4` pasos) |
+| **Pinza — Pivotes traseros bielas en palma** *(biela + casquillo `11c` brida `1.3 mm` + pilar ciego)* | **2** | `5.45 mm` *(casquillo `11c` + tope ciego `Z=1.7`)* | **`2× M3×10 mm`** cabeza botón *(desde arriba)* | `2× M3 Nyloc` cautiva lateral en pilar palma (`Z=2.45..6.45`, **`+0.50 mm` libre sobre SG90!**) | **`+0.55 mm`** (`1.1` pasos) |
 | **Pinza — Pivote engrane pasivo derecho** *(palma + casquillo `11b` + engrane)* | **1** | `7.30 mm` *(casquillo `11b`)* | **`1× M3×12 mm`** cabeza botón *(desde abajo)* | `1× M3 Nyloc` arriba (`Z=7.1..11.1`, `12.4 mm` libre del SG90!) | **`+0.70 mm`** (`1.4` pasos) |
 | **Orejas y *horns* de los 5 servos (`4× MG90S` + `1× SG90`)** | **15** | Orejas `2.2–2.4 mm` en piloto `Ø 1.8 mm` | **`10× M2×6 mm`** + **`5×`** tornillo *horn* | **Incluidos en las bolsitas de los `MG90S` y `SG90`** *(autoterrajantes en PLA+)* | `4.0 mm` en PLA+ |
 
-### Resumen Exacto para Ferretería Local (`~$60–$75 MXN` — ahorra ~\$470 MXN!)
-Lleva exactamente esta lista a cualquier tornillería local *(total: 21 tornillos M3 + 14 tuercas — cero longitudes raras `M3×18`!)*:
-* **`4× M3×6 mm`** · **`3× M3×8 mm`** · **`2× M3×10 mm`** · **`6× M3×12 mm`** · **`6× M3×16 mm`** *(todos cabeza botón Allen)*
-* **`4×` tuerca hexagonal `M3`** + **`10×` tuerca de seguridad `M3 Nyloc`** *(en el kit Amazon `EASTPUK` que trae `8/10/12/16`, solo usa `M3×8` + 2 arandelas en los 4 postes del PCA9685)*
-* **Lastre real modelado y auditado (`0.00 mm³` colisión) en bóveda inferior (`03_tapa_inferior_v4`, `Z = 1.6..10.0 mm`, sellado bajo `03b_bandeja_electronica_v4`):**
-  * **6 pilas cilíndricas guiadas (`4× Ø 28.6 mm` + `2× Ø 26.2 mm` × `8.4 mm` alto):** **`247 g`** en rondanas/discos de acero (`~222 g` en monedas de `\$10/\$5 MXN`), y hasta **`~298 g`** rellenando los huecos de la bóveda en herradura con tuercas/balines de acero (`SF > 2.2×` anti-vuelco sin carga en la peor orientación de `J1`!).
+### Resumen Exacto para Ferretería Local (`~$65 MXN` tornillería + `~$50 MXN` lastre de rondanas)
+Lleva exactamente esta lista a cualquier tornillería local *(total: 21 tornillos M3 + 14 tuercas — cero `M3×18`!)*:
+* **`4× M3×4 mm`** *(postes ciegos PCA9685)* · **`3× M3×8 mm`** · **`2× M3×10 mm`** · **`6× M3×12 mm`** · **`6× M3×16 mm`** *(todos cabeza botón Allen)*
+* **`4×` tuerca hexagonal `M3`** + **`10×` tuerca de seguridad `M3 Nyloc`**
+* **Lastre real modelado y auditado en B-Rep (`0.0000 mm³` colisión) en bóveda inferior (`03_tapa_inferior_v4`, `Z = 1.6..10.0 mm`, doblemente aislado bajo `03b_bandeja_electronica_v4`):**
+  * **6 pilas cilíndricas guiadas (`4× Ø 27.9 mm` + `2× Ø 25.5 mm` × `8.0 mm` alto):** volumen B-Rep exacto **`27.73 cm³` = `217.7 g`** de acero `@ 7.85 g/cm³` (`~$50 MXN` en rondanas de acero `1/2"` y `3/8"`, o `~22` monedas de `\$10` + `~10` de `\$5 MXN` con costo `\$0` recuperable). Con estos **`217.7 g`** modelados sin relleno extra y masa móvil `122.4 g`, el barrido estático sin carga logra **`SF = 1.62×`** anti-vuelco en la peor orientación de `J1` (`24.3 mm` vs `39.4 mm` apotema).
 * *Opcional pista `J1`:* cinta PTFE (teflón) delgada o gota mínima de silicón seco si sientes fricción seca en la pista `Ø 88 mm`.
 
 ---
 
-## 4. Cotización Total Real (`v4 Clean-DFA`)
+## 4. Cotización Total Real (`v4 Clean-DFA` — Incluyendo Lastre `\$50 MXN`)
 
 | Modalidad de Compra | Desglose | Gran Total Estimado |
 | :--- | :--- | :---: |
-| **Ruta Optimizada `≤ \$1,500 MXN` (UNIT + Blanco Mate Amazon + Tornillería local)** | Electrónica UNIT (`\$506`) + `SUNLU PLA+ 2.0 Negro` (`\$269`) + Envío UNIT (`~\$129`) + `ELEGOO PLA Mate Blanco` (`\$339`) + Gomitas Amazon (`\$46.50`) + Tornillería M3/Nyloc suelta (`~\$65`) | **~\$1,355 MXN** *(con 5.º `MG90S`: ~\$1,430 MXN — **≤ \$1,500 MXN!**)* |
-| **Ruta Máximo Ahorro (Todo filamento `SUNLU PLA+` en UNIT + Tornillería local)** | Electrónica UNIT (`\$506`) + `SUNLU PLA+ Negro` (`\$269`) + `SUNLU PLA+ Blanco` (`\$269`) + Envío UNIT (`~\$129`) + Gomitas (`\$46.50`) + Tornillería suelta (`~\$65`) | **~\$1,285 MXN** *(con 5.º `MG90S`: ~\$1,360 MXN!)* |
-| **Ruta 100% Online sin Ferretería (con kits grandes de tornillos/Nyloc)** | Ruta Optimizada + Kit M3 Negros (`\$301`) + 115 Tuercas Nyloc (`\$241`) − `\$65` ferretería *(te sobran >250 tornillos/tuercas para futuros proyectos)* | **~\$1,832 MXN** |
+| **Ruta Optimizada `≤ \$1,500 MXN` (UNIT + Blanco Mate Amazon + Tornillería + Lastre)** | Electrónica UNIT (`\$506`) + `SUNLU PLA+ 2.0 Negro` (`\$269`) + Envío UNIT (`~\$129`) + `ELEGOO PLA Mate Blanco` (`\$339`) + Gomitas Amazon (`\$46.50`) + Tornillería M3/Nyloc suelta (`~\$65`) + Rondanas acero lastre `218 g` (`~\$50`) | **~\$1,405 MXN** *(con 5.º `MG90S`: ~\$1,480 MXN — **≤ \$1,500 MXN todo incluido!**)* |
+| **Ruta Máximo Ahorro (Todo filamento `SUNLU PLA+` en UNIT + Tornillería + Lastre)** | Electrónica UNIT (`\$506`) + `SUNLU PLA+ Negro` (`\$269`) + `SUNLU PLA+ Blanco` (`\$269`) + Envío UNIT (`~\$129`) + Gomitas (`\$46.50`) + Tornillería suelta (`~\$65`) + Lastre acero (`~\$50`) | **~\$1,335 MXN** *(con 5.º `MG90S`: ~\$1,410 MXN!)* |
+| **Ruta 100% Online sin Ferretería (con kits grandes de tornillos/Nyloc)** | Ruta Optimizada + Kit M3 Negros (`\$301`) + 115 Tuercas Nyloc (`\$241`) − `\$61` tornillería *(añadir solo `4× M3×4` locales `\$4`; sobran >250 piezas)* | **~\$1,886 MXN** |
 
 ---
 

@@ -142,13 +142,15 @@ static inline void computeGripPointFK(const float qDeg[5], float& x_mm, float& y
 
 static inline bool solveIKPlanar(
     float q1Rad, float rSigned, float z_mm, float phi_deg,
-    float qOutDeg[4], String* errMsg, bool elbowUp
+    float qOutDeg[4], String* errMsg, bool elbowUp,
+    float effX_mm = DH_A4_MM, float effZ_mm = 0.0f
 ) {
     const float d2r = 3.14159265f / 180.0f;
     const float r2d = 180.0f / 3.14159265f;
     float phi = phi_deg * d2r;
-    float rw = rSigned - DH_A4_MM * cosf(phi);
-    float zw = (z_mm - DH_D1_MM) - DH_A4_MM * sinf(phi);
+    float c_p = cosf(phi), s_p = sinf(phi);
+    float rw = rSigned - (effX_mm * c_p - effZ_mm * s_p);
+    float zw = (z_mm - DH_D1_MM) - (effX_mm * s_p + effZ_mm * c_p);
 
     float dist2 = rw * rw + zw * zw;
     float D = (dist2 - DH_A2_MM * DH_A2_MM - DH_A3_MM * DH_A3_MM) / (2.0f * DH_A2_MM * DH_A3_MM);
@@ -183,12 +185,14 @@ static inline bool solveIKPlanar(
     return true;
 }
 
-// --- Cinemática Inversa (IK) Analítica Cerrada 4R con radio firmado + rechazo NaN ---
+// --- Cinemática Inversa (IK) Analítica Cerrada 4R con radio firmado + fallback codo + rechazo NaN ---
 static inline bool computeIK(
     float x_mm, float y_mm, float z_mm, float phi_deg,
-    float qOutDeg[4], String* errMsg = nullptr, bool elbowUp = true, float q1RefDeg = 0.0f
+    float qOutDeg[4], String* errMsg = nullptr, bool elbowUp = true, float q1RefDeg = 0.0f,
+    float effX_mm = DH_A4_MM, float effZ_mm = 0.0f
 ) {
-    if (!isfinite(x_mm) || !isfinite(y_mm) || !isfinite(z_mm) || !isfinite(phi_deg) || !isfinite(q1RefDeg)) {
+    if (!isfinite(x_mm) || !isfinite(y_mm) || !isfinite(z_mm) || !isfinite(phi_deg)
+        || !isfinite(q1RefDeg) || !isfinite(effX_mm) || !isfinite(effZ_mm)) {
         if (errMsg) *errMsg = "Entrada no finita (NaN/Inf)";
         return false;
     }
@@ -202,7 +206,7 @@ static inline bool computeIK(
         if (q1c > AXES[0].q_max) q1c = AXES[0].q_max;
         for (int b = 0; b < 2; b++) {
             String err;
-            if (solveIKPlanar(q1c * d2r, 0.0f, z_mm, phi_deg, qOutDeg, &err, branches[b])) {
+            if (solveIKPlanar(q1c * d2r, 0.0f, z_mm, phi_deg, qOutDeg, &err, branches[b], effX_mm, effZ_mm)) {
                 if (errMsg) *errMsg = "OK";
                 return true;
             }
@@ -215,19 +219,32 @@ static inline bool computeIK(
     float q1Rev = atan2f(sinf(q1Fwd + 3.14159265f), cosf(q1Fwd + 3.14159265f));
     for (int b = 0; b < 2; b++) {
         String errF, errR;
-        if (solveIKPlanar(q1Fwd, +r, z_mm, phi_deg, qOutDeg, &errF, branches[b])) {
+        if (solveIKPlanar(q1Fwd, +r, z_mm, phi_deg, qOutDeg, &errF, branches[b], effX_mm, effZ_mm)) {
             if (errMsg) *errMsg = "OK";
             return true;
         }
         if (b == 0) firstErr = errF;
         // Rama sobre el hombro (radio firmado negativo -> soporta poses traseras legales X < 0!)
-        if (solveIKPlanar(q1Rev, -r, z_mm, phi_deg, qOutDeg, &errR, branches[b])) {
+        if (solveIKPlanar(q1Rev, -r, z_mm, phi_deg, qOutDeg, &errR, branches[b], effX_mm, effZ_mm)) {
             if (errMsg) *errMsg = "OK";
             return true;
         }
     }
     if (errMsg) *errMsg = firstErr;
     return false;
+}
+
+// --- Cinemática Inversa apuntando al Centro REAL de Agarre w04 ((tcp_x(g), 0, +5.80) mm) ---
+static inline bool computeGripIK(
+    float x_mm, float y_mm, float z_mm, float phi_deg, float grip_mm,
+    float qOutDeg[4], String* errMsg = nullptr, bool elbowUp = true, float q1RefDeg = 0.0f
+) {
+    if (!isfinite(grip_mm)) {
+        if (errMsg) *errMsg = "Pinza no finita (NaN/Inf)";
+        return false;
+    }
+    float gx = gripMmToTcpX(grip_mm);
+    return computeIK(x_mm, y_mm, z_mm, phi_deg, qOutDeg, errMsg, elbowUp, q1RefDeg, gx, GRIP_PAD_CENTER_Z_MM);
 }
 
 // --- Guarda Física 3D Envolvente Real (idéntica a `check_physical_guard_v4` en `cad/params.py`) ---

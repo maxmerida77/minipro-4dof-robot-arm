@@ -44,8 +44,17 @@ Resuelve todos los bloqueos `P0`, `P1`, control y potencia de [`AUDITORIA_RONDA_
 * **P0-5 Compilación, reactivación y control:** Ambos sketches (`minipro_b2_stealth.ino` para `XIAO_ESP32S3` y `simulacion_wokwi/sketch.ino` para `esp32s3`) compilados con **`0 errores`** en `esp32:esp32 3.1.3`; reactivación segura unificada `≥ 1200 ms` incluso desde streaming; validación de trayectoria quíntica en 16 muestras + tick `100 Hz`; rechazo `NaN/Inf`; IK con radio firmado (`r < 0`), fallback de codo y preservación de `q1` en `r ≈ 0`.
 * **P1-1 y P1-2 Punto de agarre + Auditoría B-Rep estricta + SPICE `.cir`:** Transformación explícita `(tcp_x(g), 0, +5.800) mm` en Python, Gemelo 3D y firmware (`grip_xyz`); auditoría estricta `tol = 0.01 mm³` sin ocultar errores booleanos (**`42/42` STLs estancos 1-sólido, `0.0000 mm³` en los 8 escenarios**); `.cir` sincronizado con OCP `3.0 A` (`4.434 V`, `4.171 V`, `2.534 A`).
 
+### Iteración 4C — Cierre Definitivo Auditoría Ronda 3 (`CAD v4 Clean-DFA` · **GO TOTAL**) *(COMPLETADA Y VERIFICADA)*
+Cierra los 6 hallazgos finales de [`AUDITORIA_RONDA_3_CIERRE_GO_V4.md`](AUDITORIA_RONDA_3_CIERRE_GO_V4.md):
+1. **Retén axial `J1` (`3× M3×8` avellanados):** `04b_reten_axial_j1` (`Z = 37.3..40.5`, 3 avellanados `Ø 6.2×1.75 mm`, volteado en Placa 1B con 0 overhang) aloja las cabezas `M3×8` a `+0.65 mm` sobre los Duponts de `23 mm` en todo el giro `J1` (`0.0000 mm³` en `J1 = 0°, -30°, +45°, +85°`).
+2. **Postes ciegos `PCA9685` (`4× M3×4`):** `03b_bandeja_electronica_v4` (`2.0 mm`) + postes ciegos `1.6 mm` con piloto terminado en `Z = 11.15 mm` → **`+1.25 mm`** de piso macizo aislante sobre el lastre (`+1.60 mm` hasta discos), `0.0000 mm³` colisión con tornillos modelados.
+3. **Bloqueo `wakeRampActive` en firmware y Wokwi:** Ningún paquete consecutivo de streaming (`G`/`IKG`/HTTP/UDP/Serial) puede cancelar o acortar la rampa obligatoria de `1200 ms` al salir de `RELAX` (solo `RELAX` puede abortarla).
+4. **Lastre exacto B-Rep y presupuesto:** Documentados exactamente **`217.7 g`** (`27.73 cm³` acero en 6 discos, `SF = 1.62×` sin carga) y sumados `\$50 MXN` de rondanas al total (**`~\$1,405 MXN ≤ \$1,500 MXN`**).
+5. **Pinza `M3×10` sobre `SG90`:** Brida de `11c` elevada a `1.30 mm` + tope ciego `Z = +1.70 mm` → **`+0.500 mm`** de despeje B-Rep sobre `SG90` (`10×` mayor margen) y `+0.55 mm` de rosca tras `Nyloc`.
+6. **Paridad IK y `Agarre w04`:** Wokwi pasa `curQ[0]` a `computeIK` (preserva yaw en `r ≈ 0`); Web UI, firmware y Wokwi ofrecen modalidad explícita `TCP DH (a₄=53)` vs `Agarre w04 (+5.8 mm)` (`mode=grip` / `IKGRIP`).
+
 ### Iteración 5 — Prototipado Progresivo, Pruebas en Banco y Entrega Escolar *(SIGUIENTE PASO FÍSICO)*
 1. Imprimir **Cupón 1 → Cupón 2 (1 articulación con servo real) → Cupón 3 (pinza independiente con 7 casquillos y SG90)**.
-2. Imprimir las **3 placas `v4` (`240.3 g` PLA, `37/42` [88%] sin soportes, `0%` purga AMS)** en Bambu Lab A1 Combo.
+2. Imprimir las **3 placas `v4` (`239.5 g` PLA, `37/42` [88%] sin soportes, `0%` purga AMS)** en Bambu Lab A1 Combo.
 3. Verificar `5.0 V` del `AR5515` y caída real bajo carga con multímetro; ejecutar `CENTER` antes de fijar *horns*.
 4. Ejecutar demostración final sincronizada **Peter Corke Python ↔ Gemelo Digital 3D ↔ XIAO ESP32-S3 (Wi-Fi UDP)**.

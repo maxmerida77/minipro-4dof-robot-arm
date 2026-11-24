@@ -31,9 +31,10 @@ float qCurr[5]   = { 0.0f, 90.0f, -90.0f, 0.0f, 15.0f };
 float qStart[5]  = { 0.0f, 90.0f, -90.0f, 0.0f, 15.0f };
 float qTarget[5] = { 0.0f, 90.0f, -90.0f, 0.0f, 15.0f };
 
-bool     isRelaxed     = true;
-bool     streamMode    = false;
-bool     trajActive    = false;
+bool     isRelaxed       = true;
+bool     wakeRampActive  = false;
+bool     streamMode      = false;
+bool     trajActive      = false;
 uint32_t trajStartMs   = 0;
 uint32_t trajDurMs     = 1100;
 uint32_t lastTickMs    = 0;
@@ -139,19 +140,21 @@ void disableAllOutputsRaw() {
 }
 
 void relaxAll() {
-    demoRunning = false;
-    trajActive  = false;
-    streamMode  = false;
-    isRelaxed   = true;
+    demoRunning    = false;
+    trajActive     = false;
+    wakeRampActive = false;
+    streamMode     = false;
+    isRelaxed      = true;
     disableAllOutputsRaw();
     Serial.println(F("[OK] Servos relajados (FULL_OFF 4096, sin torque)."));
 }
 
 void centerBench90() {
-    demoRunning = false;
-    trajActive  = false;
-    streamMode  = false;
-    isRelaxed   = false;
+    demoRunning    = false;
+    trajActive     = false;
+    wakeRampActive = false;
+    streamMode     = false;
+    isRelaxed      = false;
     for (uint8_t i = 0; i < 4; i++) {
         writeMicros(AXES[i].channel, 1500);
         // Resincronización exacta para evitar latigazos en el siguiente comando!
@@ -164,6 +167,12 @@ void centerBench90() {
 }
 
 bool startQuinticMove(const float tgt[5], uint32_t durationMs) {
+    // Ronda 3 P0-3: mientras corre la rampa obligatoria de reactivación (1200 ms), NO se cancela ni acorta!
+    if (wakeRampActive) {
+        lastOk = false;
+        lastMsg = "Reactivando desde RELAX (espera fin de rampa 1200 ms)";
+        return false;
+    }
     for (uint8_t i = 0; i < 5; i++) {
         if (!isfinite(tgt[i])) {
             lastOk = false;
@@ -191,19 +200,20 @@ bool startQuinticMove(const float tgt[5], uint32_t durationMs) {
     }
 
     bool wasRelaxed = isRelaxed;
-    isRelaxed   = false;
-    streamMode  = false;
-    trajActive  = true;
-    trajStartMs = millis();
+    isRelaxed      = false;
+    wakeRampActive = wasRelaxed;
+    streamMode     = false;
+    trajActive     = true;
+    trajStartMs    = millis();
     uint32_t minDur = wasRelaxed ? (uint32_t)MIN_WAKE_MOVE_MS : 120U;
-    trajDurMs   = (durationMs < minDur) ? minDur : durationMs;
+    trajDurMs      = (durationMs < minDur) ? minDur : durationMs;
 
     for (uint8_t i = 0; i < 5; i++) {
         qStart[i]  = qCurr[i];
         qTarget[i] = clamped[i];
     }
     if (wasRelaxed) {
-        Serial.printf("[INFO] Reactivando desde RELAX con rampa quintica obligatoria (%lu ms).\n", (unsigned long)trajDurMs);
+        Serial.printf("[INFO] Reactivando desde RELAX con rampa quintica bloqueada (%lu ms).\n", (unsigned long)trajDurMs);
     }
     return true;
 }
@@ -215,6 +225,12 @@ bool setStreamTarget(const float tgt[5]) {
             lastMsg = "Entrada no finita (NaN/Inf)";
             return false;
         }
+    }
+    // Ronda 3 P0-3: retener/descartar paquetes de streaming mientras corre la rampa de reactivación 1200 ms!
+    if (wakeRampActive) {
+        lastOk = false;
+        lastMsg = "Reactivando desde RELAX (streaming bloqueado hasta concluir 1200 ms)";
+        return false;
     }
     // Ronda 2 P0-5: JAMÁS evadir la rampa obligatoria de 1200 ms al reactivar desde RELAX!
     if (isRelaxed) {
@@ -241,14 +257,15 @@ bool setStreamTarget(const float tgt[5]) {
     return true;
 }
 
-void startDemo() {
+bool startDemo() {
     demoRunning = true;
     demoIdx     = 0;
     if (!startQuinticMove(DEMO_SEQ[0].q, DEMO_SEQ[0].ms)) {
         demoRunning = false;
-        return;
+        return false;
     }
     Serial.println(F("[OK] Iniciando Demo Pick-and-Place suave."));
+    return true;
 }
 
 String getCurrentIP() {
@@ -263,31 +280,37 @@ void printStatus() {
                   fx, fy, fz, fphi, isRelaxed ? 1 : 0, getCurrentIP().c_str());
 }
 
-bool moveByIK(float x_mm, float y_mm, float z_mm, float phi_deg, float grip_mm, uint32_t durationMs, bool streaming) {
-    float qSol[4];
-    String ikErr;
-    if (!computeIK(x_mm, y_mm, z_mm, phi_deg, qSol, &ikErr, true, qCurr[0])) {
-        lastOk  = false;
-        lastMsg = "IK: " + ikErr;
-        Serial.printf("[IK ERR] (%.1f, %.1f, %.1f, phi=%.1f): %s\n", x_mm, y_mm, z_mm, phi_deg, ikErr.c_str());
-        return false;
-    }
+bool moveByIK(float x_mm, float y_mm, float z_mm, float phi_deg, float grip_mm, uint32_t durationMs, bool streaming, bool gripMode = false) {
     if (!isfinite(grip_mm)) {
         lastOk  = false;
         lastMsg = "Pinza no finita (NaN/Inf)";
         return false;
     }
-    float tgt[5] = { qSol[0], qSol[1], qSol[2], qSol[3], clampf(grip_mm, AXES[4].q_min, AXES[4].q_max) };
+    float gSafe = clampf(grip_mm, AXES[4].q_min, AXES[4].q_max);
+    float qSol[4];
+    String ikErr;
+    bool solved = gripMode
+        ? computeGripIK(x_mm, y_mm, z_mm, phi_deg, gSafe, qSol, &ikErr, true, qCurr[0])
+        : computeIK(x_mm, y_mm, z_mm, phi_deg, qSol, &ikErr, true, qCurr[0]);
+    if (!solved) {
+        lastOk  = false;
+        lastMsg = (gripMode ? "IK Agarre: " : "IK: ") + ikErr;
+        Serial.printf("[IK ERR] (%s %.1f, %.1f, %.1f, phi=%.1f): %s\n",
+                      gripMode ? "GRIP" : "TCP", x_mm, y_mm, z_mm, phi_deg, ikErr.c_str());
+        return false;
+    }
+    float tgt[5] = { qSol[0], qSol[1], qSol[2], qSol[3], gSafe };
     bool ok = streaming ? setStreamTarget(tgt) : startQuinticMove(tgt, durationMs);
     if (!ok) {
         return false;
     }
     demoRunning = false;
     lastOk  = true;
-    lastMsg = "IK OK -> q=[" + String(qSol[0], 1) + ", " + String(qSol[1], 1) + ", " + String(qSol[2], 1) + ", " + String(qSol[3], 1) + "]";
+    lastMsg = String(gripMode ? "IK Agarre OK -> q=[" : "IK OK -> q=[")
+            + String(qSol[0], 1) + ", " + String(qSol[1], 1) + ", " + String(qSol[2], 1) + ", " + String(qSol[3], 1) + "]";
     if (!streaming) {
-        Serial.printf("[IK OK] (%.1f, %.1f, %.1f, phi=%.1f) -> q=[%.1f, %.1f, %.1f, %.1f] en %lu ms\n",
-                      x_mm, y_mm, z_mm, phi_deg, qSol[0], qSol[1], qSol[2], qSol[3], (unsigned long)durationMs);
+        Serial.printf("[IK OK] (%s %.1f, %.1f, %.1f, phi=%.1f) -> q=[%.1f, %.1f, %.1f, %.1f] en %lu ms\n",
+                      gripMode ? "GRIP" : "TCP", x_mm, y_mm, z_mm, phi_deg, qSol[0], qSol[1], qSol[2], qSol[3], (unsigned long)durationMs);
     }
     return true;
 }
@@ -320,23 +343,34 @@ void processCommand(String line) {
         centerBench90();
         lastOk = true; lastMsg = "CENTER 1500us";
     } else if (up == "DEMO") {
-        startDemo();
-        lastOk = true; lastMsg = "Demo Pick & Place";
+        if (startDemo()) {
+            lastOk = true; lastMsg = "Demo Pick & Place";
+        }
     } else if (up == "RELAX") {
         relaxAll();
         lastOk = true; lastMsg = "Servos relajados";
     } else if (up == "STATUS" || up == "FK") {
         printStatus();
+    } else if (up.startsWith("IKGRIP ")) {
+        float x, y, z, phi, g = qCurr[4];
+        long ms = (long)DEFAULT_MOVE_MS;
+        int n = sscanf(line.c_str() + 7, "%f %f %f %f %f %ld", &x, &y, &z, &phi, &g, &ms);
+        if (n >= 4) moveByIK(x, y, z, phi, g, clampMoveMs(ms), false, true);
+        else Serial.println(F("[ERR] Uso: IKGRIP x y z phi [grip_mm] [ms]"));
+    } else if (up.startsWith("IKGG ")) {
+        float x, y, z, phi, g = qCurr[4];
+        int n = sscanf(line.c_str() + 5, "%f %f %f %f %f", &x, &y, &z, &phi, &g);
+        if (n >= 4) moveByIK(x, y, z, phi, g, 0, true, true);
     } else if (up.startsWith("IKG ")) {
         float x, y, z, phi, g = qCurr[4];
         int n = sscanf(line.c_str() + 4, "%f %f %f %f %f", &x, &y, &z, &phi, &g);
-        if (n >= 4) moveByIK(x, y, z, phi, g, 0, true);
+        if (n >= 4) moveByIK(x, y, z, phi, g, 0, true, false);
     } else if (up.startsWith("IK ")) {
         float x, y, z, phi, g = qCurr[4];
         long ms = (long)DEFAULT_MOVE_MS;
         int n = sscanf(line.c_str() + 3, "%f %f %f %f %f %ld", &x, &y, &z, &phi, &g, &ms);
         if (n >= 4) {
-            moveByIK(x, y, z, phi, g, clampMoveMs(ms), false);
+            moveByIK(x, y, z, phi, g, clampMoveMs(ms), false, false);
         } else {
             Serial.println(F("[ERR] Uso: IK x y z phi [grip_mm] [ms]"));
         }
@@ -357,7 +391,7 @@ void processCommand(String line) {
     } else if (up.startsWith("RAW ")) {
         int ch = 0, us = 1500;
         if (sscanf(line.c_str() + 4, "%d %d", &ch, &us) == 2 && ch >= 0 && ch < 16) {
-            demoRunning = false; trajActive = false; streamMode = false; isRelaxed = false;
+            demoRunning = false; trajActive = false; wakeRampActive = false; streamMode = false; isRelaxed = false;
             writeMicros((uint8_t)ch, (uint16_t)us);
             for (uint8_t i = 0; i < 5; i++) {
                 if (AXES[i].channel == (uint8_t)ch) {
@@ -388,6 +422,7 @@ String buildStatusJson() {
     j += "],\"xyz\":[" + String(fx, 1) + "," + String(fy, 1) + "," + String(fz, 1) + "," + String(fphi, 1) + "]";
     j += ",\"grip_xyz\":[" + String(gx, 1) + "," + String(gy, 1) + "," + String(gz, 1) + "]";
     j += ",\"relaxed\":" + String(isRelaxed ? "true" : "false");
+    j += ",\"waking\":" + String(wakeRampActive ? "true" : "false");
     j += ",\"ok\":" + String(lastOk ? "true" : "false");
     j += ",\"msg\":\"" + lastMsg + "\"";
     j += ",\"ip\":\"" + getCurrentIP() + "\"}";
@@ -410,8 +445,10 @@ void setupWebServer() {
         server.send(200, "application/json", buildStatusJson());
     });
     server.on("/api/ik", HTTP_GET, []() {
+        bool gripMode = server.hasArg("mode") && server.arg("mode").equalsIgnoreCase("grip");
         float fx = 0, fy = 0, fz = 0, fphi = 0;
         computeFK(qCurr, fx, fy, fz, fphi);
+        if (gripMode) computeGripPointFK(qCurr, fx, fy, fz);
         float x   = server.hasArg("x")   ? server.arg("x").toFloat()   : fx;
         float y   = server.hasArg("y")   ? server.arg("y").toFloat()   : fy;
         float z   = server.hasArg("z")   ? server.arg("z").toFloat()   : fz;
@@ -419,7 +456,7 @@ void setupWebServer() {
         float g   = server.hasArg("g")   ? server.arg("g").toFloat()   : qCurr[4];
         uint32_t ms = server.hasArg("ms") ? clampMoveMs(server.arg("ms").toInt()) : (uint32_t)DEFAULT_MOVE_MS;
         bool stream = server.hasArg("stream") && (server.arg("stream") == "1");
-        moveByIK(x, y, z, phi, g, ms, stream);
+        moveByIK(x, y, z, phi, g, ms, stream, gripMode);
         server.send(200, "application/json", buildStatusJson());
     });
     server.on("/api/cmd", HTTP_GET, []() {
@@ -539,6 +576,7 @@ void loop() {
         String gReason;
         if (!checkTableGuard(qNext, &gReason)) {
             trajActive = false;
+            wakeRampActive = false;
             demoRunning = false;
             lastOk = false;
             lastMsg = "Detenido en paso interpolado: " + gReason;
@@ -549,6 +587,7 @@ void loop() {
         applyCurrentPose();
         if (u >= 1.0f) {
             trajActive = false;
+            wakeRampActive = false;
             if (demoRunning) {
                 demoIdx++;
                 if (demoIdx < DEMO_LEN) {

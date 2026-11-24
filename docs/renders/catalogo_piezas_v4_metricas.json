@@ -7,8 +7,8 @@
       105.9,
       44.0
     ],
-    "vol_cm3": 73.99,
-    "est_mass_g": 45.9,
+    "vol_cm3": 69.95,
+    "est_mass_g": 43.4,
     "watertight": true,
     "bodies": 1
   },
@@ -31,10 +31,10 @@
     "dims_mm": [
       98.9,
       98.7,
-      5.4
+      5.8
     ],
-    "vol_cm3": 12.8,
-    "est_mass_g": 7.9,
+    "vol_cm3": 15.74,
+    "est_mass_g": 9.8,
     "watertight": true,
     "bodies": 1
   },
@@ -46,8 +46,8 @@
       105.8,
       66.6
     ],
-    "vol_cm3": 149.67,
-    "est_mass_g": 92.8,
+    "vol_cm3": 149.31,
+    "est_mass_g": 92.6,
     "watertight": true,
     "bodies": 1
   },
@@ -57,10 +57,10 @@
     "dims_mm": [
       40.0,
       40.0,
-      3.0
+      3.2
     ],
-    "vol_cm3": 2.44,
-    "est_mass_g": 2.7,
+    "vol_cm3": 2.51,
+    "est_mass_g": 2.8,
     "watertight": true,
     "bodies": 1
   },
@@ -213,10 +213,10 @@
     "dims_mm": [
       6.5,
       6.5,
-      4.1
+      4.6
     ],
-    "vol_cm3": 0.06,
-    "est_mass_g": 0.1,
+    "vol_cm3": 0.07,
+    "est_mass_g": 0.0,
     "watertight": true,
     "bodies": 1
   },
@@ -226,10 +226,10 @@
     "dims_mm": [
       6.5,
       6.5,
-      4.1
+      4.6
     ],
-    "vol_cm3": 0.06,
-    "est_mass_g": 0.1,
+    "vol_cm3": 0.07,
+    "est_mass_g": 0.0,
     "watertight": true,
     "bodies": 1
   },

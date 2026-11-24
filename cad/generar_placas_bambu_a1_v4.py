@@ -124,7 +124,7 @@ BLACK_PREC_SPECS = {
         "Ninguno",
         "Placa aislante plana en PEI (Z=0): separa lastre metálico de PCA9685/XIAO; 0 soportes",
     ),
-    "04b_reten_axial_j1": ([], "Ninguno", "Anillo plano Z=0 (3 barrenos M3 circulares; 0 soportes)"),
+    "04b_reten_axial_j1": ([("x", 180.0)], "Ninguno", "Boca abajo: cara plana Z=40.5 en PEI y 3 avellanados M3×8 hacia arriba (0 overhang)"),
     "08_engrane_brazo_izq_m15": (
         [("z", -Q1), ("y", +WRIST_ANG), ("x", 180.0)],
         "Ninguno",

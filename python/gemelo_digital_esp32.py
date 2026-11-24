@@ -145,9 +145,9 @@ HERO_GRIP_TH_DEG = gripper_kinematics_v4(HERO_GRIP)[0]
 SIM_QLIM_DEG = QLIM_DEG
 check_physical_guard_sim = check_physical_guard_v4
 
-# Mapeo de cada STL a su grupo cinemático rígido (CAD v4 Clean-DFA Ronda 2+ — 42 STLs + 49 hardware)
+# Mapeo de cada STL a su grupo cinemático rígido (CAD v4 Clean-DFA Ronda 3 — 42 STLs + 56 hardware)
 GROUP_MAP = {
-    # Base fija coaxial Ø106 mm + Bóveda lastre + Bandeja electrónica aislante (Mundo)
+    # Base fija coaxial Ø106 mm + Bóveda lastre + Bandeja electrónica ciega (Mundo)
     "01_base_fija_v4.stl": "base",
     "03_tapa_inferior_v4.stl": "base",
     "03b_bandeja_electronica_v4.stl": "base",
@@ -158,11 +158,12 @@ GROUP_MAP = {
     "hw_elec_02.stl": "base",
     "hw_elec_03.stl": "base",
     "hw_elec_04.stl": "base",
-    **{f"hw_steel_{i:02d}.stl": "base" for i in range(19)},
-    # Eslabón 1: Torreta Coaxial J1 + Retén Axial Independiente + Hub Hombro J2 (gira q1 en Z)
+    **{f"hw_steel_{i:02d}.stl": "base" for i in range(23)},
+    # Eslabón 1: Torreta Coaxial J1 + Retén Axial Independiente (3× M3×8) + Hub Hombro J2 (gira q1 en Z)
     "04_torreta_j1_hombro_v4.stl": "j1",
     "04b_reten_axial_j1.stl": "j1",
     "hw_servo_01.stl": "j1",
+    **{f"hw_steel_{i:02d}.stl": "j1" for i in range(23, 26)},
     # Eslabón 2: Brazo L2 Horquilla en U + Tapas Bayoneta J2 + Separador M3 J2 + Canal Dovetail (q1, q2)
     "05_eslabon_l2_v4.stl": "j2",
     "13_tapa_cable_l2.stl": "j2",
@@ -172,8 +173,8 @@ GROUP_MAP = {
     "w_aro_j2_izq.stl": "j2",
     "w_aro_j2_der.stl": "j2",
     "hw_servo_02.stl": "j2",
-    "hw_steel_19.stl": "j2",
-    "hw_steel_20.stl": "j2",
+    "hw_steel_26.stl": "j2",
+    "hw_steel_27.stl": "j2",
     # Eslabón 3: Antebrazo L3 Horquilla en U + Tapas Bayoneta J3 + Separador M3 J3 + Canal Dovetail (q1, q2, q3)
     "06_antebrazo_l3_v4.stl": "j3",
     "13_tapa_cable_l3.stl": "j3",
@@ -183,8 +184,8 @@ GROUP_MAP = {
     "w_aro_j3_izq.stl": "j3",
     "w_aro_j3_der.stl": "j3",
     "hw_servo_03.stl": "j3",
-    "hw_steel_21.stl": "j3",
-    "hw_steel_22.stl": "j3",
+    "hw_steel_28.stl": "j3",
+    "hw_steel_29.stl": "j3",
     # Eslabón 4: Palma abierta MeArm Mod 1.5 + Tapas Bayoneta J4 + Separador M3 J4 + SG90 coaxial (q1, q2, q3, q4)
     "07_palma_pinza_v4.stl": "j4",
     "11_separador_m3_j4.stl": "j4",
@@ -197,9 +198,9 @@ GROUP_MAP = {
     "w_aro_j4_der.stl": "j4",
     "w02_collar_muneca_blanco.stl": "j4",
     "hw_servo_04.stl": "j4",
-    "hw_steel_23.stl": "j4",
-    "hw_steel_24.stl": "j4",
-    **{f"hw_steel_{i:02d}.stl": "j4" for i in range(33, 39)},
+    "hw_steel_30.stl": "j4",
+    "hw_steel_31.stl": "j4",
+    **{f"hw_steel_{i:02d}.stl": "j4" for i in range(40, 46)},
     # Efector final — Paralelogramo de 4 barras exacto MeArm Mod 1.5 (12T) + casquillos lisos
     "08_engrane_brazo_izq_m15.stl": "gear_l",
     "09_engrane_brazo_der_m15.stl": "gear_r",
@@ -209,12 +210,12 @@ GROUP_MAP = {
     "11d_separador_pinza_dedo_f_izq.stl": "finger_l",
     "11e_separador_pinza_dedo_r_izq.stl": "finger_l",
     "w04_almohadilla_izq.stl": "finger_l",
-    **{f"hw_steel_{i:02d}.stl": "finger_l" for i in range(25, 29)},
+    **{f"hw_steel_{i:02d}.stl": "finger_l" for i in range(32, 36)},
     "10_dedo_pinza_der_v4.stl": "finger_r",
     "11d_separador_pinza_dedo_f_der.stl": "finger_r",
     "11e_separador_pinza_dedo_r_der.stl": "finger_r",
     "w04_almohadilla_der.stl": "finger_r",
-    **{f"hw_steel_{i:02d}.stl": "finger_r" for i in range(29, 33)},
+    **{f"hw_steel_{i:02d}.stl": "finger_r" for i in range(36, 40)},
 }
 
 HW_COLORS = {

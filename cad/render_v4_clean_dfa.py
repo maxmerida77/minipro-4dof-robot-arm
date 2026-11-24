@@ -133,8 +133,8 @@ def main():
         ),
         (
             _render_scene((275, -285, 200), (45, 0, 92), 30.0, xray=True, exploded=False, show_hw=True, size=(tw, th)),
-            "2 · RAYOS-X INTERNO (0.0000 mm³ CON HERRAJES, NYLOCS Y LASTRE)",
-            "Bóveda lastre 247 g bajo bandeja aislante · Mamparo Nyloc J2/J3/J4 · PCA9685 + Dupont (23 mm) · 4× MG90S + SG90",
+            "2 · RAYOS-X INTERNO (0.0000 mm³ CON TODOS LOS TORNILLOS, NYLOCS Y LASTRE)",
+            "Lastre 218 g B-Rep bajo bandeja ciega PCA (M3×4) · Retén J1 avellanado (M3×8) · Mamparo Nyloc J2/J3/J4",
         ),
         (
             _render_scene((375, -420, 280), (55, 0, 108), 32.0, xray=False, exploded=True, show_hw=True, size=(tw, th)),
@@ -164,8 +164,8 @@ def main():
         f_h1 = f_sub = f_t = f_s = ImageFont.load_default()
 
     draw.rectangle([0, 0, W, header_h], fill=(15, 23, 42))
-    draw.text((pad, 16), "MINI-PRO 4-DOF B2 STEALTH — CAD v4 Clean-DFA VERIFICADO (RONDA 2 · GO)", fill=(248, 250, 252), font=f_h1)
-    draw.text((pad, 54), "DH 82/82/70/53 mm · 42/42 STLs 1-sólido estancos · 0.0000 mm³ en 8 auditorías B-Rep (tol=0.01 mm³) · Masa móvil ~122 g", fill=(148, 163, 184), font=f_sub)
+    draw.text((pad, 16), "MINI-PRO 4-DOF B2 STEALTH — CAD v4 Clean-DFA VERIFICADO (RONDA 3 · GO)", fill=(248, 250, 252), font=f_h1)
+    draw.text((pad, 54), "DH 82/82/70/53 mm · 42/42 STLs 1-sólido estancos · 0.0000 mm³ en 11 auditorías B-Rep (tol=0.01 mm³) · Masa móvil ~122 g", fill=(148, 163, 184), font=f_sub)
 
     for idx, (im, title, sub) in enumerate(panels):
         r, c = divmod(idx, 2)
