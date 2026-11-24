@@ -42,6 +42,8 @@ from robot_minipro_rtb import (
     Q_HERO_RAD,
     Q_HOME_RAD,
 )
+sys.path.insert(0, os.path.join(ROOT, "cad"))
+from params import GRIP_V4, HERO_POSE_DEG, gripper_kinematics_v4
 
 try:
     import serial
@@ -114,104 +116,105 @@ class ArmLink:
 
 
 # ============================================================================
-# Carga y rigging cinemático de las 30 piezas STL reales + 19 mallas internas
+# Carga y rigging cinemático de las 34 piezas STL v4 Clean-DFA + 22 mallas internas
 # ============================================================================
-EXP_DIR = os.path.join(ROOT, "cad", "exports")
+EXP_DIR = os.path.join(ROOT, "cad", "exports", "v4_clean_dfa")
 BLK_DIR = os.path.join(EXP_DIR, "stl_negro_mate")
 WHT_DIR = os.path.join(EXP_DIR, "stl_blanco_mate")
 HW_DIR  = os.path.join(EXP_DIR, "hardware_ref")
 
-# Pose Héroe exacta usada al exportar los STL en `cad/mini_pro_b2_stealth_v2.py`
-HERO_Q2 = 68.0
-HERO_Q3 = -96.0
-HERO_Q4 = 28.0
-HERO_GRIP = 16.0
+# Pose Héroe exacta usada al exportar los STL en `cad/mini_pro_b2_stealth_v4.py`
+HERO_Q2 = float(HERO_POSE_DEG["q2"])
+HERO_Q3 = float(HERO_POSE_DEG["q3"])
+HERO_Q4 = float(HERO_POSE_DEG["q4"])
+HERO_GRIP = float(HERO_POSE_DEG["gripper_open_mm"])
 P3_HERO = (A2_MM * math.cos(math.radians(HERO_Q2)), 0.0, D1_MM + A2_MM * math.sin(math.radians(HERO_Q2)))
 P4_HERO = (
     P3_HERO[0] + A3_MM * math.cos(math.radians(HERO_Q2 + HERO_Q3)),
     0.0,
     P3_HERO[2] + A3_MM * math.sin(math.radians(HERO_Q2 + HERO_Q3)),
 )
-GEAR_LOCAL_X = 31.5
-GEAR_LOCAL_Y = 7.20
-IDLER_LOCAL_X = 22.5
-GRIP_LINK_L = 16.0
-PINION_J1_X = 22.35
-HERO_GRIP_TH_DEG = math.degrees(math.asin(min(0.95, (HERO_GRIP / 2.0) / GRIP_LINK_L)))  # 30.0° exactos
+GEAR_LOCAL_X = float(GRIP_V4["gear_x"])
+GEAR_LOCAL_Y = float(GRIP_V4["gear_y"])
+IDLER_LOCAL_X = float(GRIP_V4["idler_x"])
+IDLER_LOCAL_Y = float(GRIP_V4["idler_y"])
+GRIP_LINK_L = float(GRIP_V4["link_l"])
+HERO_GRIP_TH_DEG = gripper_kinematics_v4(HERO_GRIP)[0]
 
-# Mapeo de cada STL a su grupo cinemático rígido (CAD v3 DFM — 35 STLs + 19 hardware)
+# Mapeo de cada STL a su grupo cinemático rígido (CAD v4 Clean-DFA — 34 STLs + 22 hardware)
 GROUP_MAP = {
-    # Base fija (Mundo)
-    "01_base_fija_hueca.stl": "base",
-    "03_tapa_inferior_electronica.stl": "base",
+    # Base fija coaxial Ø106 mm (Mundo)
+    "01_base_fija_v4.stl": "base",
+    "03_tapa_inferior_v4.stl": "base",
     "w01_aro_base_blanco.stl": "base",
-    "hw_mg90s_j1_base.stl": "base",
-    "hw_rodamiento_608zz_base.stl": "base",
-    "hw_ar5515_usbc_pd_pcb.stl": "base",
-    "hw_ar5515_bornera.stl": "base",
-    "hw_ar5515_puerto_usbc.stl": "base",
-    "hw_switch_kcd11_cuerpo.stl": "base",
-    "hw_switch_kcd11_bisel.stl": "base",
-    "hw_pca9685_pcb.stl": "base",
-    "hw_pca9685_pines.stl": "base",
-    "hw_xiao_esp32_pcb.stl": "base",
-    "hw_xiao_puerto_usbc.stl": "base",
-    "hw_capacitor_1000uf.stl": "base",
-    # Piñón motriz J1 (gira -q1 en X=+22)
-    "02_pinon_base_22t.stl": "pinion_j1",
-    # Eslabón 1: Torreta J1 + Tambor Hombro J2 + Buje 608ZZ J2 (gira q1 en Z)
-    "04_torreta_j1_hombro.stl": "j1",
-    "04b_engrane_torreta_22t.stl": "j1",
-    "11_buje_608zz_j2.stl": "j1",
-    "tapa_j2_izq.stl": "j1",
-    "tapa_j2_der.stl": "j1",
-    "w_aro_j2_izq.stl": "j1",
-    "w_aro_j2_der.stl": "j1",
-    "hw_mg90s_j2_hombro.stl": "j1",
-    "hw_rodamiento_608zz_j2.stl": "j1",
-    # Eslabón 2: Brazo L2 + Tambor Codo J3 + Buje 608ZZ J3 (q1, q2)
-    "05_eslabon_l2_codo.stl": "j2",
-    "11_buje_608zz_j3.stl": "j2",
-    "tapa_j3_izq.stl": "j2",
-    "tapa_j3_der.stl": "j2",
-    "w_aro_j3_izq.stl": "j2",
-    "w_aro_j3_der.stl": "j2",
-    "hw_mg90s_j3_codo.stl": "j2",
-    "hw_rodamiento_608zz_j3.stl": "j2",
-    # Eslabón 3: Antebrazo L3 + Tambor Muñeca J4 + Buje 608ZZ J4 (q1, q2, q3)
-    "06_antebrazo_l3_muneca.stl": "j3",
-    "11_buje_608zz_j4.stl": "j3",
-    "tapa_j4_izq.stl": "j3",
-    "tapa_j4_der.stl": "j3",
-    "w_aro_j4_izq.stl": "j3",
-    "w_aro_j4_der.stl": "j3",
-    "hw_mg90s_j4_muneca.stl": "j3",
-    "hw_rodamiento_608zz_j4.stl": "j3",
-    # Eslabón 4: Palma de pinza + SG90 coaxial + aros puente (q1, q2, q3, q4)
-    "07_palma_pinza_sg90.stl": "j4",
+    "hw_servo_00.stl": "base",
+    "hw_elec_00.stl": "base",
+    "hw_elec_01.stl": "base",
+    "hw_elec_02.stl": "base",
+    "hw_elec_03.stl": "base",
+    "hw_elec_04.stl": "base",
+    "hw_steel_00.stl": "base",
+    "hw_steel_01.stl": "base",
+    "hw_steel_02.stl": "base",
+    "hw_steel_03.stl": "base",
+    "hw_steel_04.stl": "base",
+    # Eslabón 1: Torreta Coaxial J1 + Retén Axial Independiente + Hub Hombro J2 (gira q1 en Z)
+    "04_torreta_j1_hombro_v4.stl": "j1",
+    "04b_reten_axial_j1.stl": "j1",
+    "hw_servo_01.stl": "j1",
+    # Eslabón 2: Brazo L2 Horquilla en U + Tapas Bayoneta J2 + Separador M3 J2 + Canal Dovetail (q1, q2)
+    "05_eslabon_l2_v4.stl": "j2",
+    "13_tapa_cable_l2.stl": "j2",
+    "11_separador_m3_j2.stl": "j2",
+    "tapa_j2_izq.stl": "j2",
+    "tapa_j2_der.stl": "j2",
+    "w_aro_j2_izq.stl": "j2",
+    "w_aro_j2_der.stl": "j2",
+    "hw_servo_02.stl": "j2",
+    # Eslabón 3: Antebrazo L3 Horquilla en U + Tapas Bayoneta J3 + Separador M3 J3 + Canal Dovetail (q1, q2, q3)
+    "06_antebrazo_l3_v4.stl": "j3",
+    "13_tapa_cable_l3.stl": "j3",
+    "11_separador_m3_j3.stl": "j3",
+    "tapa_j3_izq.stl": "j3",
+    "tapa_j3_der.stl": "j3",
+    "w_aro_j3_izq.stl": "j3",
+    "w_aro_j3_der.stl": "j3",
+    "hw_servo_03.stl": "j3",
+    # Eslabón 4: Palma abierta MeArm Mod 1.5 + Tapas Bayoneta J4 + Separador M3 J4 + SG90 coaxial (q1, q2, q3, q4)
+    "07_palma_pinza_v4.stl": "j4",
+    "11_separador_m3_j4.stl": "j4",
+    "tapa_j4_izq.stl": "j4",
+    "tapa_j4_der.stl": "j4",
+    "w_aro_j4_izq.stl": "j4",
+    "w_aro_j4_der.stl": "j4",
     "w02_collar_muneca_blanco.stl": "j4",
-    "w03_aro_engrane_0.stl": "j4",
-    "w03_aro_engrane_1.stl": "j4",
-    "hw_sg90_pinza.stl": "j4",
-    # Efector final — Paralelogramo de 4 barras real (engranes-brazo + bielas + dedos)
-    "08_engrane_brazo_izq.stl": "gear_l",
-    "09_engrane_brazo_der.stl": "gear_r",
-    "12_biela_pinza_izq.stl": "link_l",
-    "12_biela_pinza_der.stl": "link_r",
-    "10_dedo_pinza_izq.stl": "finger_l",
+    "hw_servo_04.stl": "j4",
+    "hw_steel_09.stl": "j4",
+    "hw_steel_10.stl": "j4",
+    "hw_steel_11.stl": "j4",
+    # Efector final — Paralelogramo de 4 barras exacto MeArm Mod 1.5 (12T)
+    "08_engrane_brazo_izq_m15.stl": "gear_l",
+    "09_engrane_brazo_der_m15.stl": "gear_r",
+    "12_biela_pinza_izq_v4.stl": "link_l",
+    "12_biela_pinza_der_v4.stl": "link_r",
+    "10_dedo_pinza_izq_v4.stl": "finger_l",
     "w04_almohadilla_izq.stl": "finger_l",
-    "10_dedo_pinza_der.stl": "finger_r",
+    "hw_steel_05.stl": "finger_l",
+    "hw_steel_06.stl": "finger_l",
+    "10_dedo_pinza_der_v4.stl": "finger_r",
     "w04_almohadilla_der.stl": "finger_r",
+    "hw_steel_07.stl": "finger_r",
+    "hw_steel_08.stl": "finger_r",
 }
 
 HW_COLORS = {
-    "mg90s": (0.14, 0.44, 0.78),
-    "sg90": (0.18, 0.56, 0.88),
-    "rodamiento": (0.72, 0.74, 0.78),
-    "pcb": (0.12, 0.56, 0.30),
-    "bornera": (0.10, 0.46, 0.24),
-    "capacitor": (0.14, 0.34, 0.54),
-    "switch": (0.26, 0.26, 0.30),
+    "hw_servo_04": (0.18, 0.56, 0.88),
+    "hw_servo": (0.14, 0.44, 0.78),
+    "hw_elec_04": (0.14, 0.34, 0.54),
+    "hw_elec": (0.12, 0.56, 0.30),
+    "hw_steel_01": (0.26, 0.26, 0.30),
+    "hw_steel_02": (0.22, 0.22, 0.25),
+    "hw_steel": (0.72, 0.74, 0.78),
 }
 
 
@@ -221,20 +224,17 @@ def _bake_transform_for_group(group: str) -> vtk.vtkTransform:
     tf.PostMultiply()
     if group in ("base", "j1"):
         return tf
-    if group == "pinion_j1":
-        tf.Translate(-PINION_J1_X, 0.0, 0.0)
-        return tf
     if group == "j2":
         tf.Translate(0.0, 0.0, -D1_MM)
         tf.RotateY(HERO_Q2)
         return tf
     if group == "j3":
         tf.Translate(-P3_HERO[0], 0.0, -P3_HERO[2])
-        tf.RotateY(HERO_Q2 + HERO_Q3)  # -28°
+        tf.RotateY(HERO_Q2 + HERO_Q3)
         return tf
     if group in ("j4", "finger_l", "finger_r"):
         tf.Translate(-P4_HERO[0], 0.0, -P4_HERO[2])
-        tf.RotateY(HERO_Q2 + HERO_Q3 + HERO_Q4)  # 0°
+        tf.RotateY(HERO_Q2 + HERO_Q3 + HERO_Q4)
         return tf
     if group == "gear_l":
         tf.Translate(-P4_HERO[0] - GEAR_LOCAL_X, -GEAR_LOCAL_Y, -P4_HERO[2])
@@ -243,10 +243,10 @@ def _bake_transform_for_group(group: str) -> vtk.vtkTransform:
         tf.Translate(-P4_HERO[0] - GEAR_LOCAL_X, +GEAR_LOCAL_Y, -P4_HERO[2])
         return tf
     if group == "link_l":
-        tf.Translate(-P4_HERO[0] - IDLER_LOCAL_X, -GEAR_LOCAL_Y, -P4_HERO[2])
+        tf.Translate(-P4_HERO[0] - IDLER_LOCAL_X, -IDLER_LOCAL_Y, -P4_HERO[2])
         return tf
     if group == "link_r":
-        tf.Translate(-P4_HERO[0] - IDLER_LOCAL_X, +GEAR_LOCAL_Y, -P4_HERO[2])
+        tf.Translate(-P4_HERO[0] - IDLER_LOCAL_X, +IDLER_LOCAL_Y, -P4_HERO[2])
         return tf
     return tf
 
@@ -412,7 +412,7 @@ class DigitalTwinApp:
         # Transformaciones dinámicas compartidas por grupo cinemático (incluye paralelogramo 4 barras!)
         self.tfs = {
             k: vtk.vtkTransform()
-            for k in ("base", "pinion_j1", "j1", "j2", "j3", "j4", "gear_l", "gear_r", "link_l", "link_r", "finger_l", "finger_r")
+            for k in ("base", "j1", "j2", "j3", "j4", "gear_l", "gear_r", "link_l", "link_r", "finger_l", "finger_r")
         }
         self.plastic_actors = []
         self.hw_actors = []
@@ -712,7 +712,7 @@ class DigitalTwinApp:
         # Pie informativo sutil en la esquina inferior izquierda de la escena 3D
         _add_2d_text(
             self.ren3d,
-            "Modelo 3D CAD v3 DFM real (35 STLs + 19 internos · pinza 4 barras) · Sincronizado con Peter Corke (d1=82, a2=82, a3=70, a4=53 mm)",
+            "Modelo 3D CAD v4 Clean-DFA real (34 STLs 1 sólido + 22 internos · pinza MeArm Mod 1.5) · Peter Corke (82/82/70/53 mm)",
             0.02, 0.022, 12, (0.28, 0.28, 0.32),
         )
 
@@ -850,12 +850,8 @@ class DigitalTwinApp:
         q1, q2, q3, q4 = [float(x) for x in self.q_deg]
         g = float(np.clip(self.grip_mm, 0.0, 30.0))
 
-        # 1. Transformaciones rígidas encadenadas (idénticas a `cad/mini_pro_b2_stealth_v2.py`!)
+        # 1. Transformaciones rígidas encadenadas (idénticas a `cad/mini_pro_b2_stealth_v4.py`!)
         self.tfs["base"].Identity()
-
-        self.tfs["pinion_j1"].Identity()
-        self.tfs["pinion_j1"].Translate(PINION_J1_X, 0.0, 0.0)
-        self.tfs["pinion_j1"].RotateZ(-q1)
 
         self.tfs["j1"].Identity()
         self.tfs["j1"].RotateZ(q1)
@@ -875,10 +871,9 @@ class DigitalTwinApp:
         self.tfs["j4"].Translate(A3_MM, 0.0, 0.0)
         self.tfs["j4"].RotateY(-q4)
 
-        # 2. Efector final: Cinemática exacta del paralelogramo de 4 barras (engranes-brazo + bielas + dedos paralelos)
-        th_deg = math.degrees(math.asin(min(0.95, (g / 2.0) / GRIP_LINK_L)))
+        # 2. Efector final: Cinemática trigonométrica EXACTA MeArm Mod 1.5 (compartida con firmware!)
+        th_deg, tcp_x_real, dx, _servo_deg = gripper_kinematics_v4(g)
         dth = th_deg - HERO_GRIP_TH_DEG
-        dx = GRIP_LINK_L * (math.cos(math.radians(th_deg)) - math.cos(math.radians(HERO_GRIP_TH_DEG)))
         dy = GRIP_LINK_L * (math.sin(math.radians(th_deg)) - math.sin(math.radians(HERO_GRIP_TH_DEG)))
 
         self.tfs["gear_l"].Identity()
@@ -893,12 +888,12 @@ class DigitalTwinApp:
 
         self.tfs["link_l"].Identity()
         self.tfs["link_l"].Concatenate(self.tfs["j4"])
-        self.tfs["link_l"].Translate(IDLER_LOCAL_X, +GEAR_LOCAL_Y, 0.0)
+        self.tfs["link_l"].Translate(IDLER_LOCAL_X, +IDLER_LOCAL_Y, 0.0)
         self.tfs["link_l"].RotateZ(+dth)
 
         self.tfs["link_r"].Identity()
         self.tfs["link_r"].Concatenate(self.tfs["j4"])
-        self.tfs["link_r"].Translate(IDLER_LOCAL_X, -GEAR_LOCAL_Y, 0.0)
+        self.tfs["link_r"].Translate(IDLER_LOCAL_X, -IDLER_LOCAL_Y, 0.0)
         self.tfs["link_r"].RotateZ(-dth)
 
         self.tfs["finger_l"].Identity()
@@ -909,10 +904,11 @@ class DigitalTwinApp:
         self.tfs["finger_r"].Concatenate(self.tfs["j4"])
         self.tfs["finger_r"].Translate(dx, -dy, 0.0)
 
-        # 3. Cinemática oficial Peter Corke (`fkine_all` + `jacob0` manipulabilidad)
+        # 3. Cinemática oficial Peter Corke (`fkine_all` + `jacob0` manipulabilidad + guarda anti-mesa)
         q_rad = np.deg2rad(self.q_deg)
         pts = self.robot.joint_positions_mm(q_rad)  # [Base, J2, J3, J4, TCP]
         tcp = pts[-1]
+        safe_z, _zj3, _zj4, z_tcp_eff, _gmsg = self.robot.check_table_guard(q_rad, g)
         phi = q2 + q3 + q4
         Jv = self.robot.jacob0(q_rad)[:3, :]
         manip = math.sqrt(max(0.0, float(np.linalg.det(Jv @ Jv.T))))
@@ -927,7 +923,7 @@ class DigitalTwinApp:
         # Posicionar etiquetas limpiamente fuera del sólido para cero recortes
         rad1 = math.radians(q1)
         off_y = np.array([math.sin(rad1), -math.cos(rad1), 0.0])  # vector lateral derecho del brazo
-        self.joint_labels["J1"].SetPosition(14.0, -72.0, 24.0)
+        self.joint_labels["J1"].SetPosition(14.0, -76.0, 24.0)
         self.joint_labels["J2"].SetPosition(*(pts[1] + off_y * 48.0 + np.array([0.0, 0.0, 6.0])))
         self.joint_labels["J3"].SetPosition(*(pts[2] + off_y * 42.0 + np.array([0.0, 0.0, 22.0])))
         self.joint_labels["J4"].SetPosition(*(pts[3] + off_y * 36.0 + np.array([0.0, 0.0, 22.0])))
@@ -948,12 +944,14 @@ class DigitalTwinApp:
         phi_clean = 0.0 if abs(phi) < 0.05 else phi
         self.txt_tcp.SetInput(f"TCP: ({tcp[0]:5.1f}, {tcp[1]:5.1f}, {tcp[2]:5.1f}) mm")
         if self.relaxed:
-            self.txt_phi.SetInput("SERVOS RELAJADOS (SIN TORQUE)")
+            self.txt_phi.SetInput("SERVOS RELAJADOS (FULL_OFF 4096)")
+        elif not safe_z:
+            self.txt_phi.SetInput(f"[!] GUARDA MESA: Z_eff={z_tcp_eff:.1f} mm (< 8 mm)")
         else:
-            self.txt_phi.SetInput(f"φ = {phi_clean:+.1f}°  |  Pinza = {g:.0f} mm  |  w = {manip:.4f}")
+            self.txt_phi.SetInput(f"φ={phi_clean:+.1f}° | g={g:.0f}mm (Δx={dx:+.1f}) | w={manip:.3f}")
 
-        # Transmisión en vivo hacia XIAO ESP32-S3
-        if transmit and not self.relaxed:
+        # Transmisión en vivo hacia XIAO ESP32-S3 (solo si pasa guarda anti-mesa!)
+        if transmit and not self.relaxed and safe_z:
             self.link.send_pose(self.q_deg, g, throttle_s=throttle_s)
 
         self.win.Render()

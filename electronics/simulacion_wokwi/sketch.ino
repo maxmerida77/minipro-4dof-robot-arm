@@ -1,26 +1,19 @@
 /*
- * Simulación Interactiva en Wokwi — Mini-Pro 4-DOF (`B2 Stealth`)
- * ===============================================================
- * Corre la lógica real del firmware `minipro_b2_stealth.ino` (I2C 0x40 +
- * Adafruit_PWMServoDriver + interpolador quíntico 100 Hz) sobre un ESP32-S3
- * conectado al chip custom `PCA9685` y los 5 servos virtuales (J1..J4 + Pinza).
+ * Simulación Interactiva en Wokwi — Mini-Pro 4-DOF (`B2 Stealth` v4 Clean-DFA)
+ * =============================================================================
+ * Sincronizado al 100% con el firmware `firmware/minipro_b2_stealth/`:
+ *   - Cinemática trigonométrica real de pinza MeArm Mod 1.5 (adiós 3°/mm lineal)
+ *   - Deshabilitación inmediata FULL_OFF (4096) al arrancar antes de habilitar PWM
+ *   - Guarda cinemática anti-mesa (impide Z_j3/j4 < 22 mm o Z_tcp < 8 mm)
+ *   - Resincronización limpia tras CENTER y rampa suave (>= 1200 ms) al salir de RELAX
  *
  * Pines I2C idénticos a Seeed Studio XIAO ESP32-S3:
  *   SDA = GPIO 5 (D4) · SCL = GPIO 6 (D5)
- *
- * Comandos por Monitor Serial (115200 baud):
- *   SWEEP  -> Recorre articulación por articulación (J1 -> J2 -> J3 -> J4 -> Pinza)
- *   HERO   -> Pose Héroe CAD v3.1 (0°, 68°, -96°, 28°, 16 mm)
- *   HOME   -> Reposo vertical (0°, 90°, -90°, 0°, 18 mm)
- *   CENTER -> Centra CH0..CH3 a 1500 µs (90° físico) para atornillar horns
- *   M q1 q2 q3 q4 grip [ms] -> Movimiento quíntico suave
- *   G q1 q2 q3 q4 grip      -> Movimiento directo
- *   RELAX  -> Apaga PWM de todos los servos
- *   STATUS -> Imprime estado actual
  */
 
 #include <Arduino.h>
 #include <Wire.h>
+#include <math.h>
 #include <Adafruit_PWMServoDriver.h>
 
 static const int      I2C_SDA_PIN  = 5;     // D4 en XIAO ESP32-S3
@@ -28,6 +21,18 @@ static const int      I2C_SCL_PIN  = 6;     // D5 en XIAO ESP32-S3
 static const uint8_t  PCA9685_ADDR = 0x40;
 static const float    SERVO_FREQ   = 50.0f;
 static const uint32_t CTRL_DT_MS   = 10;    // 100 Hz
+
+// Parámetros cinemáticos DH + Pinza MeArm Mod 1.5 (sincronizados con cad/params.py)
+static const float DH_D1_MM              = 82.0f;
+static const float DH_A2_MM              = 82.0f;
+static const float DH_A3_MM              = 70.0f;
+static const float DH_A4_MM              = 53.0f;
+static const float TABLE_SAFE_Z_TCP_MM   = 8.0f;
+static const float TABLE_SAFE_Z_JOINT_MM = 22.0f;
+static const float GRIP_LINK_L_MM        = 16.5f;
+static const float GRIP_NOMINAL_OPEN_MM  = 15.0f;
+static const float GRIP_CLOSED_SERVO_DEG = 40.0f;
+static const float MIN_WAKE_MOVE_MS      = 1200.0f;
 
 struct ServoAxisConfig {
   uint8_t  ch;
@@ -40,40 +45,39 @@ static const ServoAxisConfig AXES[5] = {
   { 1,   15.0f, 165.0f,  90.0f,  68.0f,    0.0f, 550, 2450 }, // J2 Hombro
   { 2, -135.0f,  45.0f, -90.0f, -96.0f,  135.0f, 550, 2450 }, // J3 Codo
   { 3,  -90.0f,  90.0f,   0.0f,  28.0f,   90.0f, 550, 2450 }, // J4 Muñeca
-  { 4,    0.0f,  30.0f,  18.0f,  16.0f,   40.0f, 600, 2400 }, // Pinza SG90 (3°/mm)
+  { 4,    0.0f,  30.0f,  15.0f,  15.0f,   40.0f, 600, 2400 }, // Pinza SG90 (trigonométrica)
 };
 
 Adafruit_PWMServoDriver pca(PCA9685_ADDR);
 
-float curQ[5]    = { 0.0f, 68.0f, -96.0f, 28.0f, 16.0f };
-float startQ[5]  = { 0.0f, 68.0f, -96.0f, 28.0f, 16.0f };
-float targetQ[5] = { 0.0f, 68.0f, -96.0f, 28.0f, 16.0f };
+float curQ[5]    = { 0.0f, 68.0f, -96.0f, 28.0f, 15.0f };
+float startQ[5]  = { 0.0f, 68.0f, -96.0f, 28.0f, 15.0f };
+float targetQ[5] = { 0.0f, 68.0f, -96.0f, 28.0f, 15.0f };
 
-bool     relaxed     = false;
+bool     relaxed     = true;
 bool     moving      = false;
 uint32_t moveStartMs = 0;
-float    moveDurMs   = 900.0f;
+float    moveDurMs   = 1100.0f;
 uint32_t lastCtrlMs  = 0;
 
-// Secuencia SWEEP articulación por articulación (igual al video demo)
 struct SweepStep { float q[5]; float durMs; const char *label; };
 static const SweepStep SWEEP_SEQ[] = {
-  { {   0,  68, -96,  28, 16 }, 800,  "Pose Héroe inicial" },
-  { {  65,  68, -96,  28, 16 }, 900,  "J1 Base -> +65 deg" },
-  { { -65,  68, -96,  28, 16 }, 1200, "J1 Base -> -65 deg" },
-  { {   0,  68, -96,  28, 16 }, 800,  "J1 Base -> 0 deg" },
-  { {   0, 115, -96,  28, 16 }, 900,  "J2 Hombro -> +115 deg" },
-  { {   0,  42, -96,  28, 16 }, 1100, "J2 Hombro -> +42 deg" },
-  { {   0,  68, -96,  28, 16 }, 800,  "J2 Hombro -> +68 deg" },
-  { {   0,  68, -30,  28, 16 }, 900,  "J3 Codo -> -30 deg" },
-  { {   0,  68,-125,  28, 16 }, 1100, "J3 Codo -> -125 deg" },
-  { {   0,  68, -96,  28, 16 }, 800,  "J3 Codo -> -96 deg" },
-  { {   0,  68, -96,  70, 16 }, 800,  "J4 Muñeca -> +70 deg" },
-  { {   0,  68, -96, -55, 16 }, 1000, "J4 Muñeca -> -55 deg" },
-  { {   0,  68, -96,  28, 16 }, 800,  "J4 Muñeca -> +28 deg" },
-  { {   0,  68, -96,  28, 28 }, 600,  "Pinza -> 28 mm (Abierta)" },
-  { {   0,  68, -96,  28,  2 }, 700,  "Pinza -> 2 mm (Cerrada)" },
-  { {   0,  68, -96,  28, 16 }, 600,  "Pinza -> 16 mm (Pose Héroe)" },
+  { {   0,  68, -96,  28, 15 }, 1100, "Pose Héroe inicial (TCP=53mm)" },
+  { {  65,  68, -96,  28, 15 }, 1000, "J1 Base -> +65 deg" },
+  { { -65,  68, -96,  28, 15 }, 1300, "J1 Base -> -65 deg" },
+  { {   0,  68, -96,  28, 15 }, 900,  "J1 Base -> 0 deg" },
+  { {   0, 115, -96,  28, 15 }, 1000, "J2 Hombro -> +115 deg" },
+  { {   0,  48, -96,  28, 15 }, 1200, "J2 Hombro -> +48 deg" },
+  { {   0,  68, -96,  28, 15 }, 900,  "J2 Hombro -> +68 deg" },
+  { {   0,  68, -30,  28, 15 }, 1000, "J3 Codo -> -30 deg" },
+  { {   0,  68,-125,  28, 15 }, 1200, "J3 Codo -> -125 deg" },
+  { {   0,  68, -96,  28, 15 }, 900,  "J3 Codo -> -96 deg" },
+  { {   0,  68, -96,  70, 15 }, 900,  "J4 Muñeca -> +70 deg" },
+  { {   0,  68, -96, -45, 15 }, 1100, "J4 Muñeca -> -45 deg" },
+  { {   0,  68, -96,  28, 15 }, 900,  "J4 Muñeca -> +28 deg" },
+  { {   0,  68, -96,  28, 28 }, 700,  "Pinza MeArm 1.5 -> 28 mm" },
+  { {   0,  68, -96,  28,  2 }, 800,  "Pinza MeArm 1.5 -> 2 mm" },
+  { {   0,  68, -96,  28, 15 }, 700,  "Pinza MeArm 1.5 -> 15 mm (TCP=53mm)" },
 };
 static const int SWEEP_LEN = sizeof(SWEEP_SEQ) / sizeof(SWEEP_SEQ[0]);
 bool sweepActive = false;
@@ -81,10 +85,34 @@ int  sweepIdx    = 0;
 
 static float clampF(float v, float lo, float hi) { return v < lo ? lo : (v > hi ? hi : v); }
 
+static float gripMmToThetaRad(float g) {
+  float gc = clampF(g, 0.0f, 30.0f);
+  float s = clampF((gc * 0.5f) / GRIP_LINK_L_MM, 0.0f, 0.95f);
+  return asinf(s);
+}
+
+static float gripMmToServoDeg(float g) {
+  return GRIP_CLOSED_SERVO_DEG + gripMmToThetaRad(g) * (180.0f / 3.14159265f);
+}
+
+static float gripMmToTcpX(float g) {
+  return DH_A4_MM + GRIP_LINK_L_MM * (cosf(gripMmToThetaRad(g)) - cosf(gripMmToThetaRad(GRIP_NOMINAL_OPEN_MM)));
+}
+
+static bool checkTableGuard(const float q[5], float &zTcpOut) {
+  float a2 = q[1] * (3.14159265f / 180.0f);
+  float a3 = (q[1] + q[2]) * (3.14159265f / 180.0f);
+  float a4 = (q[1] + q[2] + q[3]) * (3.14159265f / 180.0f);
+  float z_j3 = DH_D1_MM + DH_A2_MM * sinf(a2);
+  float z_j4 = z_j3 + DH_A3_MM * sinf(a3);
+  zTcpOut    = z_j4 + gripMmToTcpX(q[4]) * sinf(a4);
+  return (z_j3 >= TABLE_SAFE_Z_JOINT_MM) && (z_j4 >= TABLE_SAFE_Z_JOINT_MM) && (zTcpOut >= TABLE_SAFE_Z_TCP_MM);
+}
+
 static uint16_t logicalToUs(int i, float q) {
   const ServoAxisConfig &a = AXES[i];
   float qc = clampF(q, a.q_min, a.q_max);
-  float sdeg = (i == 4) ? (a.zero_deg + qc * 3.0f) : (a.zero_deg + qc);
+  float sdeg = (i == 4) ? gripMmToServoDeg(qc) : (a.zero_deg + qc);
   sdeg = clampF(sdeg, 0.0f, 180.0f);
   return (uint16_t)(a.us_min + (sdeg / 180.0f) * (a.us_max - a.us_min));
 }
@@ -99,28 +127,43 @@ static void applyAll() {
   for (int i = 0; i < 5; i++) writeUs(i, logicalToUs(i, curQ[i]));
 }
 
+static void disableAllOutputs() {
+  for (int i = 0; i < 16; i++) pca.setPWM(i, 0, 4096); // FULL_OFF real
+}
+
 static void relaxAll() {
   relaxed = true;
   moving = false;
   sweepActive = false;
-  for (int i = 0; i < 5; i++) pca.setPWM(AXES[i].ch, 0, 4096); // FULL_OFF
-  Serial.println("[OK] RELAX: PWM apagado en CH0..CH4");
+  disableAllOutputs();
+  Serial.println("[OK] RELAX: PWM FULL_OFF (4096) en todos los canales");
 }
 
-static void startMove(const float q[5], float durMs) {
+static bool startMove(const float qIn[5], float durMs) {
+  float qSafe[5];
+  for (int i = 0; i < 5; i++) qSafe[i] = clampF(qIn[i], AXES[i].q_min, AXES[i].q_max);
+  float zTcp = 0.0f;
+  if (!checkTableGuard(qSafe, zTcp)) {
+    Serial.printf("[GUARD] Pose bloqueada por guarda anti-mesa (Z_tcp=%.1f mm < %.0f mm)\n", zTcp, TABLE_SAFE_Z_TCP_MM);
+    return false;
+  }
+  bool waking = relaxed;
   relaxed = false;
   for (int i = 0; i < 5; i++) {
     startQ[i]  = curQ[i];
-    targetQ[i] = clampF(q[i], AXES[i].q_min, AXES[i].q_max);
+    targetQ[i] = qSafe[i];
   }
-  moveDurMs   = durMs < 50.0f ? 50.0f : durMs;
+  float d = durMs < 50.0f ? 50.0f : durMs;
+  if (waking && d < MIN_WAKE_MOVE_MS) d = MIN_WAKE_MOVE_MS;
+  moveDurMs   = d;
   moveStartMs = millis();
   moving      = true;
+  return true;
 }
 
 static void printStatus() {
-  Serial.printf("[STATUS] q=(%.1f, %.1f, %.1f, %.1f) deg | pinza=%.1f mm | %s\n",
-                curQ[0], curQ[1], curQ[2], curQ[3], curQ[4],
+  Serial.printf("[STATUS] q=(%.1f, %.1f, %.1f, %.1f) deg | pinza=%.1f mm (TCP_x=%.2f mm) | %s\n",
+                curQ[0], curQ[1], curQ[2], curQ[3], curQ[4], gripMmToTcpX(curQ[4]),
                 relaxed ? "RELAX" : "ACTIVO");
 }
 
@@ -137,21 +180,25 @@ static void handleCmd(String line) {
     startMove(SWEEP_SEQ[0].q, SWEEP_SEQ[0].durMs);
   } else if (up == "HERO") {
     sweepActive = false;
-    float q[5] = { 0, 68, -96, 28, 16 };
-    startMove(q, 900);
-    Serial.println("[OK] Moviendo a Pose Héroe");
+    float q[5] = { 0, 68, -96, 28, 15 };
+    startMove(q, 1100);
+    Serial.println("[OK] Moviendo a Pose Héroe v4");
   } else if (up == "HOME") {
     sweepActive = false;
-    float q[5] = { 0, 90, -90, 0, 18 };
-    startMove(q, 900);
-    Serial.println("[OK] Moviendo a HOME");
+    float q[5] = { 0, 90, -90, 0, 15 };
+    startMove(q, 1100);
+    Serial.println("[OK] Moviendo a HOME v4");
   } else if (up == "CENTER") {
     sweepActive = false;
     relaxed = false;
     moving = false;
-    for (int i = 0; i < 4; i++) writeUs(i, 1500);
-    writeUs(4, logicalToUs(4, 15.0f));
-    Serial.println("[OK] CENTER: CH0..CH3 en 1500 us (90 deg mecánico)");
+    for (int i = 0; i < 4; i++) {
+      writeUs(i, 1500);
+      curQ[i] = targetQ[i] = startQ[i] = clampF(90.0f - AXES[i].zero_deg, AXES[i].q_min, AXES[i].q_max);
+    }
+    curQ[4] = targetQ[4] = startQ[4] = GRIP_NOMINAL_OPEN_MM;
+    writeUs(4, logicalToUs(4, curQ[4]));
+    Serial.println("[OK] CENTER: CH0..CH3 en 1500 us + estado interno resincronizado");
   } else if (up == "RELAX") {
     relaxAll();
   } else if (up == "STATUS") {
@@ -159,12 +206,13 @@ static void handleCmd(String line) {
   } else if (up.startsWith("M ") || up.startsWith("G ")) {
     sweepActive = false;
     float q[5] = { curQ[0], curQ[1], curQ[2], curQ[3], curQ[4] };
-    float dur = up.startsWith("G ") ? 80.0f : 900.0f;
+    float dur = up.startsWith("G ") ? 120.0f : 1100.0f;
     int n = sscanf(line.c_str() + 2, "%f %f %f %f %f %f", &q[0], &q[1], &q[2], &q[3], &q[4], &dur);
     if (n >= 5) {
-      startMove(q, dur);
-      Serial.printf("[OK] Target=(%.1f, %.1f, %.1f, %.1f, %.1fmm) en %.0f ms\n",
-                    q[0], q[1], q[2], q[3], q[4], dur);
+      if (startMove(q, dur)) {
+        Serial.printf("[OK] Target=(%.1f, %.1f, %.1f, %.1f, %.1fmm) en %.0f ms\n",
+                      q[0], q[1], q[2], q[3], q[4], dur);
+      }
     } else {
       Serial.println("[ERR] Uso: M q1 q2 q3 q4 grip [ms]");
     }
@@ -176,7 +224,7 @@ static void handleCmd(String line) {
 void setup() {
   Serial.begin(115200);
   delay(200);
-  Serial.println("\n=== MINI-PRO 4-DOF (B2 STEALTH) — SIMULADOR WOKWI ===");
+  Serial.println("\n=== MINI-PRO 4-DOF (B2 STEALTH v4 Clean-DFA) — SIMULADOR WOKWI ===");
 
   Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
   Wire.beginTransmission(PCA9685_ADDR);
@@ -187,12 +235,12 @@ void setup() {
   }
 
   pca.begin();
+  disableAllOutputs(); // Evita pulsos residuales en reinicios calientes!
   pca.setOscillatorFrequency(25000000);
   pca.setPWMFreq(SERVO_FREQ);
   delay(20);
 
-  // Arranca automáticamente el recorrido SWEEP para ver cada articulación en vivo
-  Serial.println("[INFO] Iniciando barrido SWEEP automático (escribe HERO, HOME, CENTER, RELAX o M ...)");
+  Serial.println("[INFO] Iniciando barrido SWEEP automático v4 (escribe HERO, HOME, CENTER, RELAX o M ...)");
   handleCmd("SWEEP");
 }
 

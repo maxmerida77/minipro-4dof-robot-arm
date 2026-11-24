@@ -1,9 +1,10 @@
 """
-Visor 3D Interactivo de Piezas, Electrónica y Ensamble — Mini-Pro 4-DOF (`B2 Stealth` v2)
-=========================================================================================
-Abre una ventana 3D interactiva (VTK) con las 30 piezas `.STL` imprimibles + los
-componentes reales internos (servos MG90S/SG90, 4× rodamientos 608ZZ, PCA9685, XIAO,
-AR5515, botón KCD11-2P y capacitor 1000 µF):
+Visor 3D Interactivo de Piezas, Electrónica y Ensamble — Mini-Pro 4-DOF (`B2 Stealth` v4 Clean-DFA)
+====================================================================================================
+Abre una ventana 3D interactiva (VTK) con las 34 piezas `.STL` imprimibles de `CAD v4 Clean-DFA`
+(100% sólido único conectado, 0.00 mm³ colisiones) + los 22 componentes reales internos (servos
+MG90S/SG90, PCA9685 + envolvente Dupont, XIAO, AR5515, botón KCD11-2P con terminales, capacitor
+1000 µF y pernos M3):
 
     python cad/visor_cad_interactivo.py
 
@@ -13,12 +14,12 @@ Controles dentro de la ventana 3D:
     Shift + Izquierdo   : Mover (Pan)
     Clic derecho        : Seleccionar / identificar cualquier pieza directamente en 3D
     [E]                 : Alternar Ensamblado <-> Vista Explosionada
-    [X]                 : Alternar Sólido <-> Rayos-X (ver servos y bolsillos internos)
-    [H]                 : Mostrar / ocultar Electrónica, Servos y Rodamientos internos
-    [→] / [←] o [N]/[P] : Recorrer las 30 piezas imprimibles una por una
+    [X]                 : Alternar Sólido <-> Rayos-X (ver servos, conectores y bolsillos internos)
+    [H]                 : Mostrar / ocultar Electrónica, Servos y Tornillería interna
+    [→] / [←] o [N]/[P] : Recorrer las 34 piezas imprimibles una por una
     [I]                 : Alternar fantasma ON/OFF al aislar una pieza o subensamble
     [1]..[5]            : Filtrar por subensamble (1=Base, 2=Hombro, 3=Codo, 4=Muñeca, 5=Pinza)
-    [K] / [W]           : Ver solo Negro Mate (18 pzas) / solo Blanco Mate (12 pzas)
+    [K] / [W]           : Ver solo Negro Mate (24 pzas) / solo Blanco Mate (10 pzas)
     [A]                 : Mostrar ensamble completo (todas las piezas)
     [R]                 : Recentrar cámara
     [Esc]               : Cerrar visor
@@ -28,79 +29,78 @@ import os
 import vtk
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-EXP = os.path.join(HERE, "exports")
+EXP = os.path.join(HERE, "exports", "v4_clean_dfa")
 BLK_DIR = os.path.join(EXP, "stl_negro_mate")
 WHT_DIR = os.path.join(EXP, "stl_blanco_mate")
 HW_DIR  = os.path.join(EXP, "hardware_ref")
 
-# Metadatos por pieza imprimible: (subensamble 1..5, descripción de ensamble, vector de explosión [dx, dy, dz] mm)
+# Metadatos por pieza imprimible v4 Clean-DFA: (subensamble 1..5, descripción, vector explosión [dx, dy, dz] mm)
 PART_META = {
-    "01_base_fija_hueca.stl": (1, "Base fija Ø94 mm (v3): 608ZZ con hombro, orejas MG90S J1, clips AR5515, botón KCD11 y ventana XIAO.", (0, 0, 0)),
-    "02_pinon_base_22t.stl": (1, "Piñón motriz 22T (v3): bolsillo empotrado de horn MG90S abajo; engrana 1:1 con 04b_engrane_torreta_22t.", (26, 0, -10)),
-    "03_tapa_inferior_electronica.stl": (1, "Tapa inferior (v3): 4 postes barrenados PCA9685, cuna XIAO con tope, avellanados M3 y 4 huecos gomitas.", (0, 0, -52)),
-    "w01_aro_base_blanco.stl": (1, "Aro estético blanco base: separa visualmente la base fija de la torreta giratoria.", (0, 0, 26)),
-    "04_torreta_j1_hombro.stl": (2, "Torreta J1 + Hombro J2 (v3): eje con corte en D, acceso +Y para MG90S J2 con orejas, hombro 608ZZ y rebajes tapas.", (0, 0, 50)),
-    "04b_engrane_torreta_22t.stl": (2, "Engrane 22T conducido (v3): barreno en D antideslizamiento; entra bajo el 608ZZ con tornillo M3×8.", (0, 0, -18)),
-    "11_buje_608zz_j2.stl": (2, "Buje centrador 608ZZ J2 (v3): entra por -Y con tornillo M3×10 al inserto AR2811 en L2 (eje metálico real).", (0, -24, 50)),
-    "tapa_j2_izq.stl": (2, "Tapa Stealth J2 izquierda (v3): ceja centradora + 2 barrenos avellanados M3.", (0, -34, 50)),
-    "tapa_j2_der.stl": (2, "Tapa Stealth J2 derecha (v3): sella el acceso trasero del MG90S J2 con 2 tornillos M3.", (0, 34, 50)),
-    "w_aro_j2_izq.stl": (2, "Aro blanco incrustado B2 Stealth — J2 izquierda.", (0, -40, 50)),
-    "w_aro_j2_der.stl": (2, "Aro blanco incrustado B2 Stealth — J2 derecha.", (0, 40, 50)),
-    "05_eslabon_l2_codo.stl": (3, "Eslabón L2 (v3): bolsillo horn J2, inserto AR2811, ducto cables continuo 10×8 mm + acceso +Y MG90S J3.", (16, 0, 76)),
-    "11_buje_608zz_j3.stl": (3, "Buje centrador 608ZZ J3 (v3): acopla L3 con tornillo M3×10 al inserto AR2811.", (16, -24, 76)),
-    "tapa_j3_izq.stl": (3, "Tapa Stealth J3 izquierda (v3): ceja centradora + 2 barrenos M3.", (16, -34, 76)),
-    "tapa_j3_der.stl": (3, "Tapa Stealth J3 derecha (v3): sella el acceso trasero del MG90S J3.", (16, 34, 76)),
-    "w_aro_j3_izq.stl": (3, "Aro blanco incrustado B2 Stealth — J3 izquierda.", (16, -40, 76)),
-    "w_aro_j3_der.stl": (3, "Aro blanco incrustado B2 Stealth — J3 derecha.", (16, 40, 76)),
-    "06_antebrazo_l3_muneca.stl": (4, "Antebrazo L3 (v3): bolsillo horn J3, inserto AR2811, ducto cables continuo + acceso +Y MG90S J4.", (52, 0, 62)),
-    "11_buje_608zz_j4.stl": (4, "Buje centrador 608ZZ J4 (v3): acopla la Palma con tornillo M3×10 al inserto AR2811.", (52, -24, 62)),
-    "tapa_j4_izq.stl": (4, "Tapa Stealth J4 izquierda (v3): ceja centradora + 2 barrenos M3.", (52, -32, 62)),
-    "tapa_j4_der.stl": (4, "Tapa Stealth J4 derecha (v3): sella el acceso trasero del MG90S J4.", (52, 32, 62)),
-    "w_aro_j4_izq.stl": (4, "Aro blanco incrustado B2 Stealth — J4 izquierda.", (52, -38, 62)),
-    "w_aro_j4_der.stl": (4, "Aro blanco incrustado B2 Stealth — J4 derecha.", (52, 38, 62)),
-    "07_palma_pinza_sg90.stl": (5, "Palma 4 barras (v3): bolsillo horn J4, SG90 coaxial bajo engrane izq, acceso inferior y 4 pivotes M3.", (88, 0, 62)),
-    "w02_collar_muneca_blanco.stl": (5, "Collar blanco de muñeca: acento minimalista en la entrada de la pinza.", (78, 0, 62)),
-    "08_engrane_brazo_izq.stl": (5, "Engrane-Brazo 14T izq (v3): 1 sola pieza con bolsillo horn SG90 abajo (L=16 mm).", (96, 12, 76)),
-    "09_engrane_brazo_der.stl": (5, "Engrane-Brazo 14T der (v3): espejo 1:1 del motriz (L=16 mm).", (96, -12, 76)),
-    "12_biela_pinza_izq.stl": (5, "Biela paralela trasera izquierda (v3): cierra el paralelogramo de 4 barras (L=16 mm).", (92, 12, 46)),
-    "12_biela_pinza_der.stl": (5, "Biela paralela trasera derecha (v3): garantiza mordazas 100% paralelas (L=16 mm).", (92, -12, 46)),
-    "w03_aro_engrane_0.stl": (5, "Aro blanco central de engrane derecho.", (96, -12, 84)),
-    "w03_aro_engrane_1.stl": (5, "Aro blanco central de engrane izquierdo.", (96, 12, 84)),
-    "10_dedo_pinza_izq.stl": (5, "Dedo paralelo izq (v3): mordaza biselada con puente trasero de doble pivote M3 (9 mm).", (118, 18, 62)),
-    "10_dedo_pinza_der.stl": (5, "Dedo paralelo der (v3): apertura paralela real 0–30 mm, TCP a 53 mm.", (118, -18, 62)),
-    "w04_almohadilla_izq.stl": (5, "Almohadilla blanca interior dedo izquierdo.", (122, 10, 62)),
-    "w04_almohadilla_der.stl": (5, "Almohadilla blanca interior dedo derecho.", (122, -10, 62)),
+    # 1 · Base Coaxial Ø106 mm + Retén Axial Independiente
+    "01_base_fija_v4.stl": (1, "Base fija coaxial Ø106 mm (v4): MG90S J1 centrado, pista anular Ø88 mm, 4 tuercas M3 cautivas, AR5515 + KCD11.", (0, 0, 0)),
+    "03_tapa_inferior_v4.stl": (1, "Tapa inferior (v4): 6 patas perimetrales (r=45.5 mm), aro lastre, postes PCA9685 (+X) y cuna XIAO (-X,-Y).", (0, 0, -52)),
+    "04b_reten_axial_j1.stl": (1, "Retén axial independiente J1 (v4): 3× M3 al cuello de torreta bajo el techo; libera al horn de cargas axiales.", (0, 0, -16)),
+    "w01_aro_base_blanco.stl": (1, "Aro estético blanco base Ø106 mm (0% purga AMS).", (0, 0, 26)),
+    # 2 · Torreta J1 + Hombro J2 + Separador M3 + Bayonetas
+    "04_torreta_j1_hombro_v4.stl": (2, "Torreta coaxial J1 + Hub J2 (v4): labio pista Ø88 mm, acceso superior Ø6 mm al horn J1, bolsillo M3 Nyloc en J2.", (0, 0, 48)),
+    "11_separador_m3_j2.stl": (2, "Casquillo separador liso M3 J2 (v4): rosca M3 fuera del giro + luz axial 0.35 mm (Nyloc nunca frena la horquilla).", (0, -24, 48)),
+    "tapa_j2_izq.stl": (2, "Tapa Stealth J2 izquierda de BAYONETA 32° (v4): 0 flexión PLA, cavidad interna para tornillo M3.", (0, -34, 48)),
+    "tapa_j2_der.stl": (2, "Tapa Stealth J2 derecha de BAYONETA 32° (v4): acceso rápido al tornillo central del horn MG90S.", (0, 34, 48)),
+    "w_aro_j2_izq.stl": (2, "Aro blanco incrustado B2 Stealth — J2 izquierda.", (0, -40, 48)),
+    "w_aro_j2_der.stl": (2, "Aro blanco incrustado B2 Stealth — J2 derecha.", (0, 40, 48)),
+    # 3 · Eslabón L2 Horquilla en U Monolítica + Codo J3
+    "05_eslabon_l2_v4.stl": (3, "Eslabón L2 horquilla en U monolítica (v4, 1 sólido): acceso Ø5.2 mm horn J2, canal cola de milano + hub J3.", (16, 0, 74)),
+    "13_tapa_cable_l2.stl": (3, "Tapa deslizable cola de milano L2 (v4): oculta el arnés de cables atrás sin clips frágiles.", (4, 0, 90)),
+    "11_separador_m3_j3.stl": (3, "Casquillo separador liso M3 J3 (v4): pivote pasivo sin fricción de rosca.", (16, -24, 74)),
+    "tapa_j3_izq.stl": (3, "Tapa Stealth J3 izquierda de BAYONETA 32° (v4).", (16, -34, 74)),
+    "tapa_j3_der.stl": (3, "Tapa Stealth J3 derecha de BAYONETA 32° (v4).", (16, 34, 74)),
+    "w_aro_j3_izq.stl": (3, "Aro blanco incrustado B2 Stealth — J3 izquierda.", (16, -40, 74)),
+    "w_aro_j3_der.stl": (3, "Aro blanco incrustado B2 Stealth — J3 derecha.", (16, 40, 74)),
+    # 4 · Antebrazo L3 Horquilla en U Monolítica + Muñeca J4
+    "06_antebrazo_l3_v4.stl": (4, "Antebrazo L3 horquilla en U monolítica (v4, 1 sólido): despeje total hasta J3=-135°, canal cables + hub J4.", (50, 0, 62)),
+    "13_tapa_cable_l3.stl": (4, "Tapa deslizable cola de milano L3 (v4): oculta el cableado de J4 y Pinza.", (50, 0, 78)),
+    "11_separador_m3_j4.stl": (4, "Casquillo separador liso M3 J4 (v4): pivote pasivo de muñeca sin juego.", (50, -24, 62)),
+    "tapa_j4_izq.stl": (4, "Tapa Stealth J4 izquierda de BAYONETA 32° (v4).", (50, -32, 62)),
+    "tapa_j4_der.stl": (4, "Tapa Stealth J4 derecha de BAYONETA 32° (v4).", (50, 32, 62)),
+    "w_aro_j4_izq.stl": (4, "Aro blanco incrustado B2 Stealth — J4 izquierda.", (50, -38, 62)),
+    "w_aro_j4_der.stl": (4, "Aro blanco incrustado B2 Stealth — J4 derecha.", (50, 38, 62)),
+    # 5 · Pinza Paralela Abierta MeArm Módulo 1.5 (Sector 12T · TCP = 53.00 mm @ g=15 mm)
+    "07_palma_pinza_v4.stl": (5, "Palma abierta MeArm Mod 1.5 (v4): horquilla J4, carenado SG90 coaxial inferior, 0 puente superior cerrado.", (86, 0, 62)),
+    "w02_collar_muneca_blanco.stl": (5, "Collar blanco de muñeca B2 Stealth (v4, 0% purga AMS).", (76, 0, 62)),
+    "08_engrane_brazo_izq_m15.stl": (5, "Engrane-Brazo sector 12T mod 1.5 izq (v4): 1 sólido rígido con bolsillo horn SG90 + acceso Ø5 mm arriba.", (94, 12, 74)),
+    "09_engrane_brazo_der_m15.stl": (5, "Engrane-Brazo sector 12T mod 1.5 der (v4): dientes conjugados 0.35 mm backlash FDM (L=16.5 mm).", (94, -12, 74)),
+    "12_biela_pinza_izq_v4.stl": (5, "Biela paralela trasera izquierda (v4, L=16.5 mm): cierra paralelogramo exacto.", (90, 14, 82)),
+    "12_biela_pinza_der_v4.stl": (5, "Biela paralela trasera derecha (v4, L=16.5 mm): garantiza caras paralelas 0–30 mm.", (90, -14, 82)),
+    "10_dedo_pinza_izq_v4.stl": (5, "Dedo paralelo izq (v4): puente diagonal rígido + mordaza calibrada a TCP = 53.00 mm @ g=15 mm.", (116, 18, 62)),
+    "10_dedo_pinza_der_v4.stl": (5, "Dedo paralelo der (v4): apertura paralela simétrica 0–30 mm sin cámara.", (116, -18, 62)),
+    "w04_almohadilla_izq.stl": (5, "Almohadilla blanca dedo izquierdo (centro exacto en X = 53.00 mm a g=15 mm).", (120, 10, 62)),
+    "w04_almohadilla_der.stl": (5, "Almohadilla blanca dedo derecho (centro exacto en X = 53.00 mm a g=15 mm).", (120, -10, 62)),
 }
 
-# Metadatos para hardware interno (servos, PCBs, rodamientos): (subensamble, rgb, descripción, explosión)
 HW_META = {
-    "hw_mg90s_j1_base.stl":       (1, (0.14, 0.44, 0.78), "Servo MG90S J1 Base (UNIT AR1240)", (26, 0, -2)),
-    "hw_rodamiento_608zz_base.stl":(1, (0.72, 0.74, 0.78), "Rodamiento 608ZZ Base (UNIT AR4602)", (0, 0, 14)),
-    "hw_ar5515_usbc_pd_pcb.stl":  (1, (0.12, 0.56, 0.30), "Módulo USB-C PD AR5515 (5V UGREEN 50W)", (-22, 0, 0)),
-    "hw_ar5515_bornera.stl":      (1, (0.10, 0.48, 0.24), "Bornera 5V del módulo AR5515", (-22, 0, 0)),
-    "hw_ar5515_puerto_usbc.stl":  (1, (0.74, 0.76, 0.80), "Puerto USB-C de potencia AR5515", (-22, 0, 0)),
-    "hw_switch_kcd11_cuerpo.stl": (1, (0.28, 0.28, 0.32), "Interruptor ON/OFF KCD11-2P (UNIT AR0243)", (-22, 0, 0)),
-    "hw_switch_kcd11_bisel.stl":  (1, (0.22, 0.22, 0.25), "Bisel trasero KCD11-2P", (-22, 0, 0)),
-    "hw_pca9685_pcb.stl":         (1, (0.12, 0.56, 0.30), "Driver PWM 16-ch PCA9685 (UNIT AR0389)", (0, 0, -52)),
-    "hw_pca9685_pines.stl":       (1, (0.74, 0.76, 0.80), "Pines de servos PCA9685", (0, 0, -52)),
-    "hw_xiao_esp32_pcb.stl":      (1, (0.10, 0.46, 0.28), "XIAO ESP32-S3 / C3", (0, 0, -52)),
-    "hw_xiao_puerto_usbc.stl":    (1, (0.76, 0.78, 0.82), "Puerto USB-C XIAO ESP32-S3", (0, 0, -52)),
-    "hw_capacitor_1000uf.stl":    (1, (0.14, 0.34, 0.54), "Capacitor 1000 µF 16V (UNIT AR1127)", (0, 0, -52)),
-    "hw_mg90s_j2_hombro.stl":     (2, (0.14, 0.44, 0.78), "Servo MG90S J2 Hombro (UNIT AR1240)", (0, 12, 50)),
-    "hw_rodamiento_608zz_j2.stl": (2, (0.72, 0.74, 0.78), "Rodamiento 608ZZ apoyo J2", (0, -14, 50)),
-    "hw_mg90s_j3_codo.stl":       (3, (0.14, 0.44, 0.78), "Servo MG90S J3 Codo (UNIT AR1240)", (16, 12, 76)),
-    "hw_rodamiento_608zz_j3.stl": (3, (0.72, 0.74, 0.78), "Rodamiento 608ZZ apoyo J3", (16, -14, 76)),
-    "hw_mg90s_j4_muneca.stl":     (4, (0.14, 0.44, 0.78), "Servo MG90S J4 Muñeca (UNIT AR1240)", (52, 12, 62)),
-    "hw_rodamiento_608zz_j4.stl": (4, (0.72, 0.74, 0.78), "Rodamiento 608ZZ apoyo J4", (52, -14, 62)),
-    "hw_sg90_pinza.stl":          (5, (0.18, 0.54, 0.88), "Microservo SG90 en Pinza Paralela", (88, 0, 44)),
+    "hw_servo_00.stl": (1, (0.14, 0.44, 0.78), "Servo MG90S J1 Base Coaxial (AR1240)", (0, 0, -4)),
+    "hw_servo_01.stl": (2, (0.14, 0.44, 0.78), "Servo MG90S J2 Hombro (AR1240 / compatible MG92B)", (0, 12, 48)),
+    "hw_servo_02.stl": (3, (0.14, 0.44, 0.78), "Servo MG90S J3 Codo (AR1240)", (16, 12, 74)),
+    "hw_servo_03.stl": (4, (0.14, 0.44, 0.78), "Servo MG90S J4 Muñeca (AR1240)", (50, 12, 62)),
+    "hw_servo_04.stl": (5, (0.18, 0.56, 0.88), "Microservo SG90 Pinza MeArm Mod 1.5", (86, 0, 44)),
+    "hw_elec_00.stl":  (1, (0.12, 0.56, 0.30), "Módulo USB-C PD AR5515 (fijado 5V)", (-22, 0, 0)),
+    "hw_elec_01.stl":  (1, (0.10, 0.46, 0.24), "Bornera 5V del módulo AR5515", (-22, 0, 0)),
+    "hw_elec_02.stl":  (1, (0.12, 0.56, 0.30), "Driver PWM 16-ch PCA9685 (AR0389, VCC a 3V3)", (0, 0, -52)),
+    "hw_elec_03.stl":  (1, (0.10, 0.46, 0.28), "Seeed Studio XIAO ESP32-S3", (0, 0, -52)),
+    "hw_elec_04.stl":  (1, (0.14, 0.34, 0.54), "Capacitor Electrolítico 1000 µF 16V (AR1127)", (0, 0, -52)),
+    "hw_steel_00.stl": (1, (0.74, 0.76, 0.80), "Puerto USB-C AR5515", (-22, 0, 0)),
+    "hw_steel_01.stl": (1, (0.28, 0.28, 0.32), "Interruptor KCD11-2P con terminales faston (19 mm)", (-22, 0, 0)),
+    "hw_steel_02.stl": (1, (0.22, 0.22, 0.25), "Bisel trasero KCD11-2P", (-22, 0, 0)),
+    "hw_steel_03.stl": (1, (0.58, 0.62, 0.70), "Envolvente conectores Dupont enchufados PCA9685 (23 mm)", (0, 0, -52)),
+    "hw_steel_04.stl": (1, (0.76, 0.78, 0.82), "Puerto USB-C XIAO ESP32-S3", (0, 0, -52)),
 }
 
 SUBASSY_NAMES = {
-    1: "1 · Base Fija + Electrónica (4 pzas + PCBs/MG90S J1)",
-    2: "2 · Torreta J1 + 22T en D + Hombro J2 + Buje M3 (7 pzas)",
-    3: "3 · Eslabón L2 + Codo J3 + Buje M3 (6 pzas)",
-    4: "4 · Antebrazo L3 + Muñeca J4 + Buje M3 (6 pzas)",
-    5: "5 · Pinza Paralela 4 Barras SG90 Coaxial (12 pzas)",
+    1: "1 · Base Coaxial Ø106 mm + Retén Axial + Electrónica (4 pzas + PCBs/MG90S J1)",
+    2: "2 · Torreta J1 + Hub J2 + Separador M3 + Bayonetas (6 pzas)",
+    3: "3 · Eslabón L2 en U Monolítico + Canal Dovetail + Codo J3 (7 pzas)",
+    4: "4 · Antebrazo L3 en U Monolítico + Canal Dovetail + Muñeca J4 (7 pzas)",
+    5: "5 · Pinza Paralela Abierta MeArm Mod 1.5 (10 pzas · TCP=53 mm)",
 }
 
 
@@ -141,7 +141,7 @@ def load_parts():
             if not fname.endswith(".stl"):
                 continue
             actor, dims = _make_stl_actor(os.path.join(folder, fname), rgb)
-            sub_id, desc, exp_vec = PART_META.get(fname, (1, "Pieza CAD B2 Stealth", (0, 0, 0)))
+            sub_id, desc, exp_vec = PART_META.get(fname, (1, "Pieza CAD v4 Clean-DFA", (0, 0, 0)))
             items.append({
                 "name": fname,
                 "color_name": color_name,
@@ -164,7 +164,8 @@ def load_hardware():
     for fname in sorted(os.listdir(HW_DIR)):
         if not fname.endswith(".stl"):
             continue
-        sub_id, rgb, desc, exp_vec = HW_META.get(fname, (1, (0.5, 0.5, 0.5), "Hardware interno", (0, 0, 0)))
+        default_sub = 5 if fname.startswith("hw_steel_") and int(fname.split("_")[-1].split(".")[0]) >= 5 else 1
+        sub_id, rgb, desc, exp_vec = HW_META.get(fname, (default_sub, (0.74, 0.76, 0.80), "Perno pivote M3 pinza", (86, 0, 62)))
         actor, dims = _make_stl_actor(os.path.join(HW_DIR, fname), rgb)
         hw.append({
             "name": fname,
@@ -205,7 +206,7 @@ class CadViewerApp:
         self.xray = False
         self.show_hw = True
         self.ghost_others = True
-        self.mode = "ALL"        # ALL | SINGLE | SUB | COLOR
+        self.mode = "ALL"
         self.single_idx = 0
         self.sub_filter = 1
         self.color_filter = "Negro Mate"
@@ -221,9 +222,8 @@ class CadViewerApp:
         for it in self.hw_items:
             self.ren.AddActor(it["actor"])
 
-        # Plano de escritorio de referencia (Z = 0)
         disk = vtk.vtkCylinderSource()
-        disk.SetRadius(112.0)
+        disk.SetRadius(118.0)
         disk.SetHeight(1.2)
         disk.SetResolution(72)
         tf = vtk.vtkTransform()
@@ -241,7 +241,6 @@ class CadViewerApp:
         a_disk.PickableOff()
         self.ren.AddActor(a_disk)
 
-        # Iluminación de estudio 3 puntos
         self.ren.AutomaticLightCreationOff()
         for pos, inten in [((380, -340, 420), 0.92), ((-320, -240, 260), 0.48), ((0, 360, 220), 0.36)]:
             lt = vtk.vtkLight()
@@ -251,7 +250,6 @@ class CadViewerApp:
             lt.SetIntensity(inten)
             self.ren.AddLight(lt)
 
-        # HUD adaptable a cualquier tamaño de ventana / DPI de Windows
         self.hud_top  = _make_hud(self.ren, 0.018, 0.945, 17, (0.10, 0.10, 0.12), bold=True)
         self.hud_desc = _make_hud(self.ren, 0.018, 0.905, 14, (0.24, 0.24, 0.28), bold=False)
         self.hud_help = _make_hud(self.ren, 0.018, 0.022, 13, (0.30, 0.30, 0.35), bold=False)
@@ -265,7 +263,7 @@ class CadViewerApp:
             self.win.SetOffScreenRendering(1)
         self.win.AddRenderer(self.ren)
         self.win.SetSize(1280, 760)
-        self.win.SetWindowName("Visor CAD 3D Interactivo — Mini-Pro 4-DOF B2 Stealth v3 DFM (35 Piezas + Electrónica)")
+        self.win.SetWindowName("Visor CAD 3D Interactivo — Mini-Pro 4-DOF B2 Stealth v4 Clean-DFA (34 Piezas + Electrónica)")
         self.win.SetMultiSamples(4)
 
         self.iren = vtk.vtkRenderWindowInteractor()
@@ -273,11 +271,9 @@ class CadViewerApp:
         style = vtk.vtkInteractorStyleTrackballCamera()
         self.iren.SetInteractorStyle(style)
 
-        # CRÍTICO: Desactivar CharEvent por defecto de VTK (evita que 'e'/'q' cierren la ventana o 'w' ponga wireframe!)
         self.iren.RemoveObservers("CharEvent")
         self.iren.AddObserver("KeyPressEvent", self.on_key)
         self.iren.AddObserver("RightButtonPressEvent", self.on_right_click)
-
         self.picker = vtk.vtkPropPicker()
 
         self.apply_state()
@@ -287,10 +283,10 @@ class CadViewerApp:
         cam = self.ren.GetActiveCamera()
         if self.exploded:
             cam.SetFocalPoint(60.0, 0.0, 110.0)
-            cam.SetPosition(350.0, -400.0, 265.0)
+            cam.SetPosition(355.0, -405.0, 270.0)
         else:
             cam.SetFocalPoint(48.0, 0.0, 95.0)
-            cam.SetPosition(280.0, -310.0, 225.0)
+            cam.SetPosition(285.0, -315.0, 228.0)
         cam.SetViewUp(0.0, 0.0, 1.0)
         cam.SetViewAngle(32.0)
         self.ren.ResetCameraClippingRange()
@@ -327,7 +323,6 @@ class CadViewerApp:
                 else:
                     act.SetVisibility(False)
 
-        # Hardware interno (servos MG90S/SG90, 608ZZ, PCA9685, XIAO, AR5515, KCD11)
         for it in self.hw_items:
             act = it["actor"]
             ex = it["exp"] if self.exploded else (0.0, 0.0, 0.0)
@@ -355,8 +350,8 @@ class CadViewerApp:
             self.hud_top.SetInput(f"COMPONENTE INTERNO SELECCIONADO · [{exp_tag}{xr_tag}]")
             self.hud_desc.SetInput(self.picked_hw_msg)
         elif self.mode == "ALL":
-            self.hud_top.SetInput(f"MINI-PRO 4-DOF B2 STEALTH — ENSAMBLE COMPLETO ({len(self.items)} pzas) · [{exp_tag}{xr_tag}{hw_tag}]")
-            self.hud_desc.SetInput("Usa [E] explosionar, [X] rayos-X para ver servos/PCBs dentro, [H] hardware, o Clic Derecho sobre cualquier pieza.")
+            self.hud_top.SetInput(f"MINI-PRO 4-DOF B2 STEALTH v4 Clean-DFA — ENSAMBLE COMPLETO ({len(self.items)} pzas) · [{exp_tag}{xr_tag}{hw_tag}]")
+            self.hud_desc.SetInput("Usa [E] explosionar, [X] rayos-X para ver servos/PCBs/Dupont dentro, [H] hardware, o Clic Derecho sobre cualquier pieza.")
         elif self.mode == "SINGLE":
             it = self.items[self.single_idx]
             dx, dy, dz = it["dims"]

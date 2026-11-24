@@ -1,27 +1,16 @@
 /*
  * ============================================================================
- * FIRMWARE MINI-PRO 4-DOF (`B2 STEALTH`) — XIAO ESP32-S3 / XIAO ESP32-C3
+ * FIRMWARE MINI-PRO 4-DOF (`B2 STEALTH` v4 Clean-DFA) — XIAO ESP32-S3 / C3
  * ============================================================================
- * Hardware:
- *   - XIAO ESP32-S3 (ó C3) + PCA9685 (0x40, I2C D4/D5) + 4× MG90S + 1× SG90
- *   - Alimentación: 1 cable USB-C desde UGREEN 50W -> AR5515 (5V) -> KCD11-2P
- *
- * Modos de control simultáneos:
- *   1) USB Serial (115200 baud) — `python python/gemelo_digital_esp32.py --port COMx`
- *   2) Wi-Fi UDP  (puerto 4210) — `python python/gemelo_digital_esp32.py --wifi <IP>`
- *      (¡Permite usar Peter Corke Python con 1 SOLO cable USB-C de corriente en el brazo!)
- *   3) Web UI Minimalista B2 Stealth (puerto 80) — `http://<IP>/` o `http://192.168.4.1/`
- *
- * Comandos ASCII (USB Serial y UDP):
- *   G <q1> <q2> <q3> <q4> <grip>        -> Streaming en vivo (suavizado)
- *   M <q1> <q2> <q3> <q4> <grip> <ms>   -> Movimiento quíntico (jtraj) en <ms> ms
- *   HERO                                -> Pose Héroe (0, 68, -96, 28, 16 mm)
- *   HOME                                -> Postura vertical segura (0, 90, -90, 0, 18 mm)
- *   CENTER                              -> Centra los 4 MG90S a 90° físicos (1500 µs) para armado
- *   DEMO                                -> Ejecuta secuencia Pick-and-Place suave
- *   RAW <ch> <us>                       -> Pulso directo en µs para calibrar en banco
- *   RELAX                               -> Apaga PWM (libera torque de los servos)
- *   STATUS                              -> Reporta estado, ángulos actuales e IP Wi-Fi
+ * Correcciones integradas de la auditoría técnica (Codex):
+ *   1. Deshabilitación inmediata de salidas PWM (`FULL_OFF = 4096`) al arrancar
+ *      o reiniciar, antes de habilitar la frecuencia del PCA9685.
+ *   2. Resincronización real de `qCurr[]` / `qTarget[]` tras `CENTER` y `RAW`,
+ *      más rampa suave obligatoria al reactivar torque desde `RELAX`.
+ *   3. Conversión trigonométrica exacta de la pinza paralela MeArm módulo 1.5
+ *      (`gripMmToServoDeg`) compartida con `cad/params.py` y el Gemelo Digital.
+ *   4. Guarda cinemática anti-mesa (`checkTableGuard`): bloquea poses donde
+ *      J3/J4 < 22 mm o TCP < 8 mm (impide estrellar el brazo contra el escritorio).
  */
 
 #include <math.h>
@@ -38,61 +27,92 @@ Adafruit_PWMServoDriver pwm(PCA9685_ADDR);
 WebServer server(80);
 WiFiUDP udp;
 
-// Estado cinemático actual y objetivos
-float qCurr[5]   = { 0.0f, 90.0f, -90.0f, 0.0f, 18.0f };
-float qStart[5]  = { 0.0f, 90.0f, -90.0f, 0.0f, 18.0f };
-float qTarget[5] = { 0.0f, 90.0f, -90.0f, 0.0f, 18.0f };
+float qCurr[5]   = { 0.0f, 90.0f, -90.0f, 0.0f, 15.0f };
+float qStart[5]  = { 0.0f, 90.0f, -90.0f, 0.0f, 15.0f };
+float qTarget[5] = { 0.0f, 90.0f, -90.0f, 0.0f, 15.0f };
 
 bool     isRelaxed     = true;
 bool     streamMode    = false;
 bool     trajActive    = false;
 uint32_t trajStartMs   = 0;
-uint32_t trajDurMs     = 900;
+uint32_t trajDurMs     = 1100;
 uint32_t lastTickMs    = 0;
 
-// Secuencia Demo Pick-and-Place no bloqueante (ángulos IK exactos de Peter Corke a escala 82/82/70/53 mm, φ=0°)
 struct Waypoint { float q[5]; uint32_t ms; };
 static const Waypoint DEMO_SEQ[] = {
-    { {   0.0f,  90.0f,  -90.0f,   0.0f, 24.0f },  800 }, // Home seguro con pinza abierta
-    { { -25.7f,  57.4f,  -98.6f,  41.2f, 24.0f },  900 }, // Aproximación superior izquierda (135, -65, 105 mm)
-    { { -25.7f,  36.5f, -100.3f,  63.8f, 24.0f },  700 }, // Descenso vertical Pick (135, -65, 68 mm, φ=0°)
-    { { -25.7f,  36.5f, -100.3f,  63.8f,  6.0f },  450 }, // Cerrar pinza
-    { { -25.7f,  57.4f,  -98.6f,  41.2f,  6.0f },  700 }, // Elevación vertical
-    { {   0.0f,  69.8f,  -94.3f,  24.4f,  6.0f },  900 }, // Cruce central elevado (145, 0, 130 mm)
-    { {  25.7f,  57.4f,  -98.6f,  41.2f,  6.0f },  900 }, // Aproximación superior derecha (135, +65, 105 mm)
-    { {  25.7f,  36.5f, -100.3f,  63.8f,  6.0f },  700 }, // Descenso vertical Place (135, +65, 68 mm, φ=0°)
-    { {  25.7f,  36.5f, -100.3f,  63.8f, 24.0f },  450 }, // Soltar pieza
-    { {  25.7f,  57.4f,  -98.6f,  41.2f, 24.0f },  650 }, // Retirada vertical
-    { {   0.0f,  68.0f,  -96.0f,  28.0f, 16.0f },  950 }, // Pose Héroe (145.5, 0, 125.2 mm)
+    { {   0.0f,  90.0f,  -90.0f,   0.0f, 24.0f }, 1000 },
+    { { -25.7f,  57.4f,  -98.6f,  41.2f, 24.0f }, 1100 },
+    { { -25.7f,  36.5f, -100.3f,  63.8f, 24.0f },  900 },
+    { { -25.7f,  36.5f, -100.3f,  63.8f,  6.0f },  550 },
+    { { -25.7f,  57.4f,  -98.6f,  41.2f,  6.0f },  900 },
+    { {   0.0f,  69.8f,  -94.3f,  24.4f,  6.0f }, 1100 },
+    { {  25.7f,  57.4f,  -98.6f,  41.2f,  6.0f }, 1100 },
+    { {  25.7f,  36.5f, -100.3f,  63.8f,  6.0f },  900 },
+    { {  25.7f,  36.5f, -100.3f,  63.8f, 24.0f },  550 },
+    { {  25.7f,  57.4f,  -98.6f,  41.2f, 24.0f },  850 },
+    { {   0.0f,  68.0f,  -96.0f,  28.0f, 15.0f }, 1100 },
 };
 static const int DEMO_LEN = sizeof(DEMO_SEQ) / sizeof(DEMO_SEQ[0]);
 bool demoRunning = false;
 int  demoIdx     = 0;
 
 // ----------------------------------------------------------------------------
-// Utilidades PWM (PCA9685 12-bit)
+// Utilidades PWM, Conversión Inversa (Resincronización) y Guarda Anti-Mesa
 // ----------------------------------------------------------------------------
 static inline float clampf(float v, float lo, float hi) {
     return (v < lo) ? lo : ((v > hi) ? hi : v);
 }
 
+static bool checkTableGuard(const float q[5], float* zTcpOut = nullptr, float* zJ3Out = nullptr, float* zJ4Out = nullptr) {
+    const float d2r = 3.14159265f / 180.0f;
+    float t2   = q[AX_J2_SHOULDER] * d2r;
+    float t23  = (q[AX_J2_SHOULDER] + q[AX_J3_ELBOW]) * d2r;
+    float t234 = (q[AX_J2_SHOULDER] + q[AX_J3_ELBOW] + q[AX_J4_WRIST]) * d2r;
+    float a4_eff = gripMmToTcpX(q[AX_GRIPPER]);
+
+    float z_j3  = DH_D1_MM + DH_A2_MM * sinf(t2);
+    float z_j4  = z_j3 + DH_A3_MM * sinf(t23);
+    float z_tcp = z_j4 + a4_eff * sinf(t234);
+
+    if (zTcpOut) *zTcpOut = z_tcp;
+    if (zJ3Out)  *zJ3Out  = z_j3;
+    if (zJ4Out)  *zJ4Out  = z_j4;
+
+    return (z_j3 >= TABLE_SAFE_Z_JOINT_MM) && (z_j4 >= TABLE_SAFE_Z_JOINT_MM) && (z_tcp >= TABLE_SAFE_Z_TCP_MM);
+}
+
 void writeMicros(uint8_t ch, uint16_t us) {
     us = (uint16_t)clampf((float)us, 450.0f, 2550.0f);
-    // 50 Hz -> 20,000 µs por ciclo de 4096 cuentas
     uint16_t ticks = (uint16_t)roundf((us * 4096.0f) / 20000.0f);
     pwm.setPWM(ch, 0, ticks);
 }
 
-void writeAxisLogical(uint8_t idx, float qVal) {
+static float logicalToServoDeg(uint8_t idx, float qVal) {
     const ServoAxisConfig& cfg = AXES[idx];
     float qClamped = clampf(qVal, cfg.q_min, cfg.q_max);
-    float servoDeg;
+    float servoDeg = (idx == AX_GRIPPER)
+        ? gripMmToServoDeg(qClamped)
+        : (cfg.servo_zero_deg + (cfg.invert ? -qClamped : qClamped));
+    return clampf(servoDeg + cfg.offset_deg, 0.0f, 180.0f);
+}
+
+static float servoUsToLogical(uint8_t idx, uint16_t us) {
+    const ServoAxisConfig& cfg = AXES[idx];
+    float sdeg = ((float)us - (float)cfg.us_min) / (float)(cfg.us_max - cfg.us_min) * 180.0f;
+    sdeg = clampf(sdeg - cfg.offset_deg, 0.0f, 180.0f);
+    float q;
     if (idx == AX_GRIPPER) {
-        servoDeg = cfg.servo_zero_deg + qClamped * GRIPPER_DEG_PER_MM;
+        q = servoDegToGripMm(sdeg);
     } else {
-        servoDeg = cfg.servo_zero_deg + (cfg.invert ? -qClamped : qClamped);
+        float diff = sdeg - cfg.servo_zero_deg;
+        q = cfg.invert ? -diff : diff;
     }
-    servoDeg = clampf(servoDeg + cfg.offset_deg, 0.0f, 180.0f);
+    return clampf(q, cfg.q_min, cfg.q_max);
+}
+
+void writeAxisLogical(uint8_t idx, float qVal) {
+    const ServoAxisConfig& cfg = AXES[idx];
+    float servoDeg = logicalToServoDeg(idx, qVal);
     uint16_t us = (uint16_t)roundf(cfg.us_min + (servoDeg / 180.0f) * (cfg.us_max - cfg.us_min));
     writeMicros(cfg.channel, us);
 }
@@ -103,15 +123,20 @@ void applyCurrentPose() {
     }
 }
 
+void disableAllOutputsRaw() {
+    // Bit FULL_OFF (4096 = 0x1000) real del PCA9685 en los 16 canales (cero pulsos!)
+    for (uint8_t ch = 0; ch < 16; ch++) {
+        pwm.setPWM(ch, 0, 4096);
+    }
+}
+
 void relaxAll() {
     demoRunning = false;
     trajActive  = false;
     streamMode  = false;
     isRelaxed   = true;
-    for (uint8_t i = 0; i < 5; i++) {
-        pwm.setPWM(AXES[i].channel, 0, 0);
-    }
-    Serial.println(F("[OK] Servos relajados (sin torque)."));
+    disableAllOutputsRaw();
+    Serial.println(F("[OK] Servos relajados (FULL_OFF 4096, sin torque)."));
 }
 
 void centerBench90() {
@@ -121,38 +146,72 @@ void centerBench90() {
     isRelaxed   = false;
     for (uint8_t i = 0; i < 4; i++) {
         writeMicros(AXES[i].channel, 1500);
+        // Resincronización exacta para evitar latigazos en el siguiente comando!
+        qCurr[i] = qTarget[i] = qStart[i] = servoUsToLogical(i, 1500);
     }
-    writeAxisLogical(AX_GRIPPER, 16.0f);
-    Serial.println(F("[OK] CENTER: CH0..CH3 en 1500 us (90 deg mecanico). Ya puedes atornillar horns."));
+    qCurr[AX_GRIPPER] = qTarget[AX_GRIPPER] = qStart[AX_GRIPPER] = GRIP_NOMINAL_OPEN_MM;
+    writeAxisLogical(AX_GRIPPER, GRIP_NOMINAL_OPEN_MM);
+    Serial.printf("[OK] CENTER: CH0..CH3=1500us (resincronizado q=[%.1f, %.1f, %.1f, %.1f], grip=%.1f mm)\n",
+                  qCurr[0], qCurr[1], qCurr[2], qCurr[3], qCurr[4]);
 }
 
-void startQuinticMove(const float tgt[5], uint32_t durationMs) {
+bool startQuinticMove(const float tgt[5], uint32_t durationMs) {
+    float clamped[5];
+    for (uint8_t i = 0; i < 5; i++) {
+        clamped[i] = clampf(tgt[i], AXES[i].q_min, AXES[i].q_max);
+    }
+    float zt = 0, z3 = 0, z4 = 0;
+    if (!checkTableGuard(clamped, &zt, &z3, &z4)) {
+        Serial.printf("[GUARD] Movimiento bloqueado (riesgo choque mesa): Z_j3=%.1f Z_j4=%.1f Z_tcp=%.1f mm\n", z3, z4, zt);
+        return false;
+    }
+
+    bool wasRelaxed = isRelaxed;
     isRelaxed   = false;
     streamMode  = false;
     trajActive  = true;
     trajStartMs = millis();
-    trajDurMs   = (durationMs < 80) ? 80 : durationMs;
+    uint32_t minDur = wasRelaxed ? (uint32_t)MIN_WAKE_MOVE_MS : 120;
+    trajDurMs   = (durationMs < minDur) ? minDur : durationMs;
+
     for (uint8_t i = 0; i < 5; i++) {
         qStart[i]  = qCurr[i];
-        qTarget[i] = clampf(tgt[i], AXES[i].q_min, AXES[i].q_max);
+        qTarget[i] = clamped[i];
     }
+    if (wasRelaxed) {
+        Serial.printf("[INFO] Reactivando desde RELAX con rampa suave (%lu ms).\n", (unsigned long)trajDurMs);
+    }
+    return true;
 }
 
-void setStreamTarget(const float tgt[5]) {
+bool setStreamTarget(const float tgt[5]) {
+    float clamped[5];
+    for (uint8_t i = 0; i < 5; i++) {
+        clamped[i] = clampf(tgt[i], AXES[i].q_min, AXES[i].q_max);
+    }
+    float zt = 0, z3 = 0, z4 = 0;
+    if (!checkTableGuard(clamped, &zt, &z3, &z4)) {
+        Serial.printf("[GUARD] Streaming bloqueado (choque mesa): Z_tcp=%.1f mm\n", zt);
+        return false;
+    }
     demoRunning = false;
     trajActive  = false;
     isRelaxed   = false;
     streamMode  = true;
     for (uint8_t i = 0; i < 5; i++) {
-        qTarget[i] = clampf(tgt[i], AXES[i].q_min, AXES[i].q_max);
+        qTarget[i] = clamped[i];
     }
+    return true;
 }
 
 void startDemo() {
     demoRunning = true;
     demoIdx     = 0;
-    startQuinticMove(DEMO_SEQ[0].q, DEMO_SEQ[0].ms);
-    Serial.println(F("[OK] Iniciando Demo Pick-and-Place."));
+    if (!startQuinticMove(DEMO_SEQ[0].q, DEMO_SEQ[0].ms)) {
+        demoRunning = false;
+        return;
+    }
+    Serial.println(F("[OK] Iniciando Demo Pick-and-Place suave."));
 }
 
 String getCurrentIP() {
@@ -160,9 +219,11 @@ String getCurrentIP() {
 }
 
 void printStatus() {
-    Serial.printf("[STATUS] q=[%.1f, %.1f, %.1f, %.1f] deg | grip=%.1f mm | relaxed=%d | IP=%s\n",
+    float zt = 0;
+    checkTableGuard(qCurr, &zt);
+    Serial.printf("[STATUS] q=[%.1f, %.1f, %.1f, %.1f] deg | grip=%.1f mm (TCP_x=%.1f, Z=%.1f mm) | relaxed=%d | IP=%s\n",
                   qCurr[0], qCurr[1], qCurr[2], qCurr[3], qCurr[4],
-                  isRelaxed ? 1 : 0, getCurrentIP().c_str());
+                  gripMmToTcpX(qCurr[4]), zt, isRelaxed ? 1 : 0, getCurrentIP().c_str());
 }
 
 // ----------------------------------------------------------------------------
@@ -178,13 +239,15 @@ void processCommand(String line) {
     if (up == "HERO") {
         demoRunning = false;
         float tgt[5] = { AXES[0].q_hero, AXES[1].q_hero, AXES[2].q_hero, AXES[3].q_hero, AXES[4].q_hero };
-        startQuinticMove(tgt, (uint32_t)DEFAULT_MOVE_MS);
-        Serial.println(F("[OK] Moviendo a Pose Heroe."));
+        if (startQuinticMove(tgt, (uint32_t)DEFAULT_MOVE_MS)) {
+            Serial.println(F("[OK] Moviendo a Pose Heroe."));
+        }
     } else if (up == "HOME") {
         demoRunning = false;
         float tgt[5] = { AXES[0].q_home, AXES[1].q_home, AXES[2].q_home, AXES[3].q_home, AXES[4].q_home };
-        startQuinticMove(tgt, (uint32_t)DEFAULT_MOVE_MS);
-        Serial.println(F("[OK] Moviendo a Home."));
+        if (startQuinticMove(tgt, (uint32_t)DEFAULT_MOVE_MS)) {
+            Serial.println(F("[OK] Moviendo a Home."));
+        }
     } else if (up == "CENTER") {
         centerBench90();
     } else if (up == "DEMO") {
@@ -200,17 +263,23 @@ void processCommand(String line) {
         }
     } else if (up.startsWith("M ")) {
         float t[5];
-        int ms = 900;
+        int ms = (int)DEFAULT_MOVE_MS;
         if (sscanf(line.c_str() + 2, "%f %f %f %f %f %d", &t[0], &t[1], &t[2], &t[3], &t[4], &ms) >= 5) {
             demoRunning = false;
-            startQuinticMove(t, (uint32_t)max(100, ms));
+            startQuinticMove(t, (uint32_t)max(150, ms));
         }
     } else if (up.startsWith("RAW ")) {
         int ch = 0, us = 1500;
         if (sscanf(line.c_str() + 4, "%d %d", &ch, &us) == 2 && ch >= 0 && ch < 16) {
             demoRunning = false; trajActive = false; streamMode = false; isRelaxed = false;
             writeMicros((uint8_t)ch, (uint16_t)us);
-            Serial.printf("[OK] RAW CH%d -> %d us\n", ch, us);
+            // Resincronizar eje lógico correspondiente si ch pertenece a AXES[0..4]!
+            for (uint8_t i = 0; i < 5; i++) {
+                if (AXES[i].channel == (uint8_t)ch) {
+                    qCurr[i] = qTarget[i] = qStart[i] = servoUsToLogical(i, (uint16_t)us);
+                }
+            }
+            Serial.printf("[OK] RAW CH%d -> %d us (resincronizado)\n", ch, us);
         }
     } else {
         Serial.printf("[ERR] Comando desconocido: %s\n", line.c_str());
@@ -281,14 +350,12 @@ void setupWiFi() {
 // ----------------------------------------------------------------------------
 void setup() {
     Serial.begin(115200);
-    delay(600);
-    Serial.println(F("\n=== MINI-PRO 4-DOF B2 STEALTH (XIAO ESP32 + PCA9685) ==="));
+    delay(250);
+    Serial.println(F("\n=== MINI-PRO 4-DOF B2 STEALTH v4 (XIAO ESP32 + PCA9685) ==="));
 
-    // I2C nativo de la XIAO ESP32-S3 (D4=SDA, D5=SCL) y XIAO ESP32-C3 (D4=SDA, D5=SCL)
     Wire.begin();
     Wire.setClock(400000);
 
-    // Verificar presencia del PCA9685 en 0x40
     Wire.beginTransmission(PCA9685_ADDR);
     if (Wire.endTransmission() == 0) {
         Serial.println(F("[OK] PCA9685 detectado en 0x40."));
@@ -296,14 +363,15 @@ void setup() {
         Serial.println(F("[ERR] No se detecta PCA9685 en 0x40! Revisa 3V3->VCC, SDA->D4, SCL->D5 y GND."));
     }
 
+    // Secuencia de arranque segura ante reinicios en caliente:
+    // Apagar salidas (FULL_OFF=4096) INMEDIATAMENTE al inicializar antes de habilitar 50 Hz!
     pwm.begin();
+    disableAllOutputsRaw();
     pwm.setOscillatorFrequency(27000000);
     pwm.setPWMFreq(SERVO_FREQ_HZ);
-    delay(20);
-
-    // Arranque seguro relajado: evita cualquier golpe brusco al encender antes de calibrar.
-    // Envía HERO, HOME o mueve un slider para activar torque suavemente.
-    relaxAll();
+    disableAllOutputsRaw();
+    isRelaxed = true;
+    Serial.println(F("[OK] Arranque seguro: salidas PWM deshabilitadas (FULL_OFF) en reinicio."));
 
     setupWiFi();
     udp.begin(UDP_PORT);
@@ -328,26 +396,26 @@ void loop() {
         }
     }
 
-    // 2. Leer comandos por Wi-Fi UDP (Peter Corke Python con 1 solo cable!)
+    // 2. Leer paquetes UDP (Wi-Fi puerto 4210)
     int pktSize = udp.parsePacket();
     if (pktSize > 0) {
-        char buf[96];
-        int len = udp.read(buf, min(pktSize, (int)sizeof(buf) - 1));
-        if (len > 0) {
-            buf[len] = '\0';
-            String cmdStr(buf);
-            processCommand(cmdStr);
-            cmdStr.trim();
-            if (cmdStr.equalsIgnoreCase("STATUS")) {
-                String js = buildStatusJson();
+        char buf[128];
+        int n = udp.read(buf, sizeof(buf) - 1);
+        if (n > 0) {
+            buf[n] = '\0';
+            String cmd(buf);
+            cmd.trim();
+            processCommand(cmd);
+            if (cmd.equalsIgnoreCase("STATUS")) {
+                String resp = buildStatusJson();
                 udp.beginPacket(udp.remoteIP(), udp.remotePort());
-                udp.print(js);
+                udp.print(resp);
                 udp.endPacket();
             }
         }
     }
 
-    // 3. Lazo de control suave a 100 Hz
+    // 3. Lazo de control determinista a 100 Hz
     uint32_t now = millis();
     if (now - lastTickMs < CONTROL_PERIOD_MS) return;
     lastTickMs = now;
@@ -355,39 +423,28 @@ void loop() {
     if (isRelaxed) return;
 
     if (trajActive) {
-        float u = (float)(now - trajStartMs) / (float)trajDurMs;
-        if (u >= 1.0f) {
-            u = 1.0f;
-            trajActive = false;
-        }
-        // Polinomio quíntico mínimo-jerk (idéntico a `rtb.jtraj` de Peter Corke)
-        float s = u * u * u * (10.0f + u * (-15.0f + 6.0f * u));
+        float u = clampf((float)(now - trajStartMs) / (float)trajDurMs, 0.0f, 1.0f);
+        float s = u * u * u * (10.0f - 15.0f * u + 6.0f * u * u);
         for (uint8_t i = 0; i < 5; i++) {
             qCurr[i] = qStart[i] + s * (qTarget[i] - qStart[i]);
         }
         applyCurrentPose();
-
-        // Avanzar siguiente paso si la demo Pick-and-Place está activa
-        if (!trajActive && demoRunning) {
-            demoIdx++;
-            if (demoIdx < DEMO_LEN) {
-                startQuinticMove(DEMO_SEQ[demoIdx].q, DEMO_SEQ[demoIdx].ms);
-            } else {
-                demoRunning = false;
-                Serial.println(F("[OK] Demo finalizada."));
+        if (u >= 1.0f) {
+            trajActive = false;
+            if (demoRunning) {
+                demoIdx++;
+                if (demoIdx < DEMO_LEN) {
+                    startQuinticMove(DEMO_SEQ[demoIdx].q, DEMO_SEQ[demoIdx].ms);
+                } else {
+                    demoRunning = false;
+                    Serial.println(F("[OK] Demo completada."));
+                }
             }
         }
     } else if (streamMode) {
-        bool moved = false;
         for (uint8_t i = 0; i < 5; i++) {
-            float diff = qTarget[i] - qCurr[i];
-            if (fabsf(diff) > 0.05f) {
-                qCurr[i] += diff * STREAM_ALPHA;
-                moved = true;
-            } else {
-                qCurr[i] = qTarget[i];
-            }
+            qCurr[i] += STREAM_ALPHA * (qTarget[i] - qCurr[i]);
         }
-        if (moved) applyCurrentPose();
+        applyCurrentPose();
     }
 }

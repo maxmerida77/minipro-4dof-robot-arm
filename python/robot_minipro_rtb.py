@@ -31,8 +31,11 @@ from params import (
     A3_FOREARM as A3_MM,
     A4_WRIST_TO_TCP as A4_MM,
     BASE_DIA as BASE_DIA_MM,
+    TABLE_SAFE_Z_TCP_MM,
+    TABLE_SAFE_Z_JOINT_MM,
     Q_LIMITS_DEG,
     HERO_POSE_DEG,
+    gripper_kinematics_v4,
 )
 
 QLIM_DEG = np.array([
@@ -126,6 +129,31 @@ class MiniPro4DOF(rtb.DHRobot):
         if not ok:
             raise ValueError(f"Pose ({x_mm}, {y_mm}, {z_mm}, phi={phi_deg}°) inalcanzable: {msg}")
         return self.fkine(q)
+
+    @staticmethod
+    def grip_kinematics(grip_open_mm: float):
+        """Relación trigonométrica exacta de la Pinza Paralela MeArm Mod 1.5 (`cad/params.py`)."""
+        return gripper_kinematics_v4(grip_open_mm)
+
+    def check_table_guard(self, q_rad: np.ndarray, grip_open_mm: float = 15.0):
+        """
+        Guarda cinemática anti-mesa sincronizada con el firmware (`config.h`):
+        verifica que ni J3, ni J4 (< 22 mm), ni el TCP real compensado por apertura de pinza (< 8 mm)
+        choquen con la superficie del escritorio (Z = 0).
+        Retorna: (ok, z_j3, z_j4, z_tcp, msg)
+        """
+        q2, q3, q4 = float(q_rad[1]), float(q_rad[2]), float(q_rad[3])
+        _th, tcp_x_eff, _dx, _sdeg = gripper_kinematics_v4(grip_open_mm)
+        z_j3 = D1_MM + A2_MM * math.sin(q2)
+        z_j4 = z_j3 + A3_MM * math.sin(q2 + q3)
+        z_tcp = z_j4 + tcp_x_eff * math.sin(q2 + q3 + q4)
+        if z_j3 < TABLE_SAFE_Z_JOINT_MM:
+            return False, z_j3, z_j4, z_tcp, f"Codo J3 muy bajo (Z={z_j3:.1f} < {TABLE_SAFE_Z_JOINT_MM:.0f} mm)"
+        if z_j4 < TABLE_SAFE_Z_JOINT_MM:
+            return False, z_j3, z_j4, z_tcp, f"Muñeca J4 muy baja (Z={z_j4:.1f} < {TABLE_SAFE_Z_JOINT_MM:.0f} mm)"
+        if z_tcp < TABLE_SAFE_Z_TCP_MM:
+            return False, z_j3, z_j4, z_tcp, f"TCP/Pinza chocaría con mesa (Z={z_tcp:.1f} < {TABLE_SAFE_Z_TCP_MM:.0f} mm)"
+        return True, z_j3, z_j4, z_tcp, "OK"
 
 
 if __name__ == "__main__":
