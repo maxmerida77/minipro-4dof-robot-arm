@@ -150,6 +150,11 @@ void relaxAll() {
 }
 
 void centerBench90() {
+    if (wakeRampActive) {
+        lastOk = false;
+        lastMsg = "Reactivando desde RELAX (espera fin de rampa 1200 ms)";
+        return;
+    }
     demoRunning    = false;
     trajActive     = false;
     wakeRampActive = false;
@@ -258,12 +263,11 @@ bool setStreamTarget(const float tgt[5]) {
 }
 
 bool startDemo() {
-    demoRunning = true;
-    demoIdx     = 0;
     if (!startQuinticMove(DEMO_SEQ[0].q, DEMO_SEQ[0].ms)) {
-        demoRunning = false;
         return false;
     }
+    demoRunning = true;
+    demoIdx     = 0;
     Serial.println(F("[OK] Iniciando Demo Pick-and-Place suave."));
     return true;
 }
@@ -325,17 +329,37 @@ void processCommand(String line) {
     String up = line;
     up.toUpperCase();
 
+    // RELAX (paro inmediato) y telemetría STATUS/FK siempre permitidos
+    if (up == "RELAX") {
+        relaxAll();
+        lastOk = true; lastMsg = "Servos relajados";
+        return;
+    }
+    if (up == "STATUS" || up == "FK") {
+        printStatus();
+        return;
+    }
+    // Ronda 4 P0-3: durante la rampa obligatoria de reactivación (1200 ms), NINGÚN comando
+    // (incl. CENTER, RAW, DEMO, HERO, HOME, M, G, IK, IKG, IKGRIP, IKGG) puede cancelar trajActive,
+    // alterar demoRunning ni escribir PWM directo; solo RELAX aborta!
+    if (wakeRampActive) {
+        lastOk = false;
+        lastMsg = "Reactivando desde RELAX (espera fin de rampa 1200 ms)";
+        Serial.println(F("[GUARD] Comando bloqueado durante rampa de reactivacion 1200 ms (solo RELAX cancela)."));
+        return;
+    }
+
     if (up == "HERO") {
-        demoRunning = false;
         float tgt[5] = { AXES[0].q_hero, AXES[1].q_hero, AXES[2].q_hero, AXES[3].q_hero, AXES[4].q_hero };
         if (startQuinticMove(tgt, (uint32_t)DEFAULT_MOVE_MS)) {
+            demoRunning = false;
             lastOk = true; lastMsg = "Pose Heroe";
             Serial.println(F("[OK] Moviendo a Pose Heroe."));
         }
     } else if (up == "HOME") {
-        demoRunning = false;
         float tgt[5] = { AXES[0].q_home, AXES[1].q_home, AXES[2].q_home, AXES[3].q_home, AXES[4].q_home };
         if (startQuinticMove(tgt, (uint32_t)DEFAULT_MOVE_MS)) {
+            demoRunning = false;
             lastOk = true; lastMsg = "Home Vertical";
             Serial.println(F("[OK] Moviendo a Home."));
         }
@@ -346,11 +370,6 @@ void processCommand(String line) {
         if (startDemo()) {
             lastOk = true; lastMsg = "Demo Pick & Place";
         }
-    } else if (up == "RELAX") {
-        relaxAll();
-        lastOk = true; lastMsg = "Servos relajados";
-    } else if (up == "STATUS" || up == "FK") {
-        printStatus();
     } else if (up.startsWith("IKGRIP ")) {
         float x, y, z, phi, g = qCurr[4];
         long ms = (long)DEFAULT_MOVE_MS;
@@ -384,9 +403,11 @@ void processCommand(String line) {
         float t[5];
         long ms = (long)DEFAULT_MOVE_MS;
         if (sscanf(line.c_str() + 2, "%f %f %f %f %f %ld", &t[0], &t[1], &t[2], &t[3], &t[4], &ms) >= 5) {
-            demoRunning = false;
             lastOk = startQuinticMove(t, clampMoveMs(ms));
-            if (lastOk) lastMsg = "Movimiento FK quintico";
+            if (lastOk) {
+                demoRunning = false;
+                lastMsg = "Movimiento FK quintico";
+            }
         }
     } else if (up.startsWith("RAW ")) {
         int ch = 0, us = 1500;

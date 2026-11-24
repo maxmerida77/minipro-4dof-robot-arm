@@ -197,7 +197,7 @@ def main():
     clr_pca_bal = pca_sc_zmin - bal_zmax
     print("\n=== HOLGURAS CRÍTICAS DE TORNILLERÍA VERIFICADAS (RONDA 3) ===")
     print(f"  Retén J1 -> Duponts 23 mm          = {clr_ret_dup:+.3f} mm (cabezas M3×8 -> Dupont = {clr_retsc_dup:+.3f} mm)")
-    print(f"  Puntas M3×4 PCA -> Piso bandeja    = {clr_pca_tray_floor:+.3f} mm PLA+ macizo (hasta lastre = {clr_pca_bal:+.3f} mm)")
+    print(f"  Puntas M3×4 PCA -> Fondo bandeja   = {clr_pca_tray_floor:+.3f} mm (1.05 mm PLA+ macizo + 0.20 mm aire; hasta lastre = {clr_pca_bal:+.3f} mm)")
     print(f"  Tornillo M3×10 biela -> SG90 B-Rep = {clr_biela_sg90:+.3f} mm (10× margen vs 0.050 mm!)")
     assert clr_ret_dup >= 0.45 and clr_retsc_dup >= 0.55
     assert clr_pca_tray_floor >= 1.00 and clr_pca_bal >= 1.40

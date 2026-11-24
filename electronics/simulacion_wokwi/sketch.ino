@@ -334,21 +334,40 @@ static void handleCmd(String line) {
   String up = line;
   up.toUpperCase();
 
+  // RELAX (paro inmediato) y telemetría STATUS/FK siempre permitidos
+  if (up == "RELAX") {
+    relaxAll();
+    return;
+  }
+  if (up == "STATUS" || up == "FK") {
+    printStatus();
+    return;
+  }
+  // Ronda 4 P0-3: durante la rampa obligatoria de reactivación (1200 ms), NINGÚN comando
+  // (incl. CENTER, SWEEP, HERO, HOME, M, G, IK, IKGRIP) puede cancelar moving, alterar sweepActive ni escribir PWM!
+  if (wakeRampActive) {
+    Serial.println("[GUARD] Comando bloqueado durante rampa de reactivacion 1200 ms (solo RELAX cancela).");
+    return;
+  }
+
   if (up == "SWEEP") {
-    sweepActive = true;
-    sweepIdx = 0;
-    Serial.printf("[SWEEP] %s\n", SWEEP_SEQ[0].label);
-    startMove(SWEEP_SEQ[0].q, SWEEP_SEQ[0].durMs);
+    if (startMove(SWEEP_SEQ[0].q, SWEEP_SEQ[0].durMs)) {
+      sweepActive = true;
+      sweepIdx = 0;
+      Serial.printf("[SWEEP] %s\n", SWEEP_SEQ[0].label);
+    }
   } else if (up == "HERO") {
-    sweepActive = false;
     float q[5] = { 0, 68, -96, 28, 15 };
-    startMove(q, 1100);
-    Serial.println("[OK] Moviendo a Pose Héroe v4");
+    if (startMove(q, 1100)) {
+      sweepActive = false;
+      Serial.println("[OK] Moviendo a Pose Héroe v4");
+    }
   } else if (up == "HOME") {
-    sweepActive = false;
     float q[5] = { 0, 90, -90, 0, 15 };
-    startMove(q, 1100);
-    Serial.println("[OK] Moviendo a HOME v4");
+    if (startMove(q, 1100)) {
+      sweepActive = false;
+      Serial.println("[OK] Moviendo a HOME v4");
+    }
   } else if (up == "CENTER") {
     sweepActive = false;
     relaxed = false;
@@ -361,18 +380,14 @@ static void handleCmd(String line) {
     curQ[4] = targetQ[4] = startQ[4] = GRIP_NOMINAL_OPEN_MM;
     writeUs(4, logicalToUs(4, curQ[4]));
     Serial.println("[OK] CENTER: CH0..CH3 en 1500 us + estado interno resincronizado");
-  } else if (up == "RELAX") {
-    relaxAll();
-  } else if (up == "STATUS" || up == "FK") {
-    printStatus();
   } else if (up.startsWith("IKGRIP ")) {
-    sweepActive = false;
     float x, y, z, phi, g = curQ[4], dur = 1100.0f;
     if (sscanf(line.c_str() + 7, "%f %f %f %f %f %f", &x, &y, &z, &phi, &g, &dur) >= 4) {
       float qs[4]; String err;
       if (computeIK(x, y, z, phi, qs, err, curQ[0], gripMmToTcpX(g), 5.80f)) {
         float q[5] = { qs[0], qs[1], qs[2], qs[3], g };
         if (startMove(q, dur)) {
+          sweepActive = false;
           Serial.printf("[IKGRIP OK] (%.1f, %.1f, %.1f, phi=%.1f, g=%.1f) -> q=(%.1f, %.1f, %.1f, %.1f) en %.0f ms\n",
                         x, y, z, phi, g, qs[0], qs[1], qs[2], qs[3], dur);
         }
@@ -383,13 +398,13 @@ static void handleCmd(String line) {
       Serial.println("[ERR] Uso: IKGRIP x y z phi [grip_mm] [ms]");
     }
   } else if (up.startsWith("IK ")) {
-    sweepActive = false;
     float x, y, z, phi, g = curQ[4], dur = 1100.0f;
     if (sscanf(line.c_str() + 3, "%f %f %f %f %f %f", &x, &y, &z, &phi, &g, &dur) >= 4) {
       float qs[4]; String err;
       if (computeIK(x, y, z, phi, qs, err, curQ[0])) {
         float q[5] = { qs[0], qs[1], qs[2], qs[3], g };
         if (startMove(q, dur)) {
+          sweepActive = false;
           Serial.printf("[IK OK] (%.1f, %.1f, %.1f, phi=%.1f) -> q=(%.1f, %.1f, %.1f, %.1f) en %.0f ms\n",
                         x, y, z, phi, qs[0], qs[1], qs[2], qs[3], dur);
         }
@@ -400,12 +415,12 @@ static void handleCmd(String line) {
       Serial.println("[ERR] Uso: IK x y z phi [grip_mm] [ms]");
     }
   } else if (up.startsWith("M ") || up.startsWith("G ")) {
-    sweepActive = false;
     float q[5] = { curQ[0], curQ[1], curQ[2], curQ[3], curQ[4] };
     float dur = up.startsWith("G ") ? 120.0f : 1100.0f;
     int n = sscanf(line.c_str() + 2, "%f %f %f %f %f %f", &q[0], &q[1], &q[2], &q[3], &q[4], &dur);
     if (n >= 5) {
       if (startMove(q, dur)) {
+        sweepActive = false;
         Serial.printf("[OK] Target=(%.1f, %.1f, %.1f, %.1f, %.1fmm) en %.0f ms\n",
                       q[0], q[1], q[2], q[3], q[4], dur);
       }
